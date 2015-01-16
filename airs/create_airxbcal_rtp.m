@@ -1,4 +1,4 @@
-function create_airxbcal_rtp(doy, year)
+%function create_airxbcal_rtp(doy, year)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -13,10 +13,11 @@ function create_airxbcal_rtp(doy, year)
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
-
+doy = 100; year = 2013;
 %---------------- Paths --------------
 addpath /asl/matlib/h4tools
 addpath /asl/matlib/rtptools
+addpath /asl/matlib/science
 
 % Path to new rtp_prod software
 custom_path = '/strow/Git/rtp_prod2';
@@ -43,10 +44,11 @@ fn = dir(fullfile(indir, '*.hdf'));
 if length(fn) ~= 1
    disp('Note: Two files present, incorrect!');
 end
+fnfull = fullfile(indir,fn.name);
 
 %---------------- Main --------------
 % Read the AIRXBCAL file
-[prof, pattr, aux] = read_airxbcal(fn);
+[prof, pattr, aux] = read_airxbcal(fnfull);
 
 % Header 
 head = struct;
@@ -86,7 +88,7 @@ end
 % rtpwrite(xxx,head,hattr,prof,pattr)
 
 % Add in model data
-[prof,head]=fill_ecmwf(prof,head);
+[prof,head]=fill_era(prof,head);
 head.pfields = 5;
 
 % Don't use Sergio's SST fix for now
@@ -103,7 +105,7 @@ rtpwrite('/home/strow/test1.rtp',head,hattr,prof,pattr)
 
 % Klayers
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-klayers_run = [klayers_exec ' fin=test1.rtp fout=test2.rtp'];
+klayers_run = [klayers_exec ' fin=test1.rtp fout=test2.rtp > /asl/s1/strow/kout.txt'];
 unix(klayers_run);
 
 % Sarta, pick depending on date

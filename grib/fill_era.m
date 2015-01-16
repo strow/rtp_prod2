@@ -87,7 +87,7 @@ for i=1:n
 % Hybrid parameters
 % levid = 1 is top of atmosphere
 % b are the sortedd level IDs   
-       prof.nlevs = ones(1,length(k))*length(F(fhi).levid);
+%       prof.nlevs = ones(1,length(k))*length(F(fhi).levid);
        [b,j]=sort(F(fhi).levid);
        for l=1:length(F(fhi).levid)
           prof.ptemp(l,k) = F(fhi).t(j(l)).ig(rlat,rlon);
@@ -100,6 +100,7 @@ for i=1:n
 % Only want pressure levels in grib file, in order
        xtemp = p60_ecmwf(prof.spres(k));  % all 137 pressure levels
        prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
+       prof.nlevs(k) = length(F(fhi).levid);
    end
    fhi = fhi + 1;
 end
