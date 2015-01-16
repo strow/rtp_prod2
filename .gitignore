@@ -1,0 +1,40 @@
+#
+# ccast git ignore file
+#
+
+# data & misc
+*.h5
+*.hdf
+*.mat
+*.log
+*.core
+
+# tex & docs
+*.aux
+*.toc
+*.snm
+*.nav
+*.out
+*.pdf
+*.png
+
+# archives and packages
+*.gz
+*.tgz
+*.tar
+*.zip
+*.bz2
+
+# libs and object files
+*.a
+*.o
+*.so
+*.mexa64
+
+# backup files
+*.svn
+*.bak
+*~
+
+# Don't ignore a few .mat files
+!test.mat

@@ -1,0 +1,52 @@
+Input:
+
+cell array airxbcal{} with names of variables needed
+
+cell array rtpname{} with names that map to the above
+
+Can't use udefs for the above, do them separately
+
+
+for i=1:length(airxbcal}
+
+  prof.rtpname{i} = hdfsw('readfield',swath_id,airxbcal{i},[],[],[])
+
+%  [junk, s] = hdfsw('readfield',swath_id, fstr, [],[],[]);
+end
+
+
+I don't know why they are using hdfsw, how about just
+
+hdfread(fn,varname)?
+
+airxbcal = {'avnsst','junk'}
+
+for i=1:length(airxbcal)
+  p.(rtpname{i}) = hdfread(fn,airxbcal{i})
+end
+
+
+
+p.('sst') = hdfread(fn,k{1});
+
+works great!
+
+for udefs
+   
+   udefi = [1,2,3,5,10];
+   airxbcal_udef = {'cxq2','xxx','whatever'}   
+   
+for i=1:length(udefi)
+   p.udef(udefi(i),:) = hdfread(fn,airxbcal_udef{i});
+end
+
+airxbcal{} cell array of names (hardcoded rtp prof.xxx)
+airxbcal_udef{} cell array of udef names (go into prof.udef(x,:))
+
+rtpname{} rtp names to go one-to-one with airxbcal{} names
+udefi = [1,2,3,...]  udef indices that go with rtpname{}
+         
+looks like the two vis indicators come in 2 sets of 3, will
+         have to do special case for those, just code by hand
+         
+         
