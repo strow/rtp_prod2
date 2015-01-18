@@ -85,7 +85,16 @@ for i = 1:n
       prof.ciwc(l,k)  = F.ciwc(j(l)).ig(rlat,rlon);
    end
 % Only want pressure levels in grib file, in order
-   xtemp = p137_ecmwf(prof.spres(k));  % all 137 pressure levels
+% Is this a 91 or 137 level forecast?
+% Note: On June 25, 2013 ECMWF moved to 137 levels, and they selected
+% 91 of these to send to us!!  Need to map them correctly!
+% Need to check, how many levels in Sept. 1, 2092 ECMWF?
+   max_lev = max(F.levid);
+   if max_lev > 91
+      xtemp = p137_ecmwf(prof.spres(k));
+   if max_lev < 92
+      xtemp = p91_ecmwf(prof.spres(k));
+   end
    prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
    prof.nlevs(k) = length(F.levid);
 end
