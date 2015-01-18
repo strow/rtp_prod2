@@ -88,7 +88,8 @@ end
 % rtpwrite(xxx,head,hattr,prof,pattr)
 
 % Add in model data
-[prof,head]=fill_era(prof,head);
+% [prof,head]=fill_era(prof,head);
+[prof,head]=fill_ecmwf(prof,head);
 head.pfields = 5;
 
 % Don't use Sergio's SST fix for now
@@ -101,17 +102,17 @@ head.pfields = 5;
 [head,hattr,prof,pattr]=rtpadd_emis_DanZhou(head,hattr,prof,pattr);
 
 % Save the rtp file
-rtpwrite('/home/strow/test1.rtp',head,hattr,prof,pattr)
+rtpwrite('/home/strow/test1_ecmwf.rtp',head,hattr,prof,pattr)
 
 % Klayers
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-klayers_run = [klayers_exec ' fin=test1.rtp fout=test2.rtp > /asl/s1/strow/kout.txt'];
+klayers_run = [klayers_exec ' fin=test1_ecmwf.rtp fout=test2_ecmwf.rtp > /asl/s1/strow/kout.txt'];
 unix(klayers_run);
 
 % Sarta, pick depending on date
 % /asl/packages/sartaV108/BinV201/sarta_airs_PGEv6_preNov2003_wcon_nte
 sarta_exec = '/asl/packages/sartaV108/BinV201/sarta_airs_PGEv6_postNov2003_wcon_nte'
-sarta_run = [sarta_exec ' fin=test2.rtp fout=finalfile.rtp'];
+sarta_run = [sarta_exec ' fin=test2_ecmwf.rtp fout=finalfile_ecmwf.rtp'];
 unix(sarta_run);
 
 %{
