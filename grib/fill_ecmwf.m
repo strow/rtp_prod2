@@ -92,7 +92,7 @@ for i = 1:n
    max_lev = max(F.levid);
    if max_lev > 91
       xtemp = p137_ecmwf(prof.spres(k));
-   if max_lev < 92
+   else
       xtemp = p91_ecmwf(prof.spres(k));
    end
    prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
