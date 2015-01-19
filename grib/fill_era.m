@@ -58,7 +58,7 @@ for i=1:n
    u_hour = unique(hourindex);
    nn = length(u_hour);
    for jj=1:nn
-       fhi = 1;
+       fhi = jj;
        l = find( hourindex == u_hour(jj));
        k = intersect(l,m);       
    

@@ -89,7 +89,7 @@ end
 
 % Add in model data
 % [prof,head]=fill_era(prof,head);
-[prof,head]=fill_ecmwf(prof,head);
+[prof,head]=fill_era(prof,head);
 head.pfields = 5;
 
 % Don't use Sergio's SST fix for now
