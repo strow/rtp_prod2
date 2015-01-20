@@ -4,7 +4,7 @@
 %
 % Start with fill_ecmwf.m and modify for ERA
 
-function [prof, head] = fill_era(prof, head);
+function [prof, head] = fill_era(prof, head)
 
 addpath /asl/matlib/aslutil
 
@@ -30,7 +30,7 @@ hourindex = str2num(hstr);
 
 enames = [ystr mstr dstr];
 enames = cellstr(enames);
-[u_enames, ia, ic] = unique(enames);
+[u_enames, ~, ic] = unique(enames);
 n = length(u_enames); % Generally 2 names for 1 day's worth of data
 
 for i=1:n
@@ -54,12 +54,10 @@ for i=1:n
    end   
 % Fill rtp fields
    m = find( ic == i );  % indices of first era file
-   fhi = 0;
    u_hour = unique(hourindex);
    nn = length(u_hour);
-   for jj=1:nn
-       fhi = jj;
-       l = find( hourindex == u_hour(jj));
+   for fhi = 1:nn
+       l = find( hourindex == u_hour(fhi));
        k = intersect(l,m);       
    
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation

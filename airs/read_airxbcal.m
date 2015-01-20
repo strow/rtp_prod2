@@ -78,6 +78,7 @@ prof.udef([14 15 16],:) = hdfread(fn,'VisMean')';
 %  airxbcal_iudef and airxbcal_udef cell arrays.  You must initialize
 %  the headers (here "profiles"), done in next command.
 pattr = set_attr('profiles','robs1',fn);
+pattr = set_attr(pattr,'rtime','Epoch','1993-01-01');
 % iudef attributes
 pattr = set_attr(pattr, 'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
 pattr = set_attr(pattr, 'iudef(2,:)','Fixed site number {sitenum}');
