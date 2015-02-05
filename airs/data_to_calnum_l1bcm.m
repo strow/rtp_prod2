@@ -98,8 +98,8 @@ gind = round(granule_number + 1); % exact integer 1:241
 % Convert nen to nedt
 ibad = find(nen < 0);
 nen(ibad) = 1;
-r250 = ttorad(freq,250);
-nedt = radtot(freq,r250*ones(1,241)+nen) - 250;
+r250 = bt2rad(freq,250);
+nedt = rad2bt(freq,r250*ones(1,241)+nen) - 250;
 nedt(ibad ) = 100; % bigger than last lookup table value
 nedt = nedt(:,gind); % convert [2378 x 241] to [2378 x nobs]
 %

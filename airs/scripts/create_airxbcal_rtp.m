@@ -14,6 +14,8 @@
 %
 % DISCUSSION (TBD)
 
+addpath /asl/matlib/h4tools
+
 airs_doy = 239; airs_year = 2013;
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';

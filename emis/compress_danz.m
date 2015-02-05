@@ -3,10 +3,10 @@
 % Compress DanZ's emissivities (quicker than his approach)
 % Run this code after generating global u basis vectors
 
-load_fiasi
+load ../iasi/iasi_f
 
 % Get global basis u vectors, and 12-month mean offset
-load u_vector_global  % u and em
+load Data/u_vector_global;  % u and em
 
 % Data location and names
 fnh = 'DanZ_data';
@@ -26,6 +26,7 @@ fn(12).name = 'IASI_FEMI_CLIMATOLOGY_12_2007-2012.bin';
 ci_all = zeros(12,10,259200);
 
 for fni=1:12
+   fni
    clear emis
    [emis,e] = read_danz(fullfile(fnh,fn(fni).name));
 % Get rid of bad data, a/c to Dan, and I found bad data for landflag >1
