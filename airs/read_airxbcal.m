@@ -18,8 +18,6 @@ if length(strfind(fn,'L1B.Cal_Subset')) == 0
    disp('Warning!! Doesn''t appear to be an AIRXBCAL file')
 end
 
-addpath /asl/matlib/rtptools
-
 %------------------------------------------------------------------------------
 % Assign variable names
 %------------------------------------------------------------------------------
@@ -56,6 +54,14 @@ prof.robs1 = hdfread(fn,'radiances')';
 for i=1:length(airxbcal)
   prof.(airxbcal{i,2}) = cell2mat(hdfread(fn,airxbcal{i,1}));
 end
+% Correct prof.rtime to TAI-UT1 from AIRS TAI93
+% See http://newsroom.gsfc.nasa.gov/sdptoolkit/primer/time_notes.html#TAI
+% TAI93 zero time is UTC 12 AM 1-1-1993.  To convert to TAI-UT1 we
+% must add the seconds from that date to 12 AM 1-1-1958 *and* add in
+% the 27 leap seconds from 1958 to 1993 (since EOS used a UTC time as
+% the start date).  mtime = datetime(1958,1,1,0,0,prof.rtime);
+seconds1958to1993 = 12784 * 86400 + 27;
+prof.rtime = prof.rtime + seconds1958to1993;
 
 % Read udefs
 for i=1:length(airxbcal_udef)
@@ -78,7 +84,7 @@ prof.udef([14 15 16],:) = hdfread(fn,'VisMean')';
 %  airxbcal_iudef and airxbcal_udef cell arrays.  You must initialize
 %  the headers (here "profiles"), done in next command.
 pattr = set_attr('profiles','robs1',fn);
-pattr = set_attr(pattr,'rtime','Epoch','1993-01-01');
+pattr = set_attr(pattr,'rtime','TAI:1958');
 % iudef attributes
 pattr = set_attr(pattr, 'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
 pattr = set_attr(pattr, 'iudef(2,:)','Fixed site number {sitenum}');

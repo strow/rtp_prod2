@@ -12,12 +12,11 @@ addpath /asl/matlib/aslutil
 fhdr = '/asl/data/ecmwf_nc/';
 
 ename = '';  % This should be placed outside a rtp file loop
-%mtime = iasi2mattime(prof.rtime);
-mtime = tai2mattime(prof.rtime);
-% Need for AIRS mtime = tai2mattime(prof.rtime);
+mtime = datetime(1958,1,1,0,0,prof.rtime);
 
 % Get a cell array of ecmwf grib files for each time
-enames = get_enames(mtime);
+% I think this will be BROKEN if using datetime above!!
+enames = get_ecmwf_enames(mtime);
 
 % Find the unique grib files and indices that go with them
 [u_enames, ia, ic] = unique(enames);
@@ -98,6 +97,7 @@ for i = 1:n
    prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
    prof.nlevs(k) = length(F.levid);
 end
+prof.nlevs = int32(prof.nlevs);
 
 % Header info
 head.ptype = 0;

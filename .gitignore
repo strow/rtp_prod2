@@ -2,12 +2,16 @@
 # ccast git ignore file
 #
 
+emis/Data
+emis/DanZ_data
+
 # data & misc
 *.h5
 *.hdf
 *.mat
 *.log
 *.core
+*.rtp
 
 # tex & docs
 *.aux

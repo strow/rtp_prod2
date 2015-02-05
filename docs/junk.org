@@ -1,0 +1,174 @@
+#+TITLE: Driver Files
+#+OPTIONS: h:4 toc:nil num:0 author:nil
+
+
+* Introduction
+
+kCARTA stands for "kCompressed Atmospheric Radiative Transfer
+Algorithm." This is an infrared, "monochromatic" radiative transfer
+algorithm written for a one dimensional non-scattering Earth
+atmosphere. More documentation is found in "kcarta.pdf". This file
+shows the user how to set up the driver files found in the "Test"
+subdirectory.
+
+* Reminder about kCARTA database range
+
+As given out, the code was optimized for the 605 - 2830 spectral range
+which is the range covered by AIRS, IASA, CRiS, and HIRS and AERI
+instruments. However the code is flexible enough to allow optical depth
+and radiance calculations in other spectral bands. Since the FWHM of
+lines gets smaller (larger) as the wavenumbers get smaller (larger), the
+resolution of the database must change. Each file in each spectral range
+will contain 10000 points; so for example at the default 0.0025
+resolution of the main IR default band (605-2830 ), the files each span
+25 . We envisage the following :
+
+#+BEGIN_EXAMPLE
+      kcartachunks = 00080 : 0002.5 : 00150;  prefix = '/j';
+      kcartachunks = 00140 : 0005.0 : 00310;  prefix = '/k';
+      kcartachunks = 00300 : 0010.0 : 00510;  prefix = '/p';
+      kcartachunks = 00500 : 0015.0 : 00605;  prefix = '/q';
+      kcartachunks = 00605 : 0025.0 : 02830;  prefix = '/r'; ** default **
+      kcartachunks = 02830 : 0025.0 : 03580;  prefix = '/s';
+      kcartachunks = 03550 : 0100.0 : 05650;  prefix = '/m';
+      kcartachunks = 05550 : 0150.0 : 08350;  prefix = '/n';
+      kcartachunks = 08250 : 0250.0 : 12250;  prefix = '/o';
+      kcartachunks = 12000 : 0500.0 : 25000;  prefix = '/v';
+      kcartachunks = 25000 : 1000.0 : 44000;  prefix = '/u';
+#+END_EXAMPLE
+
+* Test directory
+
+Examples of two driverfiles, one which computes optical depths (based on
+a list the user supplies), and the other which computes radiances (and
+jacobians if asked). The user should carefully examine these files, as
+they provide a working outline of how to use this package. This subdir
+also includes two matlab files, containing radiances output using H2004
+and H2008.
+
+** Setting the paths
+
+The user needs to supply paths to where the solar files, continuum
+files, nlte files, klayers executables, optical depth database and
+reference profiles are; this is controlled via
+
+We will concentrate on the parameters that need to be set for kCARTA
+runs spanning 605-2830 . The variables set in this file fall into three
+categories:
+
+*** Category A: Solar datafiles, water continuum files, 4um CO2 chifiles
+
+
+|----------------+---------------------------------|
+|----------------+---------------------------------|
+| soldir         | path to solar files             |
+|----------------+---------------------------------|
+|----------------+---------------------------------|
+| nltedir        | path and name of NLTE files     |
+|----------------+---------------------------------|
+| co2ChiFilePath | path to 4 um CO2 files          |
+|----------------+---------------------------------|
+| cdir           | path to continuum files         |
+|----------------+---------------------------------|
+| cswt,cfwt      | self and forn continuum weights |
+|----------------+---------------------------------|
+
+*** Category B: Klayers executables and scratch space
+
+|-----------------------+----------------------------------------------------------------------------------|
+| klayers\_code.junkdir | path to scratch space for klayers input/output                                   |
+|-----------------------+----------------------------------------------------------------------------------|
+| klayers\_code.aeri    | path to klayers executable for AERI, (uplook, finer layers near ground)          |
+|-----------------------+----------------------------------------------------------------------------------|
+| klayers\_code.airs    | path to klayers executable for AIRS,IASI/CRiS (downlook, default klayers layers) |
+|-----------------------+----------------------------------------------------------------------------------|
+
+*** Category C: kCARTA database paths
+
+Depending on whether the user is using f77 binary files or Matlab binary
+files (as set $via$ iMatlab\_vs\_f77), the user is required to set the
+path to the reference profile (that was used to generate the database),
+as well as paths to where the database actually is. In addition, the
+user can set paths to different flavors of the database (eg H2000,
+H2004, H2008), depending on iHITRAN.
+
+If iMatlab\_vs\_f77 == +1 then the Matlab files are
+
+|-------+---------------------------|
+| kpath | path to compressed files  |
+|-------+---------------------------|
+| refp  | path to reference profile |
+|-------+---------------------------|
+
+while if iMatlab\_vs\_f77 == -1 then the f77 files are
+
+|----------+---------------------------------|
+| kdatadir | path to ieee-le f77 binary data |
+|----------+---------------------------------|
+| kpathh2o | subdir to h2o files             |
+|----------+---------------------------------|
+| kpathhDo | subdir to hDo files             |
+|----------+---------------------------------|
+| kpathco2 | subdir to co2 files             |
+|----------+---------------------------------|
+| kpathetc | subdir to all other gases       |
+|----------+---------------------------------|
+| refp     | path to reference profile       |
+|----------+---------------------------------|
+
+** Setting the control variables
+
+Depending what the user wants to do, the user sets the following
+parameters in a separate file : which HITRAN version to use, start/stop
+wavenumbers for the calculations, whether or not to do Jacobians, what
+output units for the Jacobians, what CKD version, and name of input rtp
+file. We will concentrate on textcolorblueuser\_set\_input\_downlook.m,
+the file used to generate radiances and/or jacobians; the file used to
+generate optical depths is very similar.
+
+As above, the parameters set in the file can be divided into a number of
+categories
+
+*** Category A : HITRAN controllers
+
+#+BEGIN_EXAMPLE
+ iHITRAN       sets the kCompressed directory 
+               choices are H2000,H2004,H2008
+
+ iMatlab\_vs\_f77  is the database is Matlab or ieee-le 
+                   iMatlab\_vs\_f77 = +1 use Matlab version
+                   iMatlab\_vs\_f77 = -1 use f77 version
+#+END_EXAMPLE
+** Running the code!
+
+Finally the user can commence the computation, calling one or the other
+of the routines named below (which call relevant files from above).
+
+#+BEGIN_EXAMPLE
+    dokcarta_downlook.m              compute RT
+    dokcarta_opticaldepths.m         compute optical depths
+#+END_EXAMPLE
+
+All the user has to do is make sure the correct user\_ files are called,
+at the top of these files.
+
+* VariablePressure
+
+This contains the main files a user should need This makes the code(s)
+slower. The structure and content of the directories is the same as
+before $viz$
+
+#+BEGIN_EXAMPLE
+    drwxr-xr-x 2 sergio pi_strow    10 Mar 24 04:49 Test
+    drwxr-xr-x 6 sergio pi_strow     8 Mar 23 11:58 private
+    drwxr-xr-x 3 sergio pi_strow     4 Mar 23 10:36 JACUP_VarPress
+    drwxr-xr-x 3 sergio pi_strow     4 Mar 23 10:35 JACDOWN_VarPress
+#+END_EXAMPLE
+
+$Test$ has dokcarta\_downlook.m, dokcarta\_uplook.m (very similar to the
+"downlook" case) and dokcarta\_opticaldepths.m.\\
+
+$JADOWN\_VarPress$ has jacobian routines for downlooking instruments\\
+
+$JACUP\_VarPress$ has jacobian routines for uplooking instruments\\
+

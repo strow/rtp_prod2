@@ -12,11 +12,9 @@ addpath /asl/matlib/aslutil
 fhdr = '/asl/data/era/';
 
 ename = '';  % This should be placed outside a rtp file loop
-%mtime = iasi2mattime(prof.rtime);
-mtime = tai2mattime(prof.rtime);
-% Need for AIRS mtime = tai2mattime(prof.rtime);
+mtime = datenum(1958,1,1,0,0,prof.rtime);
 
-% Get a cell array of ecmwf grib files for each time
+% Get a cell array of era grib files for each time
 % Round to get 4 forecast hours per day
 rmtime = round(mtime*4)/4;
 timestr = datestr(rmtime,'yyyymmddhh');
@@ -45,7 +43,7 @@ for i=1:n
 % If the filename has changed, re-load F   
    if ~strcmp(ename,fn) 
       clear F  % Probably not needed
-      disp('New file')
+%      disp('New file'); for debugging
       F(1) = grib_interpolate_era(fn_sfc,fn_lev,1);
       F(2) = grib_interpolate_era(fn_sfc,fn_lev,2);
       F(3) = grib_interpolate_era(fn_sfc,fn_lev,3);
@@ -102,6 +100,7 @@ for i=1:n
    end
    fhi = fhi + 1;
 end
+prof.nlevs = int32(prof.nlevs);
 
 % Header info
 head.ptype = 0;
