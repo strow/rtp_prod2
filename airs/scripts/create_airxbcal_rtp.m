@@ -17,9 +17,9 @@ function create_airxbcal_rtp(airs_doy, airs_year)
 % addpath /asl/matlib/h4tools
 
 % check OS environment for DBGAIRXBCAL
-bDEBUG = 0;  % debug data subsetting OFF by default
-if getenv('DBGAIRXBCAL')
-    dDEBUG = 1;
+bDEBUG = 1;  % debug data subsetting ON by default
+if upper(getenv('DBGAIRXBCAL')) == 'OFF'
+    dDEBUG = 0;
 end
 
 %airs_doy = 239; airs_year = 2013;
