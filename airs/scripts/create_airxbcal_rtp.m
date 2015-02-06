@@ -16,6 +16,12 @@ function create_airxbcal_rtp(airs_doy, airs_year)
 
 % addpath /asl/matlib/h4tools
 
+% check OS environment for DBGAIRXBCAL
+bDEBUG = 0;  % debug data subsetting OFF by default
+if getenv('DBGAIRXBCAL')
+    dDEBUG = 1;
+end
+
 %airs_doy = 239; airs_year = 2013;
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
@@ -41,7 +47,7 @@ fnfull = fullfile(indir,fn.name);
 % Read the AIRXBCAL file
 [prof, pattr, aux] = read_airxbcal(fnfull);
 
-disp('done readling file')
+disp('done reading file')
 
 % Header 
 head = struct;
@@ -73,14 +79,22 @@ if isfield(prof,'zobs')
 end
 
 % subset by 20 during debugging
-%prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
+if bDEBUG
+    % subset data 95% for faster debugging/testing runs 
+    prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
+end
 
 % Add in Scott's calflag
-matchedcalflag = mkmatchedcalflag(airs_year, airs_doy, prof);
-[prof.calflag cstr] = data_to_calnum_l1bcm(...
-          aux.nominal_freq, aux.NeN, ...
-          aux.CalChanSummary, ...
-          matchedcalflag', prof.rtime, prof.findex);
+matchedcalflag = transpose(mkmatchedcalflag(airs_year, airs_doy, prof));
+
+nobs = length(prof.robs1);
+for iobsidx = [1:1000:nobs]
+    iobsblock = [iobsidx:min(iobsidx+999,nobs)];
+    [prof.calflag(:, iobsblock) cstr] = data_to_calnum_l1bcm( ...
+        aux.nominal_freq, aux.NeN, aux.CalChanSummary, ...
+        matchedcalflag(:,  iobsblock), ...
+        prof.rtime(:, iobsblock), prof.findex(:, iobsblock));
+end
 
 disp('done with calflag')
 
