@@ -1,4 +1,4 @@
-function calflag = loadcalflag(yn, airs_doy, previous, findex)
+function calflag = loadcalflag(yn, airs_doy, previous)
 
 MATBASEDIR = '/asl/data/airs/AIRIBRAD_subset';
 
