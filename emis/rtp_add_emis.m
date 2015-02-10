@@ -35,7 +35,7 @@ k  = [k1 k2];
 efreqi = sort(k);
 clear k k1 k2
 % rtp need frequencies for these channels
-load ../../iasi/iasi_f
+load /asl/data/iremis/danz/iasi_f
 efreq = fiasi(efreqi);
 
 % Only ask emis_danz for land emissivities, any fraction

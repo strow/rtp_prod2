@@ -5,10 +5,6 @@ function [emis] = emis_danz(lat,lon,rtime,efreq);
 % Dan provides a monthly climatology, here we do both
 % temporal and spatial linear interpolation.
 
-% For seq_match to get closest IASI channels to efreq
-% Put in standard location soon
-addpath ../../util
-
 % danz interpolant is big, keep it around
 persistent danz
 if isempty(danz)
@@ -33,7 +29,7 @@ end
 
 % Expand with basis vectors u
 % First, find id's of IASI channels we will use; hard-code later?
-load ../../iasi/iasi_f  % Needs to be put in standard location soon
+load /asl/data/iremis/danz/iasi_f
 [ichan, ~] = seq_match(fiasi,efreq);
 emis = u(ichan,:)*newc;
 
