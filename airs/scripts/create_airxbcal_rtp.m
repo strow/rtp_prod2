@@ -1,4 +1,4 @@
-function create_airxbcal_rtp(airs_doy, airs_year)
+ function create_airxbcal_rtp(airs_doy, airs_year)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -17,9 +17,10 @@ function create_airxbcal_rtp(airs_doy, airs_year)
 % addpath /asl/matlib/h4tools
 
 % check OS environment for DBGAIRXBCAL
-bDEBUG = 1;  % debug data subsetting ON by default
-if upper(getenv('DBGAIRXBCAL')) == 'OFF'
-    dDEBUG = 0;
+bDEBUG = 0;  % debug data subsetting OFF by default
+if strcmp(upper(getenv('DBGAIRXBCAL')), 'ON');
+    dDEBUG = 1;
+    fprintf(1, '>>>*** DEBUG/SUBSET ON AND RECOGNIZED ***');
 end
 
 %airs_doy = 239; airs_year = 2013;
@@ -81,11 +82,18 @@ end
 % subset by 20 during debugging
 if bDEBUG
     % subset data 95% for faster debugging/testing runs 
+    fprintf(1, '>>> create_airxbcal_rtp :: subsetting data');
     prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
 end
 
 % Add in Scott's calflag
-matchedcalflag = transpose(mkmatchedcalflag(airs_year, airs_doy, prof));
+[status, tmatchedcalflag] = mkmatchedcalflag(airs_year, airs_doy, ...
+                                            prof);
+if status == 99
+    return;
+end
+
+matchedcalflag = transpose(tmatchedcalflag);
 
 nobs = length(prof.robs1);
 for iobsidx = [1:1000:nobs]
@@ -115,23 +123,31 @@ head.pfields = 5;
 disp('done with add emis')
 
 % Save the rtp file
-fn_rtp1 = tempname;
-fn_rtp1 = [fn_rtp1 '.rtp'];
+sNodeID = getenv('SLURM_PROCID');
+sTempPath = getenv('JOB_SCRATCH_DIR');
+fn_rtp1 = fullfile(sTempPath, [sNodeID '_1.rtp']);
+if bDEBUG
+    fprintf(1, '>>> fn_rtp1 = %s\n', fn_rtp1);
+end
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 
 disp('saved first rtp file')
 
 % run klayers
-fn_rtp2 = tempname;
-fn_rtp2 = [fn_rtp2 '.rtp'];
+fn_rtp2 = fullfile(sTempPath, [sNodeID '_2.rtp']);
+if bDEBUG
+    fprintf(1, '>>> fn_rtp2 = %s\n', fn_rtp2);
+end
 klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > /asl/s1/strow/kout.txt'];
 unix(klayers_run);
 
 disp('done with klayers')
 
 % Run sarta
-fn_rtp3 = tempname;
-fn_rtp3 = [fn_rtp3 '.rtp'];
+fn_rtp3 = fullfile(sTempPath, [sNodeID '_3.rtp']);
+if bDEBUG
+    fprintf(1, '>>> fn_rtp3 = %s\n', fn_rtp3);
+end
 sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ];
 %sarta_run = [sarta_exec ' fin=test2_ecmwf.rtp fout=finalfile_ecmwf.rtp'];
 unix(sarta_run);
@@ -142,6 +158,10 @@ disp('done with sarta')
 [h,ha,p,pa] = rtpread(fn_rtp3);
 prof.rcalc = p.rcalc;
 head.pfields = 7;
+
+% temporary files are no longer needed. delete them to make sure we
+% don't fill up the scratch drive.
+delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
 % Subset into four types and save separately
 iclear = find(bitget(prof.iudef(1,:),1));
@@ -155,27 +175,31 @@ prof_dcc   = rtp_sub_prof(prof,idcc);
 prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
-if exist(fullfile(airxbcal_out_dir,airs_yearstr)) == 0
-   mkdir(airxbcal_out_dir,airs_yearstr);
+asType = {'clear', 'site', 'dcc', 'random'};
+for i = 1:length(asType)
+    sPath = fullfile(airxbcal_out_dir,airs_yearstr,char(asType(i)));
+    if exist(sPath) == 0
+        mkdir(sPath);
+    end
 end
 
 rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 
 rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr,rtp_out_fn);
+rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
 
 rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr,rtp_out_fn);
+rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(2)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
 
 rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr,rtp_out_fn);
+rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(3)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
 
 rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
-rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr,rtp_out_fn);
+rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(4)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
 
 
