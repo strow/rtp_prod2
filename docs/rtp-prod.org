@@ -1,0 +1,63 @@
+* COMMENT Export code
+#+EXPORT_SELECT_TAGS: 
+#+LaTeX_CLASS: article
+#+LaTeX_HEADER: \input /Users/strow/Tex/Templates/article_setup
+#+TITLE: rtp-prod
+#+LaTeX_CLASS_OPTIONS: [11pt]
+#+OPTIONS: h:4 toc:nil num:0 author:nil
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://asl.umbc.edu/images/asl.css" />
+
+* Structure of Source Code Tree
+
+TBD
+
+* Data Inputs
+
+=rtp-prod= presently only supports two data inputs, see the table below.
+
+|-----------+-----------+---------------+------------|
+| Satellite | Full Data | Clear Subset  | NWP-Model  |
+|-----------+-----------+---------------+------------|
+| AIRS      | Yes       | Yes: AIRXBCAL | ERA, ECMWF |
+|-----------+-----------+---------------+------------|
+| CrIS      | Yes       | No            | ERA, ECMWF |
+|-----------+-----------+---------------+------------|
+| IASI-1    | No        | No            | N/A        |
+|-----------+-----------+---------------+------------|
+  
+
+* Running the Test Script
+
+Test scripts are provided for each instrument.  (Presently this exists
+only for AIRS).
+
+The AIRS test script is =airs/scripts/create_airxbcal_rtp.m=.  You
+should be able to run this script as is *after* editing the associate
+Mfile =set_process_dirs.m=.  This script specifies the location of the
+=rtp_prod= package and where you want to save the output rtp file.  
+
+This script assumes that the AIRS data is in the standard ASL
+directories. (Need a link here to definition of ASL data storage
+locations.) 
+
+* Design Approach and Limitations
+
+** Emissivity (=emis= directory)
+
+The land surface emissivity from Dan Zhou (NASA Langley) is a one-year
+climatology from 2007/2008.  Yearly changed you are most likely to see
+are due to variations in snow cover, and possibly land-use changes. 
+
+The emissivities provided by Dan Zhou are processed by TBD...
+
+Data files are in TBD...
+
+** NWP Model (=grib= directory)
+
+The NWP model data is assumed to be in netcdf format.  See (TBD link)
+on how to convert ECMWF data to netcdf format.  The ERA data is
+downloaded directly in netcdf format from ECMWF.
+
+The code will automatically use the correct pressure layering scheme
+for ERA and for recent ECMWF model data.  Additional coding is needed
+to use the 60-layer ECMWF model data present in earlier ECMWF data.

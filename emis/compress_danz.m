@@ -6,7 +6,11 @@
 load ../iasi/iasi_f
 
 % Get global basis u vectors, and 12-month mean offset
+<<<<<<< HEAD
+load Data/u_vector_global  % u and em
+=======
 load Data/u_vector_global;  % u and em
+>>>>>>> 745bffd9f4821a4a94d4a22981e3b1966e67695e
 
 % Data location and names
 fnh = 'DanZ_data';
@@ -53,5 +57,5 @@ lat = e.lat;
 lon = e.lon;
 spres = e.spres;
 
-save ci_all_no_nan ci_all landflag lat lon spres
+%save ci_all_no_nan ci_all landflag lat lon spres
 

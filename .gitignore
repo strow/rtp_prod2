@@ -42,3 +42,22 @@ emis/DanZ_data
 
 # Don't ignore a few .mat files
 !test.mat
+
+$ sphinx stuff
+docs/_build/*
+
+/docs/_build/doctrees/environment.pickle
+/docs/_build/doctrees/index.doctree
+/docs/_build/doctrees/rtp-prod.doctree
+/docs/_build/doctrees/rtp_prod.doctree
+/docs/_build/html/README.html
+/docs/_build/html/_sources/index.txt
+/docs/_build/html/_sources/rtp-prod.txt
+/docs/_build/html/_sources/rtp_prod.txt
+/docs/_build/html/genindex.html
+/docs/_build/html/index.html
+/docs/_build/html/junk.html
+/docs/_build/html/rtp-prod.html
+/docs/_build/html/rtp_prod.html
+/docs/_build/html/search.html
+/docs/_build/html/searchindex.js
