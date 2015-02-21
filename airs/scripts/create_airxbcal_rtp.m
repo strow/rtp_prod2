@@ -14,17 +14,6 @@
 %
 % DISCUSSION (TBD)
 
-% addpath /asl/matlib/h4tools
-
-% check OS environment for DBGAIRXBCAL
-bDEBUG = 0;  % debug data subsetting OFF by default
-if strcmp(upper(getenv('DBGAIRXBCAL')), 'ON');
-    dDEBUG = 1;
-    fprintf(1, '>>>*** DEBUG/SUBSET ON AND RECOGNIZED ***');
-end
-
-%airs_doy = 239; airs_year = 2013;
-
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
@@ -38,17 +27,49 @@ dn = '/asl/data/airs/AIRXBCAL';
 airs_doystr  = sprintf('%03d',airs_doy);
 airs_yearstr = sprintf('%4d',airs_year);
 
+% check to see if the clear output file already exists. If it does,
+% return to caller.
+fn = dir(fullfile(airxbcal_out_dir, airs_yearstr, 'clear', ...
+                     ['era_airxbcal_day' airs_doystr ...
+                    '_clear.rtp']));
+if length(fn) && (fn.bytes > 1000000000)
+    fprintf(1, ['>>> *** Clear output file already exists. Moving ' ...
+                'to next day']);
+    return;
+end
+
+
 indir = fullfile(dn, airs_yearstr, airs_doystr);
 fn = dir(fullfile(indir, '*.hdf'));
-if length(fn) ~= 1
-   disp('Note: Two files present, incorrect!');
+if (length(fn) > 1)
+    fprintf(1, ['>>> *** More than one input ARIXBCAL hdf file present. Terminating ' ...
+                'processing ***\n']);
+    return;
+elseif (length(fn) == 0)
+    fprintf(1, ['>>> *** No input AIRXBCAL hdf file available. Terminating ' ...
+                'processing ***\n']);
+    return;
 end
+
 fnfull = fullfile(indir,fn.name);
 
 % Read the AIRXBCAL file
+fprintf(1, '>>> Reading input file: %s   ', fnfull);
 [prof, pattr, aux] = read_airxbcal(fnfull);
+fprintf(1, 'Done\n');
 
-disp('done reading file')
+% subset if nobs is greater than threshold lmax (to avoid hdf file size
+% limitations and hdfvs() failures during rtp write/read
+% later). Keeps dcc, site and random obs intact and reduces number
+% of clear obs to meet threshold limit
+lmax = 72000;
+fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
+if length(prof.robs1) > lmax
+    fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
+    prof = sub_airxbcal(prof, lmax);
+    fprintf(1, 'Done ***\n');
+    fprintf(1, '>>> *** %d subset obs ***\n', length(prof.rtime));
+end
 
 % Header 
 head = struct;
@@ -79,17 +100,17 @@ if isfield(prof,'zobs')
    prof.zobs(iz) = prof.zobs(iz) * 1000;
 end
 
-% subset by 20 during debugging
-if bDEBUG
-    % subset data 95% for faster debugging/testing runs 
-    fprintf(1, '>>> create_airxbcal_rtp :: subsetting data');
-    prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
-end
-
 % Add in Scott's calflag
+fprintf(1, '>>> Matching calflags... ');
 [status, tmatchedcalflag] = mkmatchedcalflag(airs_year, airs_doy, ...
                                             prof);
 if status == 99
+    fprintf(1, ['>>> *** Corrupt meta data file. Terminating ' ...
+                'processing\n']); 
+    return;
+elseif status == 98
+    fprintf(1, ['>>> *** Calflag meta data file missing. Terminating ' ...
+                'processing\n']);
     return;
 end
 
@@ -104,11 +125,13 @@ for iobsidx = [1:1000:nobs]
         prof.rtime(:, iobsblock), prof.findex(:, iobsblock));
 end
 
-disp('done with calflag')
+fprintf(1, 'Done\n');
 
 % Add in model data
+fprintf(1, '>>> Running fill_era... ');
 [prof,head]  = fill_era(prof,head);
 head.pfields = 5;
+fprintf(1, 'Done\n');
 
 % Don't use Sergio's SST fix for now
 % [head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
@@ -118,43 +141,48 @@ head.pfields = 5;
 
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
+fprintf(1, '>>> Running rtp_ad_emis...');
 [prof,pattr] = rtp_add_emis(prof,pattr);
+fprintf(1, 'Done\n');
 
-disp('done with add emis')
 
 % Save the rtp file
+fprintf(1, '>>> Saving first rtp file... ');
 sNodeID = getenv('SLURM_PROCID');
-sTempPath = getenv('JOB_SCRATCH_DIR');
-fn_rtp1 = fullfile(sTempPath, [sNodeID '_1.rtp']);
-if bDEBUG
-    fprintf(1, '>>> fn_rtp1 = %s\n', fn_rtp1);
+sScratchPath = getenv('JOB_SCRATCH_DIR');
+if ~isempty(sNodeID) && ~isempty(sScratchPath)
+    sTempPath = sScratchPath;
+    sID = sNodeID;
+else
+    sTempPath = '/tmp';
+    rng('shuffle');
+    sID = sprintf('%03d', randi(999));
 end
+fn_rtp1 = fullfile(sTempPath, [sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
+fprintf(1, 'Done\n');
 
-disp('saved first rtp file')
 
 % run klayers
-fn_rtp2 = fullfile(sTempPath, [sNodeID '_2.rtp']);
-if bDEBUG
-    fprintf(1, '>>> fn_rtp2 = %s\n', fn_rtp2);
-end
+fprintf(1, '>>> running klayers... ');
+fn_rtp2 = fullfile(sTempPath, [sID '_2.rtp']);
 klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > /asl/s1/strow/kout.txt'];
 unix(klayers_run);
+fprintf(1, 'Done\n');
 
-disp('done with klayers')
 
 % Run sarta
-fn_rtp3 = fullfile(sTempPath, [sNodeID '_3.rtp']);
-if bDEBUG
-    fprintf(1, '>>> fn_rtp3 = %s\n', fn_rtp3);
-end
+fprintf(1, '>>> Running sarta... ');
+fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
 sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ];
 %sarta_run = [sarta_exec ' fin=test2_ecmwf.rtp fout=finalfile_ecmwf.rtp'];
 unix(sarta_run);
-
-disp('done with sarta')
+fprintf(1, 'Done\n');
 
 % Read in new rcalcs and insert into origin prof field
+stFileInfo = dir(fn_rtp3);
+fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+            '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
 [h,ha,p,pa] = rtpread(fn_rtp3);
 prof.rcalc = p.rcalc;
 head.pfields = 7;
@@ -185,7 +213,7 @@ end
 
 rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
-
+fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
 rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
@@ -201,7 +229,7 @@ rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
 rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
 rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(4)), rtp_out_fn);
 rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
-
+fprintf(1, 'Done\n');
 
 
             

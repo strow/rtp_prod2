@@ -1,35 +1,30 @@
 
-function run_airxbcal_batch(startdoy, startyear, enddoy, endyear)
+function run_airxbcal_batch(iTaskID)
 
-fprintf(1, '>> Executing run_airxbcal_batch');
-fprintf(1, ['>>>> startdoy = %03d\n>>>> startyear = %4d\n>>>> enddoy ' ...
-            '= %03d\n>>>> endyear = %4d\n\n'], startdoy, startyear, ...
-        enddoy, endyear);
+% pause to help elimnate db collisions on startup. Pause length is in
+% seconds, based on relative processor id. Once running, natural
+% variation in run length wil be our guard against collision. (no, not
+% ideal...)
+pause(str2num(getenv('SLURM_PROCID')));
 
-iProcID = str2num(getenv('SLURM_PROCID'));
-iNumProcs = str2num(getenv('SLURM_NPROCS'));
+while 1
+       
+    stJobEntry = pop_job_table(iTaskID);
+    iEntryID = stJobEntry.entry;
+    iDoy = stJobEntry.doy;
+    iYear = stJobEntry.year;
 
-% build start and end dates for this processor
-ydStartAll = sprintf('%4d%03d', startyear, startdoy);
-ydEndAll = sprintf('%4d%03d', endyear, enddoy);
-
-dtStart = datetime(ydStartAll, 'InputFormat', 'yyyyDDD')
-dtEnd = datetime(ydEndAll, 'InputFormat', 'yyyyDDD')
-
-dtDateList = dtStart:dtEnd;
-iNumDaysToProc = length(dtDateList);
-
-iDaysPerCore = floor(iNumDaysToProc/iNumProcs);
-iProcIndex = iProcID*iDaysPerCore;
-
-fprintf(1, ['>>>> ProcID = %d\n>>>> NumProcs = %d\n>>>> DaysPerCore ' ...
-            '= %d\n>>>> ProcIndex = %d\n>>> NumDays to proc = %d\n'], iProcID, iNumProcs, ...
-        iDaysPerCore, iProcIndex, iNumDaysToProc);
-for i=((iProcID*iDaysPerCore)+1):min(((iProcID+1)*iDaysPerCore), ...
-                                        length(dtDateList))
+    if iEntryID == 0
+        % nothing returned from db. Processing finished
+        break;
+    end
     fprintf(1, 'run_airxbcal_batch: processing day %d, year %d\n', ...
-            day(dtDateList(i), 'dayofyear'), year(dtDateList(i)))
+            iDoy, iYear)
 
-    create_airxbcal_rtp(day(dtDateList(i), 'dayofyear'), year(dtDateList(i)));
+    create_airxbcal_rtp(iDoy, iYear);
+
+    close_job_table_entry(iTaskID, iEntryID);
+
 end
+
 end
