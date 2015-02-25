@@ -1,4 +1,4 @@
- function create_airxbcal_rtp(airs_doy, airs_year)
+function create_airxbcal_rtp(airs_doy, airs_year)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -64,7 +64,7 @@ fprintf(1, 'Done\n');
 % of clear obs to meet threshold limit
 lmax = 72000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
-if length(prof.robs1) > lmax
+if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
     prof = sub_airxbcal(prof, lmax);
     fprintf(1, 'Done ***\n');

@@ -12,7 +12,7 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=long_contrib
+#SBATCH --qos=medium
 #SBATCH --account=pi_strow
 # #SBATCH --constraint=hpcf2013
 # #SBATCH --exclusive
