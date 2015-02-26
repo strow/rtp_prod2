@@ -1,5 +1,7 @@
-
 function run_airxbcal_batch(iTaskID)
+
+set_process_dirs
+addpath(genpath(rtp_sw_dir));
 
 % pause to help elimnate db collisions on startup. Pause length is in
 % seconds, based on relative processor id. Once running, natural
