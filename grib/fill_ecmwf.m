@@ -12,7 +12,9 @@ addpath /asl/matlib/aslutil
 fhdr = '/asl/data/ecmwf_nc/';
 
 ename = '';  % This should be placed outside a rtp file loop
-mtime = datetime(1958,1,1,0,0,prof.rtime);
+
+ntime = datetime(2000,1,1,0,0,prof.rtime);
+mtime = datenum(ntime);
 
 % Get a cell array of ecmwf grib files for each time
 % I think this will be BROKEN if using datetime above!!
