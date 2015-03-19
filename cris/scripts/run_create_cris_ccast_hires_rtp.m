@@ -1,13 +1,7 @@
-function create_rtp_hires(doy, year)
+function run_create_cris_ccast_hires_rtp(doy, year)
 % CREATE_RTP_HIRES  process a day of CrIS high-res data
 %
-% 
-
 set_process_dirs
-
-addpath(genpath('/asl/rtp_prod/cris'));
-% $$$ addpath ~/Work/Rtp
-% $$$ addpath /asl/matlib/aslutil
 
 % Create list of files to process
 sPath='/asl/data/cris/ccast/sdr60_hr';
@@ -27,12 +21,6 @@ for i=1:length(a)
 
    fnOutput = fullfile(cris_hires_out_dir, 
 end
-
-   
-
-   % call process_cris_hires to process this granule
-   process_cris_hires(fnInput, fnOutput)
-
-end
-
+% call process_cris_hires to process this granule
+create_cris_ccast_hires_rtp(fnInput, fnOutput)
 end  % end function

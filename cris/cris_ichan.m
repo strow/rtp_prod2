@@ -19,17 +19,18 @@
 %
 % AUTHOR
 %  H. Motteler, 18 Sep 2014
-%
+%  L. Strow, 18, Mar 2015: changed to reflect guard channels are
+%     defined to line up in order after the real channels.
 
 function ichan = cris_ichan(ng, n1, n2, n3)
 
-k0 = 0;
-k1 = k0 + n1 + 2 * ng;
-k2 = k1 + n2 + 2 * ng;
+% Total number of real channesl
+n = n1 + n2 + n3;
 
-G1 = k0 + (1:ng); B1 = k0 + ng + (1:n1); G2 = k0 + ng + n1 + (1:ng);
-G3 = k1 + (1:ng); B2 = k1 + ng + (1:n2); G4 = k1 + ng + n2 + (1:ng);
-G5 = k2 + (1:ng); B3 = k2 + ng + (1:n3); G6 = k2 + ng + n3 + (1:ng);
+% Guard channel ID's start after real channels
+G1 = n + (1:ng);       B1 = (1:n1);           G2 = G1(end) + (1:ng);
+G3 = G2(end) + (1:ng); B2 = B1(end) + (1:n2); G4 = G3(end) + (1:ng);
+G5 = G4(end) + (1:ng); B3 = B2(end) + (1:n3); G6 = G5(end) + (1:ng);
 
-ichan = [B1, B2, B3, G1, G2, G3, G4, G5, G6]';
+ichan = [G1, B1, G2, G3, B2, G4, G5, B3, G6]';
 

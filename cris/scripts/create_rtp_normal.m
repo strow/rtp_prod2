@@ -1,3 +1,5 @@
+% FILE NOT USABLE, needs rewrite following create_cris_ccast_hires_rtp.m
+
 fdir = '/asl/data/cris/sdr60/2012/136/';
 a = dir('/asl/data/cris/sdr60/2012/136/SCRIS_npp*.h5');
 
