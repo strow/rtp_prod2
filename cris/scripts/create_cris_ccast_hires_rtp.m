@@ -3,8 +3,11 @@ function create_cris_ccast_hires_rtp(fnCrisInput, fnCrisOutput)
 %
 % Process a single CrIS .mat granule file.
 
-% $$$ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-% $$$ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+%set_process_dirs;
+
+klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
+
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
@@ -29,7 +32,7 @@ rtpwrite(rtp1,head,hattr,prof,pattr)
 rtp2 = tempname;
 
 % run klayers
-unix(['/asl/packages/klayersV205/BinV201/klayers_airs_wetwater fin=' rtp1 ' fout=' rtp2 ' > klayers_stdout'])
+unix([klayers_exec ' fin=' rtp1 ' fout=' rtp2 ' > klayers_stdout'])
 [head, hattr, prof, pattr] = rtpread(rtp2);
 
 % Now run IASI SARTA 
@@ -50,7 +53,6 @@ if (isfield(prof,'calflag'))
 end
 % Run IASI SARTA
 load /asl/data/iremis/danz/iasi_f  % load fiasi
-SARTA='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 % First half of IASI
 head.nchan = 4231;
 head.ichan = (1:4231)';
@@ -59,7 +61,7 @@ rtpi = tempname;
 rtpwrite(rtpi,head,hattr,prof,pattr);
 rtprad = tempname;
 disp('running SARTA for IASI channels 1-4231')
-eval(['! ' SARTA ' fin=' rtpi ' fout=' rtprad ' > sartastdout1.txt']);
+eval(['! ' sarta_exec ' fin=' rtpi ' fout=' rtprad ' > sartastdout1.txt']);
 [head, hattr, prof, pattr] = rtpread(rtprad);
 rad_pt1 = prof.rcalc;
 % Second half of IASI
@@ -68,7 +70,7 @@ head.ichan = (4232:8461)';
 head.vchan = fiasi(4232:8461);
 rtpwrite(rtpi,head,hattr,prof,pattr);
 disp('running SARTA for IASI channels 4232-8461')
-eval(['! ' SARTA ' fin=' rtpi ' fout=' rtprad ' > sartastdout2.txt' ]);
+eval(['! ' sarta_exec ' fin=' rtpi ' fout=' rtprad ' > sartastdout2.txt' ]);
 [head, hattr, prof, pattr] = rtpread(rtprad);
 rad_pt2 = prof.rcalc;
 %
