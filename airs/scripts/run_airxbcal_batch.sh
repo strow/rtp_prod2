@@ -26,7 +26,7 @@ STARTYEAR=$2
 ENDDOY=$3
 ENDYEAR=$4
 
-JOBNAME=slb_job
+JOBNAME=create_airxbcal_rtp
 
 # get task_id
 TASKID=$SLURM_JOB_ID
@@ -40,7 +40,7 @@ LOGDIR=~/logs/sbatch
 DT=$(date +"%Y%m%d-%H%M%S")
 
 # run fill_job_table_range to create processing stack
-$MATLAB $MATOPTS -r "addpath /home/sbuczko1/git/rtp_prod2/airs; fill_job_table_range($STARTYEAR, $STARTDOY, $ENDYEAR, $ENDDOY, $TASKID, '$JOBNAME'); exit"
+$MATLAB $MATOPTS -r "addpath(genpath('/home/sbuczko1/git/rtp_prod2/')); fill_job_table_range($STARTYEAR, $STARTDOY, $ENDYEAR, $ENDDOY, $TASKID, '$JOBNAME'); exit"
 
 JOBSTEP=0
 

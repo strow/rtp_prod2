@@ -29,15 +29,14 @@ airs_yearstr = sprintf('%4d',airs_year);
 
 % check to see if the clear output file already exists. If it does,
 % return to caller.
-fn = dir(fullfile(airxbcal_out_dir, airs_yearstr, 'clear', ...
-                     ['era_airxbcal_day' airs_doystr ...
-                    '_clear.rtp']));
-if length(fn) && (fn.bytes > 1000000000)
-    fprintf(1, ['>>> *** Clear output file already exists. Moving ' ...
-                'to next day']);
-    return;
-end
-
+% $$$ fn = dir(fullfile(airxbcal_out_dir, airs_yearstr, 'clear', ...
+% $$$                      ['era_airxbcal_day' airs_doystr ...
+% $$$                     '_clear.rtp']));
+% $$$ if length(fn) && (fn.bytes > 1000000000)
+% $$$     fprintf(1, ['>>> *** Clear output file already exists. Moving ' ...
+% $$$                 'to next day']);
+% $$$     return;
+% $$$ end
 
 indir = fullfile(dn, airs_yearstr, airs_doystr);
 fn = dir(fullfile(indir, '*.hdf'));
@@ -100,6 +99,13 @@ if isfield(prof,'zobs')
    prof.zobs(iz) = prof.zobs(iz) * 1000;
 end
 
+% subset by 20 during debugging
+bDEBUG=1;
+if bDEBUG
+    % subset data 95% for faster debugging/testing runs
+    prof = rtp_sub_prof(prof,1:1:length(prof.rlat));
+end
+
 % Add in Scott's calflag
 fprintf(1, '>>> Matching calflags... ');
 [status, tmatchedcalflag] = mkmatchedcalflag(airs_year, airs_doy, ...
@@ -158,25 +164,27 @@ else
     rng('shuffle');
     sID = sprintf('%03d', randi(999));
 end
-fn_rtp1 = fullfile(sTempPath, [sID '_1.rtp']);
+fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
 
 
 % run klayers
 fprintf(1, '>>> running klayers... ');
-fn_rtp2 = fullfile(sTempPath, [sID '_2.rtp']);
+fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
 klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > /asl/s1/strow/kout.txt'];
 unix(klayers_run);
 fprintf(1, 'Done\n');
 
-
 % Run sarta
+% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
+% below for clear,site,etc?) make call to external shell script to
+% run 'N' copies of sarta backgrounded
 fprintf(1, '>>> Running sarta... ');
 fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ];
-%sarta_run = [sarta_exec ' fin=test2_ecmwf.rtp fout=finalfile_ecmwf.rtp'];
-unix(sarta_run);
+tic;
+psarta_run(fn_rtp2, fn_rtp3);
+toc;
 fprintf(1, 'Done\n');
 
 % Read in new rcalcs and insert into origin prof field
@@ -186,7 +194,7 @@ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
 [h,ha,p,pa] = rtpread(fn_rtp3);
 prof.rcalc = p.rcalc;
 head.pfields = 7;
-
+%keyboard
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
 delete(fn_rtp1, fn_rtp2, fn_rtp3);
