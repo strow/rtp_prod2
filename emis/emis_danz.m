@@ -20,10 +20,10 @@ newc = zeros(10,nobs);
 
 % Now figure out numerical months
 mtime = datetime(1993,1,1,0,0,rtime);
-mon = single(day(mtime,'dayofyear')/365);
+mon = double(day(mtime,'dayofyear')/365);
 % Find interpolated expansion coefficients (linear is default)
 for i=1:10
-   newc(i,:) = danz(i).emis(lon,lat,mon);
+    newc(i,:) = danz(i).emis(lon,lat,mon);
 end
 
 % Expand with basis vectors u

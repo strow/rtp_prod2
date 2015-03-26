@@ -1,4 +1,4 @@
-function psarta_run(fn_rtp_in, fn_rtp_out)
+function psarta_run(fn_rtp_in, fn_rtp_out, sartapath)
 % Run sarta in parallel by breaking input file into 8 pieces and
 % spawning 8 successive background jobs via the shell
 
@@ -27,8 +27,9 @@ fprintf(1, '\n');
 % call sarta shell script to kick off processing
 fprintf(1, '>>> Running run_psarta.sh\n');
 psartapath='~/git/rtp_prod2/airs';
-[status, cmdout] = system(sprintf('%s/%s %s %s', psartapath, ...
-                                  'run_psarta.sh', sScratchPath, sNodeID));
+[status, cmdout] = system(sprintf('%s/%s %s %s %s', psartapath, ...
+                                  'run_psarta.sh', sScratchPath, ...
+                                  sNodeID, sartapath));
 
 % *** concatenate 'N' sarta output files into a single rtp file
 % once again
@@ -41,7 +42,6 @@ fn_rtp_out
 rtpwrite(fn_rtp_out, h, ha, p, pa);
 
 % delete intermediate rtp files
-keyboard
 fprintf(1, '>>> Deleting temporary files\n');
 sRMcmd = sprintf('rm %s/psarta_%s_*_{in,out}.rtp', sScratchPath, sNodeID);
 [status, cmdout] = system(sRMcmd);

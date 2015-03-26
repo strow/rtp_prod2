@@ -183,7 +183,7 @@ fprintf(1, 'Done\n');
 fprintf(1, '>>> Running sarta... ');
 fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
 tic;
-psarta_run(fn_rtp2, fn_rtp3);
+psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
 toc;
 fprintf(1, 'Done\n');
 
