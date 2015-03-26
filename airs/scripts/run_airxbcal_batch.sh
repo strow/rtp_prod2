@@ -18,6 +18,9 @@
 # #SBATCH --exclusive
 #SBATCH --mem-per-cpu=18000
 
+# job table matlab functions
+JTDIR=~/git/slurmutil/matlab
+
 # start doy and year
 STARTDOY=$1
 STARTYEAR=$2
@@ -40,13 +43,15 @@ LOGDIR=~/logs/sbatch
 DT=$(date +"%Y%m%d-%H%M%S")
 
 # run fill_job_table_range to create processing stack
-$MATLAB $MATOPTS -r "addpath(genpath('/home/sbuczko1/git/rtp_prod2/')); fill_job_table_range($STARTYEAR, $STARTDOY, $ENDYEAR, $ENDDOY, $TASKID, '$JOBNAME'); exit"
+RTP_PROD2=/home/sbuczko1/git/rtp_prod2/airs
+JTUTILS=/home/sbuczko1/git/slurmutil/matlab
+$MATLAB $MATOPTS -r "addpath(genpath('$RTP_PROD2'), genpath('$JTUTILS')); fill_job_table_range($STARTYEAR, $STARTDOY, $ENDYEAR, $ENDDOY, $TASKID, '$JOBNAME'); exit"
 
 JOBSTEP=0
 
 echo "Executing srun of run_airxbcal_batch"
 srun --output=${LOGDIR}/run_create_airxbcal_rtp_$((++JOBSTEP))_%j_%t-${DT}.out \
-    $MATLAB $MATOPTS -r "run_airxbcal_batch($TASKID); exit"
+    $MATLAB $MATOPTS -r "addpath(genpath('$RTP_PROD2'), genpath('$JTUTILS')); run_airxbcal_batch($TASKID); exit"
     
 echo "Finished with srun of run_airxbcal_batch"
 
