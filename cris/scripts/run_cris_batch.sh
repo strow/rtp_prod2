@@ -32,7 +32,7 @@ RTP_PROD2=~/git/rtp_prod2
 
 echo "Executing srun of run_cris_batch"
 srun --output=${LOGDIR}/run_cris_rtp_$((++JOBSTEP))_%j_%t-${DT}.out \
-    $MATLAB $MATOPTS -r "addpath(genpath('$RTP_PROD2')); run_cris_batch; exit"
+    $MATLAB $MATOPT -r "addpath(genpath('$RTP_PROD2')); run_cris_batch; exit"
     
 echo "Finished with srun of run_cris_batch"
 
