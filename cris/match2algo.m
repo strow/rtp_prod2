@@ -1,10 +1,15 @@
-function algorads = match2algo(rtimes, fovids)
+function algorads = match2algo(rtimes, lats, lons)
 % MATCH2ALGO find cris algo test radiances matching rtime and FOVid
 %
 %
-% 
+%
 
+% cast rtimes from double to int64 to match GCRSO FORTime type for
+% later comparison
+rtimes = int64(rtimes);
 ndata = length(rtimes);
+
+algorads = struct;
 
 % LW has 717 spectral channels
 % MW has 869 spectral channels
@@ -46,49 +51,53 @@ for i = 1:ndata
         apath = sprintf('/asl/data/cris/sdr4/algo%d',j);
         
         searchstr = sprintf('GCRSO_npp_d%s_t%s*.h5', dstr, hstr);
-        sfiles = dir(fullfile(apath, syear, sdoy, searchstr));
+        gfiles = dir(fullfile(apath, syear, sdoy, searchstr));
 
-        nfiles = length(sfiles);
+        nfiles = length(gfiles);
         for i = 1:nfiles
-            tstart = str2num(sfiles(i).name(22:27));
-            tend = str2num(sfiles(i).name(31:36));
-            ttime = str2num(stime);
 
             % read GCRSO file for time comparison (This comparison
             % should be made more directly with the range encoded
             % in the filenames 
-            glist = dir(['GCRSO_npp_', sid, '*.h5']);
-            gtmp = glist(end).name;
+            gtmp = gfiles(i).name;
             gfile = fullfile(apath, syear, sdoy, gtmp);
             [geo, gat1] = read_GCRSO(gfile)
-
-            if ((ttime > tstart) && (ttime < tend))
+            % -35 seconds adjusts between TAI and TAI 58 time? 
+            TAITime = iet2tai(geo.FORTime)-35;
+            keyboard
+            if ((rtimes(i) > TAITime(1)) && (rtimes(i) < TAITime(end)))
                 % time of observation is within this file
                 keyboard
                 % grab enough of filename to quickly locate GCRSO file
                 % for ancillary data
-                sid = sfiles(i).name(11:28);
+                sid = gfiles(i).name(11:28);
+                stmp = sprintf('SCRIS_npp_%s_*.h5', sid);
+                sfiles = dir(fullfile(apath, syear, sdoy, stmp));
                 
                 % read SCRIS file and find data point
-                pd = readsdr_rawpd(sfiles(i).name);
+                pd = readsdr_rawpd(fullfile(apath, syear, sdoy, sfiles(1).name));
                
                 % find algo fovs matching current index fovid
                 % start with simple find() on obs time
-                FORTime = tai2iet(rtimes(i));
-                matchindex = find(geo.FORTime == FORTime);
-                
+                keyboard
+                [fregard, scan] = find(TAITime == rtimes(i));
+
+                % now isolate fov by matching to input lat/lon
+                for k = 1:length(fregard)
+                    
+                end
                 
                 % capture algo radiances in output array
-                rradLW(i,:) = pd.ES_RealLW(obsid, l, fov, scan);
-                rradMW(i,:) = pd.ES_RealMW(obsid, l, fov, scan);
-                rradSW(i,:) = pd.ES_RealSW(obsid, l, fov, scan);
-                iradLW(i,:) = pd.ES_ImaginaryLW(obsid, l, fov, scan);
-                iradMW(i,:) = pd.ES_ImaginaryMW(obsid, l, fov, scan);
-                iradSW(i,:) = pd.ES_ImaginarySW(obsid, l, fov, scan);
+                algorads.algo(j).rradLW(i,:) = pd.ES_RealLW(:, fov, fregard, scan);
+                algorads.algo(j).rradMW(i,:) = pd.ES_RealMW(:, fov, fregard, scan);
+                algorads.algo(j).rradSW(i,:) = pd.ES_RealSW(:, fov, fregard, scan);
+                algorads.algo(j).iradLW(i,:) = pd.ES_ImaginaryLW(:, fov, fregard, scan);
+                algorads.algo(j).iradMW(i,:) = pd.ES_ImaginaryMW(:, fov, fregard, scan);
+                algorads.algo(j).iradSW(i,:) = pd.ES_ImaginarySW(:, fov, fregard, scan);
                 break;
             end % end if
         end  % end for i = 1:nfiles
-
+            
     end % end for j = 1:4
 
 
