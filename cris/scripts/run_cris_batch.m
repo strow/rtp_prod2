@@ -19,8 +19,13 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % separate out parts of file path. We want to keep the bulk of the
 % filename intact but change SDR -> rtp and change the extension to
 % rtp as well as we make the output file path
-outpath=cris_ccast_rtp_out_dir;
 [path, name, ext] = fileparts(infile);
+C = strsplit(path, '/');
+t = numel(C);
+sYear = C{t-1};
+sDoy = C{t};
+outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
+mkdir(outpath);
 outfile = fullfile(outpath, [strrep(name, 'SDR', 'rtp') '.rtp']);
 
 % call the processing function
