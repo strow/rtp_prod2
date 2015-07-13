@@ -7,12 +7,13 @@
 function [prof, head] = fill_era(prof, head)
 
 addpath /asl/matlib/aslutil
+addpath /asl/packages/time
 
 % Location of grib files
 fhdr = '/asl/data/era/';
 
 ename = '';  % This should be placed outside a rtp file loop
-mtime = datenum(1958,1,1,0,0,prof.rtime);
+mtime = tai2dnum(prof.rtime);
 
 % Get a cell array of era grib files for each time
 % Round to get 4 forecast hours per day
