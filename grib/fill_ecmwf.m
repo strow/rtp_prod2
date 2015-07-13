@@ -7,6 +7,7 @@
 function [prof, head] = fill_ecmwf(prof, head);
 
 addpath /asl/matlib/aslutil
+addpath /asl/packages/time
 
 % Location of grib files
 fhdr = '/asl/data/ecmwf_nc/';
