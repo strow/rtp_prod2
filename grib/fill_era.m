@@ -53,10 +53,12 @@ for i=1:n
    end   
 % Fill rtp fields
    m = find( ic == i );  % indices of first era file
+   fhi = 0;
    u_hour = unique(hourindex);
    nn = length(u_hour);
-   for fhi = 1:nn
-       l = find( hourindex == u_hour(fhi));
+   for jj = 1:nn
+       fhi = 1;
+       l = find( hourindex == u_hour(jj));
        k = intersect(l,m);       
    
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
