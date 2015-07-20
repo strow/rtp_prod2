@@ -59,7 +59,8 @@ for i=1:n
    for jj = 1:nn
        fhi = 1;
        l = find( hourindex == u_hour(jj));
-       k = intersect(l,m);       
+       k = intersect(l,m);
+       if k > 0
    
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
        rlat = prof.rlat(k);
@@ -97,11 +98,13 @@ for i=1:n
           prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
        end
 % Only want pressure levels in grib file, in order
+       prof.spres(k)
        xtemp = p60_ecmwf(prof.spres(k));  % all 137 pressure levels
        prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
        prof.nlevs(k) = length(F(fhi).levid);
    end
    fhi = fhi + 1;
+   end  % k loop
 end
 prof.nlevs = int32(prof.nlevs);
 
