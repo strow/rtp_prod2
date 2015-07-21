@@ -15,7 +15,7 @@
 #SBATCH --mem-per-cpu=18000
 #SBATCH --cpus-per-task 1
 ###SBATCH --array=1-540
-#SBATCH --time=00:40:00
+#SBATCH --time=01:00:00
 
 # matlab options
 MATLAB=/usr/cluster/matlab/current/bin/matlab
