@@ -13,6 +13,11 @@ addpath(genpath('/asl/matlib'));
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 
+%** this code was running fine yesterday but, today, it is failing
+%** without additional path specifications. What the hell changed?
+% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta
+% $$$ addpath /asl/packages/time
+
 [sID, sTempPath] = genscratchpath();
 
 nguard = 2;  % number of guard channels
@@ -30,10 +35,10 @@ nguard = 2;  % number of guard channels
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% subset rtp for faster debugging
 %%%% JUST GRAB THE FIRST 100 OBS
-% $$$ fprintf(1, '>>> SUBSETTING PROF FOR DEBUG\n');
-% $$$ iTest =(1:100);
-% $$$ prof_sub = prof;
-% $$$ prof = rtp_sub_prof(prof_sub, iTest);
+fprintf(1, '>>> SUBSETTING PROF FOR DEBUG\n');
+iTest =(1:100);
+prof_sub = prof;
+prof = rtp_sub_prof(prof_sub, iTest);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Need this later
@@ -43,12 +48,15 @@ ichan_ccast = head.ichan;
 [prof,head]=fill_ecmwf(prof,head);
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
+keyboard
 % Add landfrac, etc.
-[head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
+[head, hattr, prof, pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
 % Add Dan Zhou's emissivity and Masuda emis over ocean
+keyboard
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
 % Subset for quicker debugging
 % prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
+keyboard
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
@@ -77,9 +85,11 @@ if (isfield(prof,'calflag'))
 end
 
 % Run IASI SARTA
-load /asl/data/iremis/danz/iasi_f  % load fiasi
 %%** fiasi is a LUT for the IASI frequency space channel
 %%allocations
+ltemp = load('/asl/data/iremis/danz/iasi_f', 'fiasi'); % load fiasi
+fiasi = ltemp.fiasi;
+clear ltemp;
 
 % First half of IASI
 %%** replace both cris ichan and vchan with iasi equivalents (??
@@ -140,6 +150,7 @@ rad_cris = tmp_rad_cris;
 % Insert rcalc for CrIS derived from IASI SARTA
 prof.rcalc = real(rad_cris);
 % Final rtp file
+
 rtpwrite(fnCrisOutput, head, hattr, prof, pattr)
 % Next delete temporary files
 delete(fn_rtp1);delete(fn_rtp2);delete(fn_rtpi);delete(fn_rtprad);
