@@ -97,6 +97,9 @@ for ii = 1 : length(thedir)
     
     disp(' ')
 
+    %**************************************************
+    % this is the interesting part of the code that needs to be
+    % pulled out for create_rtp
     pnew = uniform_clear_template_hires_HP(h,ha,p,pa);        %% my newer stuff, where I have updated "random", and no output file
                                                               %% use this with Steve's exisitng rtp CRIS HiRes which already have rcalc
     
@@ -134,6 +137,10 @@ for ii = 1 : length(thedir)
       [sum(pnew.rlon(woo_new)-pold.rlon(woo_old)) sum(pnew.rlat(woo_new)-pold.rlat(woo_old)) sum(pnew.iudef(1,woo_new)-pold.iudef(1,woo_old))]
     end
 
+    % this ends the interesting part
+    %**************************************************
+
+    
     keyboard
     %%%% >>>>>>>>>>>>>>>> guts of testing    
   end

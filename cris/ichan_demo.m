@@ -6,8 +6,8 @@ addpath /asl/packages/ccast/source
 addpath /asl/packages/ccast/motmsc/rtp_sarta
 
 opt1 = struct;
-% opt1.resmode = 'hires2';  % set this for high res
-  opt1.resmode = 'lowres';  % set this for low res
+ opt1.resmode = 'hires2';  % set this for high res
+% $$$   opt1.resmode = 'lowres';  % set this for low res
 wlaser = 773.1307;
 [instLW, userLW] = inst_params('LW', wlaser, opt1);
 [instMW, userMW] = inst_params('MW', wlaser, opt1);
