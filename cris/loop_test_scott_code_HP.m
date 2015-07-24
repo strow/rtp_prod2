@@ -20,7 +20,7 @@ addpath /home/sergio/MATLABCODE/PLOTTER
 %iType = input('Enter (1) Paul 2012/02/13  (2) Sergio lo res 2014/12/03 (3) Steve hi res 2015/02/18 (4) Breno 2014/03/01 JUNK: ');
 iType = 1;   % made by Paul 
 iType = 2;   % made by Sergio
-iType = 3;
+iType = 3;   % made by Steve
 
 if iType == 1
   dir0 = '/asl/data/rtprod_cris_0/2012/02/13/';
@@ -36,11 +36,42 @@ elseif iType == 4
   thedir = dir([dir0 'cris_ccast_sdr60.ecmwf.umw.2014.03.03.*-M1.9l.rtp']);
 end
 
+
+if iType == 2
+  %% there are some bad files
+  for ii = 1 : length(thedir)
+    if mod(ii,20) == 0
+      fprintf(1,'%4i out of %4i \n',ii,length(thedir))
+    end
+    fname = [dir0 thedir(ii).name];
+    fsize = [thedir(ii).bytes];
+    if fsize < 236793134-1000
+      iaGood(ii) = -1;
+    else
+      iaGood(ii) = +1;
+      %[h,ha,p,pa] = rtpread(fname);        
+    end
+  end
+
+   aha = find(iaGood > 0);
+   thedirx = struct;
+   for ii = 1 : length(aha)
+     thedirx(ii).name = thedir(aha(ii)).name;
+     thedirx(ii).date = thedir(aha(ii)).date;
+     thedirx(ii).bytes = thedir(aha(ii)).bytes;
+     thedirx(ii).isdir = thedir(aha(ii)).isdir;
+     thedirx(ii).datenum = thedir(aha(ii)).datenum;
+   end
+   thedir0 = thedir;
+   thedir = thedirx;
+end
+
+the_comparisons = struct;
 for ii = 1 : length(thedir)
   fname = [dir0 thedir(ii).name];
   fprintf(1,'file %3i out of %3i %s \n',ii,length(thedir),fname);
   
-  [h,ha,p,pa] = rtpread(fname);
+  [h,ha,p,pa] = rtpread(fname);  
   if iType == 4
     [h,ha,p,pa] = rtpgrow(h,ha,p,pa);
   end
@@ -88,20 +119,138 @@ for ii = 1 : length(thedir)
   rtpwrite(RTPIN,h,ha,p,pa);
   if iType == 1
     fx = uniform_clear_template_fix(RTPIN,RTPOUT,SUMOUT);
-  elseif iType == 2 | iType == 4
+  elseif iType == 2
+    %%%% >>>>>>>>>>>>>>>> guts of testing lo res  
     fx = uniform_clear_template(RTPIN,RTPOUT,SUMOUT);
+    [hx,hax,pold,pax] = rtpread(RTPOUT);
+
+    disp('  ')
+    disp(' A NOT DONE as this is ONLY for hi res')
+
+    %pnew = uniform_clear_template_hires_HP(h,ha,p,pa);        %% my newer stuff, where I have updated "random", and no output file
+                                                              %% use this with Steve's exisitng rtp CRIS HiRes which already have rcalc
+    disp('  ')
+    disp(' B ')
+    pnewer = uniform_clear_template_lowANDhires_HP(h,ha,p,pa); %% super (if it works)
+
+    disp('  ')
+    disp(' C ')
+    px = p;
+    px = rmfield(p,'rcalc'); hx = h; hx.pfields = 5; 
+    pnewest = uniform_clear_template_lowANDhires_HP(hx,ha,px,pa); %% super (if it works)
+
+    disp(' B-C ')
+    if length(pnewer.rlat) == length(pnewest.rlat)
+      sum(pnewer.rlat-pnewest.rlat)
+    else
+      disp('WHOA different B,C')
+    end
+
+    woo = find(pold.iudef(1,:) == 1 | pold.iudef(1,:) == 2 | pold.iudef(1,:) == 4 | pold.iudef(1,:) == 8);
+      the_comparisons(ii).type0lat = pold.rlat(woo);
+      the_comparisons(ii).type0lon = pold.rlon(woo);
+      the_comparisons(ii).type0    = pold.iudef(1,woo);
+      the_comparisons(ii).type0sol = pold.solzen(woo);
+      the_comparisons(ii).type0lf  = pold.landfrac(woo);            
+      the_comparisons(ii).type0rad = pold.robs1(499,woo);  %% rad961   id = 503 for hires
+    %{
+    woo = find(pnew.iudef(1,:) == 1 | pnew.iudef(1,:) == 2 | pnew.iudef(1,:) == 4 | pnew.iudef(1,:) == 8);
+      the_comparisons(ii).typeAlat = pnew.rlat(woo);
+      the_comparisons(ii).typeAlon = pnew.rlon(woo);
+      the_comparisons(ii).typeA    = pnew.iudef(1,woo);
+      the_comparisons(ii).typeAsol = pnew.solzen(woo);
+      the_comparisons(ii).typeAlf  = pnew.landfrac(woo);            
+      the_comparisons(ii).typeArad = pnew.robs1(499,woo);  %% rad961   id = 503 for hires
+    %}
+    woo = find(pnewer.iudef(1,:) == 1 | pnewer.iudef(1,:) == 2 | pnewer.iudef(1,:) == 4 | pnewer.iudef(1,:) == 8);
+      the_comparisons(ii).typeBlat = pnewer.rlat(woo);
+      the_comparisons(ii).typeBlon = pnewer.rlon(woo);
+      the_comparisons(ii).typeB    = pnewer.iudef(1,woo);
+      the_comparisons(ii).typeBsol = pnewer.solzen(woo);
+      the_comparisons(ii).typeBlf  = pnewer.landfrac(woo);            
+      the_comparisons(ii).typeBrad = pnewer.robs1(499,woo);  %% rad961   id = 503 for hires
+    woo = find(pnewest.iudef(1,:) == 1 | pnewest.iudef(1,:) == 2 | pnewest.iudef(1,:) == 4 | pnewest.iudef(1,:) == 8);
+      the_comparisons(ii).typeClat = pnewest.rlat(woo);
+      the_comparisons(ii).typeClon = pnewest.rlon(woo);
+      the_comparisons(ii).typeC    = pnewest.iudef(1,woo);
+      the_comparisons(ii).typeCsol = pnewest.solzen(woo);
+      the_comparisons(ii).typeClf  = pnewest.landfrac(woo);            
+      the_comparisons(ii).typeCrad = pnewest.robs1(499,woo);  %% rad961   id = 503 for hires
+      
+    figure(1); clf; oo = find(pold.iudef(1,:) == 1); scatter_coast(pold.rlon(oo),pold.rlat(oo),30,pold.stemp(oo)); title('ORIG')
+    figure(3); clf; oo = find(pnewer.iudef(1,:) == 1); scatter_coast(pnewer.rlon(oo),pnewer.rlat(oo),30,pnewer.stemp(oo)); title('B')
+    figure(4); clf; oo = find(pnewest.iudef(1,:) == 1); scatter_coast(pnewest.rlon(oo),pnewest.rlat(oo),30,pnewest.stemp(oo)); title('C')
+    figure(1); cx = caxis; colormap(jet)
+    %figure(2); caxis(cx); colormap(jet)
+    figure(3); caxis(cx); colormap(jet)
+    figure(4); caxis(cx); colormap(jet)    
+    pause(5);
+    
   elseif iType == 3
-    %%%% >>>>>>>>>>>>>>>> guts of testing
+    %%%% >>>>>>>>>>>>>>>> guts of testing hi res
     fx = uniform_clear_template_hires(RTPIN,RTPOUT,SUMOUT);   %% totally based on Scott, which writes 2-3 temp files
     [hx,hax,pold,pax] = rtpread(RTPOUT);
-    
-    disp(' ')
 
-    %**************************************************
-    % this is the interesting part of the code that needs to be
-    % pulled out for create_rtp
+    disp('  ')
+    disp(' A ')
+
     pnew = uniform_clear_template_hires_HP(h,ha,p,pa);        %% my newer stuff, where I have updated "random", and no output file
                                                               %% use this with Steve's exisitng rtp CRIS HiRes which already have rcalc
+    disp('  ')
+    disp(' B ')
+    pnewer = uniform_clear_template_lowANDhires_HP(h,ha,p,pa); %% super (if it works)
+
+    disp('  ')
+    disp(' C ')
+    px = p;
+    px = rmfield(p,'rcalc'); hx = h; hx.pfields = 5; 
+    pnewest = uniform_clear_template_lowANDhires_HP(hx,ha,px,pa); %% super (if it works)
+
+    disp(' B-C ')
+    if length(pnewer.rlat) == length(pnewest.rlat)
+      sum(pnewer.rlat-pnewest.rlat)
+    else
+      disp('WHOA different B,C')
+    end    
+
+    woo = find(pold.iudef(1,:) == 1 | pold.iudef(1,:) == 2 | pold.iudef(1,:) == 4 | pold.iudef(1,:) == 8);
+      the_comparisons(ii).type0lat = pold.rlat(woo);
+      the_comparisons(ii).type0lon = pold.rlon(woo);
+      the_comparisons(ii).type0    = pold.iudef(1,woo);
+      the_comparisons(ii).type0sol = pold.solzen(woo);
+      the_comparisons(ii).type0lf  = pold.landfrac(woo);            
+      the_comparisons(ii).type0rad = pold.robs1(503,woo);  %% rad961   id = 499 for lores
+    woo = find(pnew.iudef(1,:) == 1 | pnew.iudef(1,:) == 2 | pnew.iudef(1,:) == 4 | pnew.iudef(1,:) == 8);
+      the_comparisons(ii).typeAlat = pnew.rlat(woo);
+      the_comparisons(ii).typeAlon = pnew.rlon(woo);
+      the_comparisons(ii).typeA    = pnew.iudef(1,woo);
+      the_comparisons(ii).typeAsol = pnew.solzen(woo);
+      the_comparisons(ii).typeAlf  = pnew.landfrac(woo);            
+      the_comparisons(ii).typeArad = pnew.robs1(503,woo);  %% rad961   id = 499 for lores
+    woo = find(pnewer.iudef(1,:) == 1 | pnewer.iudef(1,:) == 2 | pnewer.iudef(1,:) == 4 | pnewer.iudef(1,:) == 8);
+      the_comparisons(ii).typeBlat = pnewer.rlat(woo);
+      the_comparisons(ii).typeBlon = pnewer.rlon(woo);
+      the_comparisons(ii).typeB    = pnewer.iudef(1,woo);
+      the_comparisons(ii).typeBsol = pnewer.solzen(woo);
+      the_comparisons(ii).typeBlf  = pnewer.landfrac(woo);            
+      the_comparisons(ii).typeBrad = pnewer.robs1(503,woo);  %% rad961   id = 499 for lores
+    woo = find(pnewest.iudef(1,:) == 1 | pnewest.iudef(1,:) == 2 | pnewest.iudef(1,:) == 4 | pnewest.iudef(1,:) == 8);
+      the_comparisons(ii).typeClat = pnewest.rlat(woo);
+      the_comparisons(ii).typeClon = pnewest.rlon(woo);
+      the_comparisons(ii).typeC    = pnewest.iudef(1,woo);
+      the_comparisons(ii).typeCsol = pnewest.solzen(woo);
+      the_comparisons(ii).typeClf  = pnewest.landfrac(woo);            
+      the_comparisons(ii).typeCrad = pnewest.robs1(503,woo);  %% rad961   id = 499 for lores
+
+    figure(1); clf; oo = find(pold.iudef(1,:) == 1); scatter_coast(pold.rlon(oo),pold.rlat(oo),30,pold.stemp(oo)); title('ORIG')
+    figure(3); clf; oo = find(pnew.iudef(1,:) == 1); scatter_coast(pnew.rlon(oo),pnew.rlat(oo),30,pnew.stemp(oo)); title('A')    
+    figure(3); clf; oo = find(pnewer.iudef(1,:) == 1); scatter_coast(pnewer.rlon(oo),pnewer.rlat(oo),30,pnewer.stemp(oo)); title('B')
+    figure(4); clf; oo = find(pnewest.iudef(1,:) == 1); scatter_coast(pnewest.rlon(oo),pnewest.rlat(oo),30,pnewest.stemp(oo)); title('C')
+    figure(1); cx = caxis; colormap(jet)
+    figure(2); caxis(cx); colormap(jet)
+    figure(3); caxis(cx); colormap(jet)
+    figure(4); caxis(cx); colormap(jet)    
+    pause(5);    
     
     %%% pold and out better be the same!
     disp('  ')
@@ -137,11 +286,6 @@ for ii = 1 : length(thedir)
       [sum(pnew.rlon(woo_new)-pold.rlon(woo_old)) sum(pnew.rlat(woo_new)-pold.rlat(woo_old)) sum(pnew.iudef(1,woo_new)-pold.iudef(1,woo_old))]
     end
 
-    % this ends the interesting part
-    %**************************************************
-
-    
-    keyboard
     %%%% >>>>>>>>>>>>>>>> guts of testing    
   end
   
@@ -199,7 +343,17 @@ for ii = 1 : length(thedir)
   %end
 
   %disp('ret to continue'); pause
+
+  if mod(ii,20) == 0
+    comment = 'see loop_test_scott_code_HP.m';
+    saver = ['save the_comparisons_iType' num2str(iType) '.mat the_comparisons comment'];
+    eval(saver);
+  end
   
   pause(0.1);
-  
 end
+
+comment = 'see loop_test_scott_code_HP.m';
+saver = ['save the_comparisons_iType' num2str(iType) '.mat the_comparisons comment'];
+eval(saver);
+  
