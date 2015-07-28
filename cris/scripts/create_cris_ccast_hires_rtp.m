@@ -22,6 +22,7 @@ addpath /asl/packages/ccast/source
 
 nguard = 2;  % number of guard channels
 
+
 % Load up rtp 
 [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard);
 %%** second parameter sets up the use of 4 CrIS guard
@@ -35,10 +36,10 @@ nguard = 2;  % number of guard channels
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% subset rtp for faster debugging
 %%%% JUST GRAB THE FIRST 100 OBS
-fprintf(1, '>>> SUBSETTING PROF FOR DEBUG\n');
-iTest =(1:100);
-prof_sub = prof;
-prof = rtp_sub_prof(prof_sub, iTest);
+% $$$ fprintf(1, '>>> SUBSETTING PROF FOR DEBUG\n');
+% $$$ iTest =(1:100);
+% $$$ prof_sub = prof;
+% $$$ prof = rtp_sub_prof(prof_sub, iTest);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Need this later
@@ -48,16 +49,21 @@ ichan_ccast = head.ichan;
 [prof,head]=fill_ecmwf(prof,head);
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
-keyboard
+
 % Add landfrac, etc.
 [head, hattr, prof, pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
 % Add Dan Zhou's emissivity and Masuda emis over ocean
-keyboard
+
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
 % Subset for quicker debugging
 % prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
-keyboard
+
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
+% ** For some reason, rtpwrite is failing because the ichan array in
+% head is coming out as a row vector but column vector is now expected.
+% FOR NOW: change them brute force to make things work.
+head.ichan = head.ichan';
+
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
 
@@ -148,9 +154,16 @@ rad_cris = tmp_rad_cris;
 % Go get output from klayers, which is what we want except for rcalc
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-prof.rcalc = real(rad_cris);
-% Final rtp file
+% $$$ prof.rcalc = real(rad_cris);  % Sergio's code would remove this
+% $$$                               % anyway, why waste time writing it.
 
-rtpwrite(fnCrisOutput, head, hattr, prof, pattr)
+% run Sergio's subsetting routine
+px = prof;
+% $$$ px = rmfield(prof,'rcalc');
+hx = head; hx.pfields = 5; 
+pnewest = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
+
+% Final rtp file
+rtpwrite(fnCrisOutput, head, hattr, pnewest, pattr)
 % Next delete temporary files
 delete(fn_rtp1);delete(fn_rtp2);delete(fn_rtpi);delete(fn_rtprad);
