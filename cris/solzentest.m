@@ -40,6 +40,8 @@ sbt = rad2bt(freq, srobs1);
 % use 1231 wavenumber channel for plotting
 %     chan = 1291 AIRS
 %     chan = 754  CrIS
+% can be found for other instrument with something like
+%     chan = find(h.vchan >= 1231,1);
 chan = 754;
 
 % find clear obs
@@ -57,11 +59,6 @@ simplemap(clearlat(dayind), clearlon(dayind), clearbt(dayind), 'auto', ...
 title('Daytime clear 2015/02/18')
 print('-dpng', '~/ToTransfer/20150218_daytime_clear.png');
 
-% $$$ % plot night (solzen > 90)
-% $$$ nightind = find(clearsolzen > 90);
-% $$$ figure(3)
-% $$$ simplemap(clearlat(nightind), clearlon(nightind), clearbt(nightind), 'auto', ...
-% $$$           0.5);
 
 % find random obs
 randind = find(tiudef == 8);
@@ -78,11 +75,17 @@ simplemap(randlat(dayind), randlon(dayind), randbt(dayind), 'auto', ...
 title('Daytime random 2015/02/18')
 print('-dpng', '~/ToTransfer/20150218_daytime_random.png');
 
-% $$$ % plot night (solzen > 90)`
-% $$$ nightind = find(randsolzen > 90);
-% $$$ figure(4)
-% $$$ simplemap(randlat(nightind), randlon(nightind), randbt(nightind), 'auto', ...
-% $$$           0.5);
-% $$$ title('Nighttime random 2015/02/18')
+
+% plot histogram of latitudes coresponding to random obs selection
+% (should follow roughly cos(latitude)
+figure(4)
+histogram(randlat)
+hold on
+amp = 800;
+plot([-90:0.5:90], amp*cos([-90:0.5:90]*(2*pi)/360), 'k-', 'LineWidth', 2)
+hold off
+xlabel('Latitude')
+title('CrIS random latitude sampling')
+print -dpng '~/ToTransfer/20150218-rand-lathist.png'
 
 keyboard
