@@ -1,0 +1,60 @@
+IASI RTP Subset Production Scripts
+
+Designed to process a calendar month of days of one type of subsetting at a time.
+Can be run on a single day by executing script 'run_iasi_rtp.m' given a file with
+the required date only. In this mode, the slurm job also has to be submitted manually.
+Or can be run on a single IASI granule by manually running 'create_iasi_rtp.m' with a
+single granule file and subset string. In this mode also, the slurm job has to be
+submitted manually (or run as an interactive matlab session).
+
+NB. Currently RTP files are written to: /asl/s1/chepplew/projects/iasi/rtpprod/.
+This is hard wired in create_iasi_rtp.m.
+
+The assumption is that these scripts are run in the 'iasi' sub-directory of git-repo or
+cloned rtp_prod2/iasi/, as this determines the path definitions for dependent and child
+procs. Once the paths.m routine is executed, the session will be in the run/ sub-directory.
+
+Control Flow:
+-------------
+
+1. start with: batch_iasi_rtp.m
+
+For monthly subset processing, 2 paramaters. 
+   Parameter 1: month. Format: string in single quotes: 'YYYY/MM'.
+   Parameter 2: subset type. One of the following ('clear','random','center','dcc','sites')
+
+Creates a matlab file containing the list of days of the month to process and a
+slurm script in the current directory with the appropriate sbatch settings,
+and executes the slurm job, with parent script 'run_iasi_rtp.m'.
+
+The heirarchy of scripts is as follows: 
+  batch_iasi_rtp.m calls ./run_iasi_rtp.m, which calls ./create_iasi_rtp.m which
+  calls in sequence; ./iasi2rtp.m,  grib/fill_era.m, util/rtpadd_usgs_10dem.m, 
+    emis/rtpadd_emis_single.m.
+  It will then subset according to the option chosen: 
+  
+  option random: calls random_eq_area.m
+  
+  option (fixed) sites: calls fixedsite.m
+  
+  option center: simple subsets using subset_rtp.m
+  
+  option clear: calls imager_uniformity.m, spctral_uniformity.m, spectral_clarity.m
+  and then after running klayers and sarta, calls iasi_clear_wn.m.
+  
+  option dcc: simply subsets according to brightnes temperature thresholds on three 
+  channels.
+
+
+2. start with: run_iasi_rtp.m
+   The pre-requisite is that there is a date file with the date to process called 
+   'iasi_rtp_drv.mat'. The job MUST be run on an HPC compute node from the command
+   line, the script will test for this and select the first entry from the date file.
+   There are 2 paramaters: Paramater 1: is the name of the date mat file.
+   Paramater 2: is the subset option string.
+
+3. start with: create_iasi_rtp.m
+  There are 2 input parameters: 
+    Parameter 1: the IASI granule file, with full absolute path.
+    Parameter 2: the subset string.
+  In this mode it is recommended to run on a compute node in an interactive matlab session.
