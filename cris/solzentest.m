@@ -37,9 +37,14 @@ end
 freq = h.vchan;
 sbt = rad2bt(freq, srobs1);
 
+% use 1231 wavenumber channel for plotting
+%     chan = 1291 AIRS
+%     chan = 754  CrIS
+chan = 754;
+
 % find clear obs
 clearind = find(tiudef == 1);
-clearbt = sbt(clearind);
+clearbt = sbt(chan, clearind);
 clearlat = srlat(clearind);
 clearlon = srlon(clearind);
 clearsolzen = ssolzen(clearind);
@@ -60,7 +65,7 @@ print('-dpng', '~/ToTransfer/20150218_daytime_clear.png');
 
 % find random obs
 randind = find(tiudef == 8);
-randbt = sbt(randind);
+randbt = sbt(chan, randind);
 randlat = srlat(randind);
 randlon = srlon(randind);
 randsolzen = ssolzen(randind);
