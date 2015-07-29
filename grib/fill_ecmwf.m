@@ -69,7 +69,7 @@ for i = 1:n
    prof.plat(k) = floor(rlat/gdlat)*gdlat + gdlat/2;
    prof.plon(k) = floor(rlon/gdlon)*gdlon + gdlon/2;
 
-% F.tcwv.ig  % Total column water?  Use this instead of ours?
+% F.tcwv.ig  % Total column water?  Use this instead of ours (Sergio?)?
 % F.msl.ig   % Not in rtp for now
 
 % Hybrid parameters

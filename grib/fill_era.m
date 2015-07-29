@@ -87,7 +87,6 @@ for i=1:n
 % Hybrid parameters
 % levid = 1 is top of atmosphere
 % b are the sortedd level IDs   
-%       prof.nlevs = ones(1,length(k))*length(F(fhi).levid);
        [b,j]=sort(F(fhi).levid);
        for l=1:length(F(fhi).levid)
           prof.ptemp(l,k) = F(fhi).t(j(l)).ig(rlat,rlon);
