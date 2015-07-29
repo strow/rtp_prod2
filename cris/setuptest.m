@@ -1,7 +1,7 @@
 crisdir='/asl/data/cris/ccast/sdr60_hr/2015/049';
 crisfiles = dir(fullfile(crisdir, '*.mat'));
 olddir=cd('/asl/s1/sbuczko1/testoutput');
-findex=31;
+findex=30;
 
 disp('>>> Prior to addpath');
 which ccast2rtp

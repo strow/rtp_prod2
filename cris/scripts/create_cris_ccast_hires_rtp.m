@@ -13,11 +13,6 @@ addpath(genpath('/asl/matlib'));
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 
-%** this code was running fine yesterday but, today, it is failing
-%** without additional path specifications. What the hell changed?
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta
-% $$$ addpath /asl/packages/time
-
 [sID, sTempPath] = genscratchpath();
 
 nguard = 2;  % number of guard channels
@@ -30,6 +25,14 @@ nguard = 2;  % number of guard channels
 %%similarity to the cris channel description in
 %%https://hyperearth.wordpress.com/2013/07/09/cris-rtp-formats/, at
 %%least for the first set of guard channels
+temp = size(head.ichan)
+if temp(2) > 1
+    head.ichan = head.ichan';
+end
+temp = size(head.vchan)
+if temp(2) > 1
+    head.vchan = head.vchan';
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% REMOVE THIS BEFORE PRODUCTION COMMIT     %%%%
@@ -37,7 +40,7 @@ nguard = 2;  % number of guard channels
 %%%% subset rtp for faster debugging
 %%%% JUST GRAB THE FIRST 100 OBS
 % $$$ fprintf(1, '>>> SUBSETTING PROF FOR DEBUG\n');
-% $$$ iTest =(1:100);
+% $$$ iTest =(1:1000);
 % $$$ prof_sub = prof;
 % $$$ prof = rtp_sub_prof(prof_sub, iTest);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,6 +52,10 @@ ichan_ccast = head.ichan;
 [prof,head]=fill_ecmwf(prof,head);
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
+[nchan,nobs] = size(prof.robs1);
+head.nchan = nchan;
+head.ngas=2;
+
 
 % Add landfrac, etc.
 [head, hattr, prof, pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
@@ -58,11 +65,16 @@ head.pfields = 5;
 % Subset for quicker debugging
 % prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
 
+% run Sergio's subsetting routine
+px = prof;
+% $$$ px = rmfield(prof,'rcalc');
+hx = head; hx.pfields = 5;
+fprintf(1, '>>> NGAS = %d\n', hx.ngas);
+disp('>>> Sergio insists on knowing we are here')
+pnewest = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
+prof=pnewest;
+
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
-% ** For some reason, rtpwrite is failing because the ichan array in
-% head is coming out as a row vector but column vector is now expected.
-% FOR NOW: change them brute force to make things work.
-head.ichan = head.ichan';
 
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
@@ -134,6 +146,7 @@ clear rad_pt1 rad_pt2
 opt.hapod = 0;  % Want sinc from iasi2cris
 opt.resmode = 'hires2'; % CrIS mode after Dec. 4, 2014
 opt.nguard = nguard; % adding 2 guard channels
+
 % Convert Iasi to CrIS
 [tmp_rad_cris, f_cris] = iasi2cris(rad_iasi,fiasi,opt);
 %%% trying to add 2 guard channels. This check will need to be
@@ -154,15 +167,9 @@ rad_cris = tmp_rad_cris;
 % Go get output from klayers, which is what we want except for rcalc
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-% $$$ prof.rcalc = real(rad_cris);  % Sergio's code would remove this
-% $$$                               % anyway, why waste time writing it.
+prof.rcalc = real(rad_cris); 
 
-% run Sergio's subsetting routine
-px = prof;
-% $$$ px = rmfield(prof,'rcalc');
-hx = head; hx.pfields = 5; 
-pnewest = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
-
+pnewest = prof
 % Final rtp file
 rtpwrite(fnCrisOutput, head, hattr, pnewest, pattr)
 % Next delete temporary files

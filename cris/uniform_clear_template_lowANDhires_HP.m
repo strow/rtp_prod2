@@ -32,7 +32,7 @@ addpath /asl/matlib/rtptools       % subset_rtp
 %%%
 head0 = head;
 prof0 = prof;
-prof.findex = ones(1,length(prof.findex),'int32');
+prof.findex = ones(1,length(prof.rlat),'int32');
 %%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,7 +169,7 @@ if ~isfield(prof,'rcalc')
   orig_idtestcALL = idtestcALL;
   bad = find(idtestcALL > 713);
   idtestcALL(bad) = (idtestcALL(bad)-713) + 1309;
-  
+
   [hsub,psub] = subset_rtp(head,prof,[],idtestcALL,[]);
   hsub = rmfield(hsub,'vchan');
   
@@ -199,6 +199,9 @@ if ~isfield(prof,'rcalc')
     head.pfields = 7;
   elseif ~isfield(psub,'gas_1')
     fprintf(1,'huh ???? no rcalc and hsub.pfields == %2i \n',hsub.pfields);
+    error('cannot run klayers/sarta')
+  elseif ~isfield(psub,'emis')
+    fprintf(1,'huh ???? no emis\n',hsub.pfields);
     error('cannot run klayers/sarta')
   end
 end  
@@ -350,35 +353,35 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if iPlot > 0 & isfield(pout,'rcalc') & hout.nchan > 1400
-  ff = hout.vchan(1:2223);
-  figure(1); 
-  plot(pout.stemp,rad2bt(ff(732),pout.robs1(732,:)),'bo',...
-       pout.stemp,rad2bt(ff(732),pout.rcalc(732,:)),'rs',...
-       pout.stemp,pout.stemp,'k')
-  grid
-  title('Blue = obs   Red = cal'); xlabel('stemp'); ylabel('BT1232')
-
-  figure(2); 
-  tobs = rad2bt(ff,pout.robs1(1:2223,:)); tobs = real(tobs);
-  tcal = rad2bt(ff,pout.rcalc(1:2223,:)); tcal = real(tcal);
-    plot(ff,nanmean(tobs'-tcal'),ff,nanstd(tobs'-tcal'),'r')
-  title('Blue = bias   Red = std'); xlabel('wavenumber cm-1'); ylabel('BT (K)')
-
-elseif iPlot > 0 & isfield(pout,'rcalc') & hout.nchan < 1400
-  ff = hout.vchan(1:1305);
-  figure(1); 
-  plot(pout.stemp,rad2bt(ff(732),pout.robs1(732,:)),'bo',...
-       pout.stemp,rad2bt(ff(732),pout.rcalc(732,:)),'rs',...
-       pout.stemp,pout.stemp,'k')
-  grid
-  title('Blue = obs   Red = cal'); xlabel('stemp'); ylabel('BT1232')
-
-  figure(2); 
-  tobs = rad2bt(ff,pout.robs1(1:1305,:)); tobs = real(tobs);
-  tcal = rad2bt(ff,pout.rcalc(1:1305,:)); tcal = real(tcal);
-    plot(ff,nanmean(tobs'-tcal'),ff,nanstd(tobs'-tcal'),'r')
-  title('Blue = bias   Red = std'); xlabel('wavenumber cm-1'); ylabel('BT (K)')
-end
+% $$$ if iPlot > 0 & isfield(pout,'rcalc') & hout.nchan > 1400
+% $$$   ff = hout.vchan(1:2223);
+% $$$   figure(1); 
+% $$$   plot(pout.stemp,rad2bt(ff(732),pout.robs1(732,:)),'bo',...
+% $$$        pout.stemp,rad2bt(ff(732),pout.rcalc(732,:)),'rs',...
+% $$$        pout.stemp,pout.stemp,'k')
+% $$$   grid
+% $$$   title('Blue = obs   Red = cal'); xlabel('stemp'); ylabel('BT1232')
+% $$$ 
+% $$$   figure(2); 
+% $$$   tobs = rad2bt(ff,pout.robs1(1:2223,:)); tobs = real(tobs);
+% $$$   tcal = rad2bt(ff,pout.rcalc(1:2223,:)); tcal = real(tcal);
+% $$$     plot(ff,nanmean(tobs'-tcal'),ff,nanstd(tobs'-tcal'),'r')
+% $$$   title('Blue = bias   Red = std'); xlabel('wavenumber cm-1'); ylabel('BT (K)')
+% $$$ 
+% $$$ elseif iPlot > 0 & isfield(pout,'rcalc') & hout.nchan < 1400
+% $$$   ff = hout.vchan(1:1305);
+% $$$   figure(1); 
+% $$$   plot(pout.stemp,rad2bt(ff(732),pout.robs1(732,:)),'bo',...
+% $$$        pout.stemp,rad2bt(ff(732),pout.rcalc(732,:)),'rs',...
+% $$$        pout.stemp,pout.stemp,'k')
+% $$$   grid
+% $$$   title('Blue = obs   Red = cal'); xlabel('stemp'); ylabel('BT1232')
+% $$$ 
+% $$$   figure(2); 
+% $$$   tobs = rad2bt(ff,pout.robs1(1:1305,:)); tobs = real(tobs);
+% $$$   tcal = rad2bt(ff,pout.rcalc(1:1305,:)); tcal = real(tcal);
+% $$$     plot(ff,nanmean(tobs'-tcal'),ff,nanstd(tobs'-tcal'),'r')
+% $$$   title('Blue = bias   Red = std'); xlabel('wavenumber cm-1'); ylabel('BT (K)')
+% $$$ end
 
 %%% end of program %%%
