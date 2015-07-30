@@ -5,6 +5,15 @@ function create_cris_ccast_hires_rtp(fnCrisInput, fnCrisOutput)
 
 %set_process_dirs;
 
+% use fnCrisOutput to generate year and doy strings
+% fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
+cris_yearstr = fnCrisOutput(6:9);
+month = str2num(fnCrisOutput(10:11));
+day = str2num(fnCrisOutput(12:13));
+dt = datetime(str2num(cris_yearstr), month, day);
+dt.Format = 'DDD';
+cris_doystr = char(dt);
+
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 
@@ -48,8 +57,8 @@ end
 % Need this later
 ichan_ccast = head.ichan;
 % Add profile data
-% $$$ [prof,head]=fill_era(prof,head);
-[prof,head]=fill_ecmwf(prof,head);
+[prof,head]=fill_era(prof,head);
+% $$$ [prof,head]=fill_ecmwf(prof,head);
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
 [nchan,nobs] = size(prof.robs1);
@@ -60,8 +69,14 @@ head.ngas=2;
 % Add landfrac, etc.
 [head, hattr, prof, pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
 % Add Dan Zhou's emissivity and Masuda emis over ocean
+% Dan Zhou's one-year climatology for land surface emissivity and
+% standard routine for sea surface emissivity
+% $$$ fprintf(1, '>>> Running rtp_ad_emis...');
+% $$$ [prof,pattr] = rtp_add_emis(prof,pattr);
+% $$$ fprintf(1, 'Done\n');
 
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
+
 % Subset for quicker debugging
 % prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
 
@@ -71,8 +86,7 @@ px = prof;
 hx = head; hx.pfields = 5;
 fprintf(1, '>>> NGAS = %d\n', hx.ngas);
 disp('>>> Sergio insists on knowing we are here')
-pnewest = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
-prof=pnewest;
+prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
 
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 
@@ -169,8 +183,53 @@ rad_cris = tmp_rad_cris;
 % Insert rcalc for CrIS derived from IASI SARTA
 prof.rcalc = real(rad_cris); 
 
-pnewest = prof
-% Final rtp file
-rtpwrite(fnCrisOutput, head, hattr, pnewest, pattr)
+% output rtp splitting from airxbcal processing
+% Subset into four types and save separately
+iclear = find(prof.iudef(1,:) == 1);
+isite  = find(prof.iudef(1,:) == 2);
+idcc   = find(prof.iudef(1,:) == 4);
+irand  = find(prof.iudef(1,:) == 8);
+
+prof_clear = rtp_sub_prof(prof,iclear);
+prof_site  = rtp_sub_prof(prof,isite);
+prof_dcc   = rtp_sub_prof(prof,idcc);
+prof_rand  = rtp_sub_prof(prof,irand);
+
+% Make directory if needed
+% cris hires data will be stored in
+% /asl/data/rtp_cris_ccast/{clear,dcc,site,random}/<year>/<doy>
+%
+asType = {'clear', 'site', 'dcc', 'random'};
+cris_out_dir = '/asl/data/rtp_cris_ccast';
+for i = 1:length(asType)
+% check for existence of output path and create it if necessary. This may become a source
+% for filesystem collisions once we are running under slurm.
+    sPath = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,cris_doystr);
+    if exist(sPath) == 0
+        mkdir(sPath);
+    end
+end
+% $$$
+rtp_out_fn_head = fnCrisOutput;
+% Now save the four types of cris files
+fprintf(1, '>>> writing output rtp files... ');
+rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
+rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+
+rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
+rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
+
+rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
+rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+
+rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
+rtp_outname = fullfile(cris_out_dir, char(asType(4)),cris_yearstr, cris_doystr,  rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
+fprintf(1, 'Done\n');
+
+
 % Next delete temporary files
 delete(fn_rtp1);delete(fn_rtp2);delete(fn_rtpi);delete(fn_rtprad);

@@ -20,13 +20,14 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % filename intact but change SDR -> rtp and change the extension to
 % rtp as well as we make the output file path
 [path, name, ext] = fileparts(infile);
-C = strsplit(path, '/');
-t = numel(C);
-sYear = C{t-1};
-sDoy = C{t};
-outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
-mkdir(outpath);
-outfile = fullfile(outpath, [strrep(name, 'SDR', 'rtp') '.rtp']);
+% $$$ C = strsplit(path, '/');
+% $$$ t = numel(C);
+% $$$ sYear = C{t-1};
+% $$$ sDoy = C{t};
+% $$$ outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
+% $$$ mkdir(outpath);
+% $$$ outfile = fullfile(outpath, strrep(name, 'SDR', 'rtp'));
+outfile = strrep(name, 'SDR', 'rtp');
 
 % call the processing function
 create_cris_ccast_hires_rtp(infile, outfile)
