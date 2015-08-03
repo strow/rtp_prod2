@@ -28,7 +28,7 @@ MATOPT=' -nojvm -nodisplay -nosplash'
 JOBSTEP=0
 
 echo "Executing srun of run_cris_batch"
-srun $MATLAB $MATOPT -r "set_process_dirs; addpath(genpath(rtp_sw_dir)); run_cris_batch; exit"
+srun  $MATLAB $MATOPT -r "set_process_dirs; addpath(genpath(rtp_sw_dir)); run_cris_batch; exit"
     
 echo "Finished with srun of run_cris_batch"
 

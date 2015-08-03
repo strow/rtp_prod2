@@ -5,6 +5,9 @@ function create_cris_ccast_hires_rtp(fnCrisInput, fnCrisOutput)
 
 %set_process_dirs;
 
+fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
+        fnCrisInput);
+
 % use fnCrisOutput to generate year and doy strings
 % fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
 cris_yearstr = fnCrisOutput(6:9);
@@ -27,7 +30,7 @@ addpath /asl/packages/ccast/source
 nguard = 2;  % number of guard channels
 
 
-% Load up rtp 
+% Load up rtp
 [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard);
 %%** second parameter sets up the use of 4 CrIS guard
 %%channels. Looking at head.ichan and head.vchan shows some
@@ -213,21 +216,30 @@ end
 rtp_out_fn_head = fnCrisOutput;
 % Now save the four types of cris files
 fprintf(1, '>>> writing output rtp files... ');
-rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
-rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+% if no profiles are captured in a subset, do not output a file
+if iclear ~= 0
+    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
+    rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
+    rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+end
 
-rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
-rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
+if isite ~= 0
+    rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
+    rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
+    rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
+end
 
-rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
-rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+if idcc ~= 0
+    rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
+    rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
+    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+end
 
-rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
-rtp_outname = fullfile(cris_out_dir, char(asType(4)),cris_yearstr, cris_doystr,  rtp_out_fn);
-rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
+if irand ~= 0
+    rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
+    rtp_outname = fullfile(cris_out_dir, char(asType(4)),cris_yearstr, cris_doystr,  rtp_out_fn);
+    rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
+end
 fprintf(1, 'Done\n');
 
 
