@@ -44,8 +44,13 @@ sza   = prof.satzen;
 % so the nadir "xtracks" would be 14,15 which would give 9+9 = 18 samples per atrack, quite a few!!!
 
 % Now the selection
-vx = find(abs(sza)<1.75); % find all near nadir spectra
+profbak=prof;
+keyboard
 
+% $$$ vx = find(abs(sza)<1.75); % find all near nadir spectra
+vx = find(prof.xtrack == 15 | prof.xtrack == 16);  % use xtrack to find nadir
+                                         % instead of sza
+keyboard
 %%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 %%%         start modification to HHA code
 %%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -53,8 +58,12 @@ vx = find(abs(sza)<1.75); % find all near nadir spectra
 iFlip = -1;            %% assume you can just stick to HHA orig algorithm
 iForwardBackward = +1; %% dont have to worry about first part of granule vs last part of granule
 
-center = find(prof.xtrack == 15);
-center = center(1:9:length(center));
+center = vx;  %% I only use center to see if
+              %% granule lats are flipping ie
+              %% over poles
+center = center(1:9:length(center)); %% subset one every 9 which
+                                     %% SHOULD be the center, need
+                                     %% ti check
 dadiff = diff(lat2(center));
 junk = find(dadiff > 0);  positive(junk) = +1;
 junk = find(dadiff <= 0); positive(junk) = -1;
@@ -95,7 +104,8 @@ if (length(find(positive > 0)) ~= length(dadiff)) & (length(find(positive < 0)) 
     sza   = reshape(prof.satzen,90,180-numAtrack);
     minAtrack = min(prof.atrack);
   end
-  vx = find(abs(sza)<1.75); % find all near nadir spectra
+% $$$   vx = find(abs(sza)<1.75); % find all near nadir spectra
+  vx = find(prof.xtrack == 15 | prof.xtrack ==16);
 
   blat2 = lat2;
   
@@ -120,7 +130,7 @@ if iFlip > 0
   nsave0 = floor(sn*abs(cos(mean(lat20(:))/57.3))+0.5);
 end
 nsave = floor(sn*abs(cos(mean(blat2(:))/57.3))+0.5);
-
+keyboard
 if iFlip > 0
   fprintf(1,'<lat> = %8.6f : orig nsave = %3i, final nsave = %3i -- will reduce by 1/6 \n',mean(blat2(:)),nsave0,nsave)
   nsave = min(nsave,nsave0);
@@ -148,12 +158,3 @@ site_id(vc) = 88;
 keep_ind = vc;
 keep     = vc;
 
-dodo = find(prof0.expand_xtrack == 45 | prof0.expand_xtrack == 46);
-dodo = find(prof0.xtrack == 15 | prof0.xtrack == 16);
-figure(1); clf;
-  plot(1:length(prof0.rlat),prof0.rlat,'b.',dodo,prof0.rlat(dodo),'kx'); hold on
-  plot(keep_ind,prof0.rlat(keep_ind),'ro'); hold off
-  ylabel('rlat'); xlabel('fov index')
-  title('red dots are sampled indices')
-pause(0.1);
-	
