@@ -107,7 +107,9 @@ unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_st
 % run 'N' copies of sarta backgrounded
 fprintf(1, '>>> Running sarta... ');
 fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
+sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+             sTempPath '/sartastdout.txt'];
+unix(sarta_run);
 fprintf(1, 'Done\n');
 
 % Read in new rcalcs and insert into origin prof field
@@ -155,23 +157,23 @@ rtp_out_fn_head = fnCrisOutput;
 % Now save the four types of cris files
 fprintf(1, '>>> writing output rtp files... ');
 % if no profiles are captured in a subset, do not output a file
-if iclear ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-    rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
-end
-
-if isite ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
-end
-
-if idcc ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
-end
+% $$$ if iclear ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+% $$$ end
+% $$$ 
+% $$$ if isite ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
+% $$$ end
+% $$$ 
+% $$$ if idcc ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+% $$$ end
 
 if irand ~= 0
     rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
@@ -182,4 +184,4 @@ fprintf(1, 'Done\n');
 
 
 % Next delete temporary files
-delete(fn_rtp1);delete(fn_rtp2);delete(fn_rtpi);delete(fn_rtprad);
+delete(fn_rtp1);delete(fn_rtp2)
