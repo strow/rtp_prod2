@@ -8,20 +8,23 @@ function  run_cat_rtp_daily()
 % does the final rtpwrite
 
 addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
+addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
 cris_daily_file_list = '~/cris-days-to-process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+%slurmindex = 0;
 
 % for each slurm array index, process 30 days from the to-process
 % list (because each day takes less time to process than it takes
-% to load matlab so, it is inefficient to to do each day as a
+% to load matlab so, it is inefficient to do each day as a
 % separate array)
 chunk = 30;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
+    %    dayindex=281; % testing testing testing
     fprintf(1, '>>> chunk %d    dayindex %d\n', i, dayindex);
     
     % File ~/cris-files-process.txt is a list of filepaths to the input
@@ -39,27 +42,40 @@ for i = 1:chunk
     end
 
     % generate output file name and path (presently to be
-    % /asl/data/rtp_cris_ccast_lores/clear_daily/<year>/rtp_d<date>_clear.rtp)
+    % /asl/data/rtp_cris_ccast_lowres/clear_daily/<year>/rtp_d<date>_clear.rtp)
     C = strsplit(indir, '/');
     sYear = C{6};
-    outpath = fullfile('/asl/data/rtp_cris_ccast_lores/clear_daily', ...
+    outpath = fullfile('/asl/data/rtp_cris_ccast_lowres/random_daily', ...
                        sYear);
 
     % read in filenames in indir to build output filename
     mfiles = dir([indir '/rtp_*.rtp']);
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, [C{1} '_' C{2} '_clear.rtp']);
+    outfile = fullfile(outpath, [C{1} '_' C{2} '_random.rtp']);
 
-    % concatenate rtp files in indir
-    [h,ha,p,pa] = cat_rtp_dir(indir);
+    % check to see if the output file is extant on the system
+    % (don't overwrite for now.)
+    if exist(outfile, 'file') == 0
+        % concatenate rtp files in indir
+        [h,ha,p,pa] = cat_rtp_dir(indir);
 
-    % write out concatenated rtp file
-    try
-        rtpwrite(outfile, h,ha,p,pa);
-    catch
-        fprintf(2, '>>> rtpwrite failure in chunk %d for %s\n', i, indir);
-    end
+        % write out concatenated rtp file
+        lmax = 72000;    % to keep output file below HDF4 limit
+        if length(p.rtime) > lmax
+            p = sub_airxbcal(p, lmax); 
+        end  % end if length
+            
+        try
+            rtpwrite(outfile, h,ha,p,pa);
+        catch
+            fprintf(2, '>>> rtpwrite failure in chunk %d for %s\n', i, indir);
+        end  % end try-catch
+        fprintf(2, '>>> Successfully wrote %s\n', outfile);
+                        
+    else
+        fprintf(2, '>>> %s exists. Skipping\n', outfile);
+    end  % end if exist()
     
 end  % ends loop over chunk
 %% ****end function run_cat_rtp_daily****

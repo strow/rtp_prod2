@@ -1,9 +1,13 @@
 function run_cris_batch()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
+cris_ccast_file_list = '~/cris-hires-files-to-process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+
+% offset slurmindex to bypass MaxArraySize boundary
+%slurmindex = slurmindex + 19999
 
 % File ~/cris-files-process.txt is a list of filepaths to the input
 % files or this processing. For the initial runs, this was

@@ -105,7 +105,6 @@ clear isiteind isitenum
 bv4 = zeros(1,nobs);
 ib = find(mbt <= btmaxhicloud & abs(prof.rlat) <= latmaxhicloud);
 bv4(ib) = 4;
-
 bv8 = zeros(1,nobs);
 [keep,keep_ind] = hha_lat_subsample_equal_area2_cris_hires(head,prof); %% does not matter lo or hi res
 ib = keep;
@@ -137,10 +136,11 @@ check4_32 = find(bv4 == 1 & bv32 == 1);
 check8_16 = find(bv8 == 1 & bv16 == 1);
 check8_32 = find(bv8 == 1 & bv32 == 1);
 check16_32 = find(bv16 == 1 & bv32 == 1);
-[length(check2_4) length(check2_8) length(check2_16) length(check2_32)]
-[length(check4_8) length(check4_16) length(check4_32)]
-[length(check8_16) length(check8_32)]
-[length(check16_32)]
+
+% $$$ [length(check2_4) length(check2_8) length(check2_16) length(check2_32)]
+% $$$ [length(check4_8) length(check4_16) length(check4_32)]
+% $$$ [length(check8_16) length(check8_32)]
+% $$$ [length(check16_32)]
 
 % Compute iflags (as an exact integer)
 iflags = round(bv2 + bv4 + bv8 + bv16 + bv32);

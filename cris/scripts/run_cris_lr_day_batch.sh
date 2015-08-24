@@ -5,7 +5,7 @@
 # 
 
 # sbatch options
-#SBATCH --job-name=RUN_CAT_RTP_DAILY
+#SBATCH --job-name=RUN_CREATE_CRIS_RTP
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
@@ -14,20 +14,21 @@
 #SBATCH -N1
 #SBATCH --mem-per-cpu=18000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=01:25:00
+#SBATCH --time=07:00:00
 
 # matlab options
 MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 
-#LOGDIR=~/logs/sbatch
-#DT=$(date +"%Y%m%d-%H%M%S")
+LOGDIR=~/logs/sbatch
+DT=$(date +"%Y%m%d-%H%M%S")
 
 JOBSTEP=0
 
-echo "Executing srun of run_cris_batch"
-srun $MATLAB $MATOPT -r "addpath('~/git/rtp_prod2/cris/scripts'); run_cat_rtp_daily; exit"
+echo "Executing srun of run_cris_day_batch"
+srun  --output=${LOGDIR}/run_create_cris-lr-day_rtp_%j_%t-${DT}.out \
+      $MATLAB $MATOPT -r "set_process_dirs; addpath(genpath(rtp_sw_dir)); run_cris_lr_day_batch; exit"
     
 echo "Finished with srun of run_cris_batch"
 

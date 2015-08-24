@@ -1,4 +1,4 @@
-function pull_stats_cris(year, filter);
+function pull_stats_cris(year);
 
 %**************************************************
 % need to make this work on daily concat files: look for loop over
@@ -21,12 +21,12 @@ addpath ~/git/rtp_prod2/util
 addpath /asl/rtp_prod/cris/unapod
 
 % Get proper frequencies for these data
-[n1,n2,n3,userLW,userMW,userSW, ichan] = cris_lowres_chans();
+[n1,n2,n3,userLW,userMW,userSW, ichan] = cris_hires_chans();
 f = cris_vchan(2, userLW, userMW, userSW);
 
-basedir = fullfile('/asl/data/rtp_cris_ccast_lowres/random_daily', ...
+basedir = fullfile('/asl/data/rtp_cris_ccast_hires/clear_daily', ...
                    int2str(year));
-dayfiles = dir(fullfile(basedir, 'rtp*_random.rtp'));
+dayfiles = dir(fullfile(basedir, 'rtp*_clear.rtp'));
 
 iday = 1;
 % for giday = 1:50:length(dayfiles)
@@ -35,32 +35,15 @@ for giday = 1:length(dayfiles)
    a = dir(fullfile(basedir,dayfiles(giday).name));
    if a.bytes > 100000
       [h,ha,p,pa] = rtpread(fullfile(basedir,dayfiles(giday).name));
-
-      switch filter
-        case 1
-          k = find(p.iudef(4,:) == 1); % descending node (night)
-          sDescriptor='_desc';
-        case 2
-          k = find(p.iudef(4,:) == 1 & p.landfrac == 0); % descending node
-                                                         % (night), ocean
-          sDescriptor='_desc_ocean';
-        case 3
-          k = find(p.iudef(4,:) == 1 & p.landfrac == 1); % descending node
-                                                        % (night), land
-          sDescriptor='_desc_land';
-        case 4
-          k = find(p.iudef(4,:) == 0); % ascending node (night)
-          sDescriptor='_asc';
-        case 5
-          k = find(p.iudef(4,:) == 0 & p.landfrac == 0); % ascending node
-                                                         % (night), ocean
-          sDescriptor='_asc_ocean';
-        case 6
-          k = find(p.iudef(4,:) == 0 & p.landfrac == 1); % ascending node
-                                                        % (night), land
-          sDescriptor='_asc_land';
-      end
-
+% Subset here if needed
+%**************************************************
+% the following line is the majority of the business
+% logic here. this line will change frequently: can we
+% encapsulate so that this change does not require
+% editing this file (thinking something like function
+% pointer in C?)
+%**************************************************
+      k = find( abs(p.rlat) < 30 & p.landfrac == 0 & (p.xtrack == 15 | p.xtrack == 16) & p.solzen > 90);
       p = rtp_sub_prof(p, k);
       for z = 1:9  % loop over FOVs to further sub-select
          ifov = find(p.ifov == z);
@@ -70,8 +53,7 @@ for giday = 1:length(dayfiles)
          r  = p2.robs1;
          rc = p2.rcalc;
 % Convert r to rham
-         r = box_to_ham(r);  % assumes r in freq order!!  Needed
-                             % for lowres
+         r = box_to_ham(r);  % assumes r in freq order!!
 % B(T) bias mean and std
          bto = real(rad2bt(f,r));
          btc = real(rad2bt(f,rc));
@@ -84,12 +66,9 @@ for giday = 1:length(dayfiles)
          solzen_mean(iday,z) = nanmean(p2.solzen);
          rtime_mean(iday,z)  = nanmean(p2.rtime);
          count(iday,z) = length(p2.rlat);
-         stemp_mean(iday,z) = nanmean(p2.stemp);
-         iudef4_mean(iday,z) = nanmean(p2.iudef(4,:));
       end  % ifov (z)
       iday = iday + 1
    end % if a.bytes > 1000000
 end  % giday
-eval_str = ['save ~/testoutput/rtp_cris_lowres'  int2str(year) ...
-            '_random' sDescriptor ' btobs btcal bias bias_std *_mean count '];
+eval_str = ['save ~/testoutput/rtp_cris_hires'  int2str(year)  ' btobs btcal bias bias_std *_mean count '];
 eval(eval_str);

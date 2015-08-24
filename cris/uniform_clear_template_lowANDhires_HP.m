@@ -1,4 +1,4 @@
-function [pout] = uniform_clear_template_lowANDhires_hp(head, hattr, prof, pattr, idtestu, idtestc);
+function [pout] = uniform_clear_template_lowANDhires_HP(head, hattr, prof, pattr, idtestu, idtestc);
 %
 % Run the CrIS xuniform.m and xfind_clear.m codes for a Proxy data
 % file and save some results. The input RTP should contain unapodized
@@ -260,6 +260,7 @@ iSergioRandom = +1;  %% change over to Sergio code
 if iSergioRandom < 0
   [iflagso, isite] = site_dcc_random(head, prof, idtestu);
 elseif iSergioRandom > 0
+
   [iflagso, isite] = site_dcc_random_cris_sergio(head, prof, idtestu);
   % [keep,keep_ind] = hha_lat_subsample_equal_area2_cris_hires(head,prof);
   % woo = find(iflagso == round(8));
