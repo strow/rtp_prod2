@@ -1,11 +1,11 @@
-function create_cris_ccast_lores_rtp(fnCrisInput, fnCrisOutput)
-% PROCESS_CRIS_LORES process one granule of CrIS data
+function create_cris_ccast_lowres_rtp(fnCrisInput, fnCrisOutput)
+% PROCESS_CRIS_LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
 
 %set_process_dirs;
 
-fprintf(1, '>> Running create_cris_ccast_lores_rtp for input: %s\n', ...
+fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
         fnCrisInput);
 
 % use fnCrisOutput to generate year and doy strings
@@ -19,7 +19,7 @@ cris_doystr = char(dt);
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
-               'sarta_crisg4_nov09_wcon_nte'];  %% lores
+               'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
@@ -139,11 +139,11 @@ prof_dcc   = rtp_sub_prof(prof,idcc);
 prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
-% cris lores data will be stored in
-% /asl/data/rtp_cris_ccast_lores/{clear,dcc,site,random}/<year>/<doy>
+% cris lowres data will be stored in
+% /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
 asType = {'clear', 'site', 'dcc', 'random'};
-cris_out_dir = '/asl/data/rtp_cris_ccast_lores';
+cris_out_dir = '/asl/data/rtp_cris_ccast_lowres';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source
 % for filesystem collisions once we are running under slurm.
