@@ -69,7 +69,7 @@ for i=1:n
        wind_u          = F(fhi).u10.ig(rlat,rlon);
        prof.wspeed(k)  = sqrt(wind_u.^2 + wind_v).^2;
        prof.wsource(k) = mod(atan2(single(wind_u), single(wind_v)) * 180/pi,360);
-       prof.cfrac(k)   = F(fhi).tcc.ig(rlat,rlon);
+       prof.tcc(k)   = F(fhi).tcc.ig(rlat,rlon);
        ci_udef = 1;
        prof.udef(ci_udef,k) = F(fhi).ci.ig(rlat,rlon);
 % Estimate model grid centers used
@@ -134,11 +134,11 @@ if isfield(prof,'gas_3')
   end
 end
 %  fix any cloud frac
-if isfield(prof,'cfrac')
-  ibad = find(prof.cfrac > 1);
+if isfield(prof,'tcc')
+  ibad = find(prof.tcc > 1);
   nbad = length(ibad);
   if (nbad > 0)
-    prof.cfrac(ibad) = 1;
-%    say(['Replaced ' int2str(nbad) ' CFRAC > 1 fields'])
+    prof.tcc(ibad) = 1;
+%    say(['Replaced ' int2str(nbad) ' TCC > 1 fields'])
   end
 end
