@@ -202,7 +202,7 @@ pattr = {{'profiles' 'rtime' 'seconds since 0z 1 Jan 1958'}, ...
 %-------------------
 head = struct;
 head.nchan = nout;
-head.ichan = cris_ichan(nguard, nLW, nMW, nSW);
+head.ichan = cris_ichan(nguard, 4, nLW, nMW, nSW);
 head.vchan = cris_vchan(nguard, userLW, userMW, userSW);
 head.pfields = 4; % 4 = IR obs
 

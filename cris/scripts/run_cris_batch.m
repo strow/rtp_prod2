@@ -1,9 +1,13 @@
 function run_cris_batch()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
+cris_ccast_file_list = '~/cris-hires-files-to-process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+
+% offset slurmindex to bypass MaxArraySize boundary
+%slurmindex = slurmindex + 19999
 
 % File ~/cris-files-process.txt is a list of filepaths to the input
 % files or this processing. For the initial runs, this was
@@ -20,13 +24,14 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % filename intact but change SDR -> rtp and change the extension to
 % rtp as well as we make the output file path
 [path, name, ext] = fileparts(infile);
-C = strsplit(path, '/');
-t = numel(C);
-sYear = C{t-1};
-sDoy = C{t};
-outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
-mkdir(outpath);
-outfile = fullfile(outpath, [strrep(name, 'SDR', 'rtp') '.rtp']);
+% $$$ C = strsplit(path, '/');
+% $$$ t = numel(C);
+% $$$ sYear = C{t-1};
+% $$$ sDoy = C{t};
+% $$$ outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
+% $$$ mkdir(outpath);
+% $$$ outfile = fullfile(outpath, strrep(name, 'SDR', 'rtp'));
+outfile = strrep(name, 'SDR', 'rtp');
 
 % call the processing function
 create_cris_ccast_hires_rtp(infile, outfile)

@@ -1,11 +1,11 @@
-function create_cris_ccast_hires_rtp(fnCrisInput, fnCrisOutput)
-% PROCESS_CRIS_HIRES process one granule of CrIS data
+function create_cris_ccast_lowres_rtp(fnCrisInput, fnCrisOutput)
+% PROCESS_CRIS_LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
 
 %set_process_dirs;
 
-fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
+fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
         fnCrisInput);
 
 % use fnCrisOutput to generate year and doy strings
@@ -18,7 +18,8 @@ dt.Format = 'DDD';
 cris_doystr = char(dt);
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
+sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
+               'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
@@ -100,91 +101,30 @@ fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
 unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 
-% Now run IASI SARTA 
-% Remove CrIS channel dependent fields before doing IASI calc
-if (isfield(head,'vchan'))
-    %%** removes the user space frequency channel array but leaves
-    %%the channel index array (which sarta needs?)
-  head = rmfield(head,'vchan');
-end
-if (isfield(prof,'robs1'))
-  prof = rmfield(prof,'robs1');
-  head.pfields = head.pfields - 4;
-end
-if (isfield(prof,'rcalc'))
-  prof = rmfield(prof,'rcalc');
-  head.pfields = head.pfields - 2;
-end
-if (isfield(prof,'calflag'))
-  prof = rmfield(prof,'calflag');
-end
+% Run sarta
+% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
+% below for clear,site,etc?) make call to external shell script to
+% run 'N' copies of sarta backgrounded
+fprintf(1, '>>> Running sarta... ');
+fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
+sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+             sTempPath '/sartastdout.txt'];
+unix(sarta_run);
+fprintf(1, 'Done\n');
 
-% Run IASI SARTA
-%%** fiasi is a LUT for the IASI frequency space channel
-%%allocations
-ltemp = load('/asl/data/iremis/danz/iasi_f', 'fiasi'); % load fiasi
-fiasi = ltemp.fiasi;
-clear ltemp;
+% Read in new rcalcs and insert into origin prof field
+stFileInfo = dir(fn_rtp3);
+fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+            '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
+[h,ha,p,pa] = rtpread(fn_rtp3);
+% $$$ prof.rcalc = p.rcalc;
+% $$$ head.pfields = 7;
 
-% First half of IASI
-%%** replace both cris ichan and vchan with iasi equivalents (??
-%%but without guard channels??). This is done because we have a
-%%sarta model for iasi but not for cris, correct?? Why, exactly did
-%%we do the field removal of head.vchan a few lines ago but not
-%%similarly remove ichan? Here, we replace both with iasi
-%%equiv. so, why the removal?
-head.nchan = 4231;
-head.ichan = (1:4231)';
-head.vchan = fiasi(1:4231);
-fn_rtpi = fullfile(sTempPath, ['cris_' sID '_rtpi.rtp']);
-rtpwrite(fn_rtpi,head,hattr,prof,pattr);
-fn_rtprad = fullfile(sTempPath, ['cris_' sID '_rtprad.rtp']);
-disp('running SARTA for IASI channels 1-4231')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > sartastdout1.txt']);
-%psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
-[head, hattr, prof, pattr] = rtpread(fn_rtprad);
-rad_pt1 = prof.rcalc;
-% Second half of IASI
-head.nchan = 4230;
-head.ichan = (4232:8461)';
-head.vchan = fiasi(4232:8461);
-rtpwrite(fn_rtpi,head,hattr,prof,pattr);
-disp('running SARTA for IASI channels 4232-8461')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > sartastdout2.txt' ]);
-%psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
-[head, hattr, prof, pattr] = rtpread(fn_rtprad);
-rad_pt2 = prof.rcalc;
-
-%
-rad_iasi = [rad_pt1; rad_pt2];
-clear rad_pt1 rad_pt2
-
-% Convert IASI radiances to CrIS
-opt.hapod = 0;  % Want sinc from iasi2cris
-opt.resmode = 'hires2'; % CrIS mode after Dec. 4, 2014
-opt.nguard = nguard; % adding 2 guard channels
-
-% Convert Iasi to CrIS
-[tmp_rad_cris, f_cris] = iasi2cris(rad_iasi,fiasi,opt);
-%%% trying to add 2 guard channels. This check will need to be
-%%% redone but, for now, I will just remove it
-% $$$ % f_cris are real channels, no guard channels
-[num_ichan_iasi, num_profs] = size(tmp_rad_cris);
-% $$$ if num_ichan_iasi ~= 2211
-% $$$    disp('Error: iasi2cris returning wrong channels');
-% $$$ end
-
-% Full g4 radiance variable
-rad_cris = ones(length(ichan_ccast),num_profs).*NaN;
-% Indices (not channels) for real radiances
-ireal = find(ichan_ccast <= 2211);
-
-% $$$ rad_cris(ireal,:) = tmp_rad_cris;
-rad_cris = tmp_rad_cris;
 % Go get output from klayers, which is what we want except for rcalc
-[head, hattr, prof, pattr] = rtpread(fn_rtp2);
+% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-prof.rcalc = real(rad_cris); 
+prof.rcalc = p.rcalc;
+head.pfields = 7;
 
 % output rtp splitting from airxbcal processing
 % Subset into four types and save separately
@@ -199,11 +139,11 @@ prof_dcc   = rtp_sub_prof(prof,idcc);
 prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
-% cris hires data will be stored in
-% /asl/data/rtp_cris_ccast/{clear,dcc,site,random}/<year>/<doy>
+% cris lowres data will be stored in
+% /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
 asType = {'clear', 'site', 'dcc', 'random'};
-cris_out_dir = '/asl/data/rtp_cris_ccast';
+cris_out_dir = '/asl/data/rtp_cris_ccast_lowres';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source
 % for filesystem collisions once we are running under slurm.
@@ -217,23 +157,23 @@ rtp_out_fn_head = fnCrisOutput;
 % Now save the four types of cris files
 fprintf(1, '>>> writing output rtp files... ');
 % if no profiles are captured in a subset, do not output a file
-if iclear ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-    rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
-end
-
-if isite ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
-end
-
-if idcc ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
-end
+% $$$ if iclear ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+% $$$ end
+% $$$ 
+% $$$ if isite ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
+% $$$ end
+% $$$ 
+% $$$ if idcc ~= 0
+% $$$     rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
+% $$$     rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
+% $$$     rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+% $$$ end
 
 if irand ~= 0
     rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
@@ -244,4 +184,4 @@ fprintf(1, 'Done\n');
 
 
 % Next delete temporary files
-delete(fn_rtp1);delete(fn_rtp2);delete(fn_rtpi);delete(fn_rtprad);
+delete(fn_rtp1);delete(fn_rtp2)

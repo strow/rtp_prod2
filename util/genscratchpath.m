@@ -13,7 +13,7 @@ if ~isempty(sNodeID) && ~isempty(sScratchPath)
     sTempPath = sScratchPath;
 else
     sTempPath = '/tmp';
-    rng('shuffle');
+    rng('shuffle', 'twister');
     sNodeID = sprintf('%03d', randi(999));
 end
 
