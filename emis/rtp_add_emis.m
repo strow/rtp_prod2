@@ -41,6 +41,7 @@ efreq = fiasi(efreqi);
 % Only ask emis_danz for land emissivities, any fraction
 kland     = find( prof.landfrac > 0 );
 emis_land = emis_danz(prof.rlat(kland),prof.rlon(kland),prof.rtime(kland),efreq);
+
 % Get sea emissivities, only for pure water scene
 kwater    = find( prof.landfrac <= 0);
 [sea_nemis, sea_efreq, sea_emis] = emis_sea(prof.satzen(kwater), prof.wspeed(kwater));
