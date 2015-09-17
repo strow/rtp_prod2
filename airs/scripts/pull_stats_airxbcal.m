@@ -27,9 +27,12 @@ addpath /asl/rtp_prod/cris/unapod
 % $$$ [n1,n2,n3,userLW,userMW,userSW, ichan] = cris_lowres_chans();
 % $$$ f = cris_vchan(2, userLW, userMW, userSW);
 
-basedir = fullfile('/asl/data/rtp_airxbcal_v5/', ...
-                   int2str(year), 'random');
-dayfiles = dir(fullfile(basedir, 'era_airxbcal*_rand.rtp'));
+% $$$ basedir = fullfile('/asl/data/rtp_airxbcal_v5/', ...
+% $$$                    int2str(year), 'random');
+% $$$ dayfiles = dir(fullfile(basedir, 'era_airxbcal*_rand.rtp'));
+basedir = fullfile('/home/sbuczko1/testoutput/airxbcal_ps_test');
+dayfiles = dir(fullfile(basedir, 'era_airxbcal*.rtp'));
+
 fprintf(1,'>>> numfiles = %d\n', length(dayfiles));
 
 iday = 1;
@@ -37,6 +40,7 @@ iday = 1;
 for giday = 1:length(dayfiles)
    fprintf(1, '>>> year = %d  :: giday = %d\n', year, giday);
    a = dir(fullfile(basedir,dayfiles(giday).name));
+   a.bytes
    if a.bytes > 100000
       [h,ha,p,pa] = rtpread(fullfile(basedir,dayfiles(giday).name));
       f = h.vchan;  % AIRS proper frequencies
@@ -94,6 +98,6 @@ for giday = 1:length(dayfiles)
       iday = iday + 1
    end % if a.bytes > 1000000
 end  % giday
-eval_str = ['save ~/testoutput/rtp_airxbcal'  int2str(year) ...
-            '_rand' sDescriptor ' btobs btcal bias bias_std *_mean count '];
+eval_str = ['save ~/testoutput/airxbcal_ps_test/rtp_airxbcal'  int2str(year) ...
+            '_clear_tropocean_old btobs btcal bias bias_std *_mean count '];
 eval(eval_str);
