@@ -100,7 +100,7 @@ if isfield(prof,'zobs')
 end
 
 % subset by 20 during debugging
-bDEBUG=1;
+bDEBUG=0;
 if bDEBUG
     % subset data 95% for faster debugging/testing runs
     prof = rtp_sub_prof(prof,1:1:length(prof.rlat));

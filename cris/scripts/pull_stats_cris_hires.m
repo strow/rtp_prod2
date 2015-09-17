@@ -1,4 +1,4 @@
-function pull_stats_cris(year);
+function pull_stats_cris_hires(year);
 
 %**************************************************
 % need to make this work on daily concat files: look for loop over
@@ -24,9 +24,11 @@ addpath /asl/rtp_prod/cris/unapod
 [n1,n2,n3,userLW,userMW,userSW, ichan] = cris_hires_chans();
 f = cris_vchan(2, userLW, userMW, userSW);
 
-basedir = fullfile('/asl/data/rtp_cris_ccast_hires/clear_daily', ...
+sSubset = 'clear';
+
+basedir = fullfile('/asl/data/rtp_cris_ccast_hires', [sSubset '_daily'], ...
                    int2str(year));
-dayfiles = dir(fullfile(basedir, 'rtp*_clear.rtp'));
+dayfiles = dir(fullfile(basedir, ['rtp*_' sSubset '.rtp']));
 
 iday = 1;
 % for giday = 1:50:length(dayfiles)
@@ -43,7 +45,10 @@ for giday = 1:length(dayfiles)
 % editing this file (thinking something like function
 % pointer in C?)
 %**************************************************
-      k = find( abs(p.rlat) < 30 & p.landfrac == 0 & (p.xtrack == 15 | p.xtrack == 16) & p.solzen > 90);
+      k = find( abs(p.rlat) < 30 & p.landfrac == 0 & (p.xtrack == ...
+                                                      15 | p.xtrack == 16) & p.solzen > 90);
+      sDescriptor = 'all';
+      
       p = rtp_sub_prof(p, k);
       for z = 1:9  % loop over FOVs to further sub-select
          ifov = find(p.ifov == z);
@@ -70,5 +75,6 @@ for giday = 1:length(dayfiles)
       iday = iday + 1
    end % if a.bytes > 1000000
 end  % giday
-eval_str = ['save ~/testoutput/rtp_cris_hires'  int2str(year)  ' btobs btcal bias bias_std *_mean count '];
+eval_str = ['save ~/testoutput/rtp_cris_hires'  int2str(year) '_' ...
+            sSubset '_' sDescriptor  ' btobs btcal bias bias_std *_mean count '];
 eval(eval_str);
