@@ -146,3 +146,6 @@ if isfield(prof,'tcc')
 %    say(['Replaced ' int2str(nbad) ' TCC > 1 fields'])
   end
 end
+
+% set an attribute string to let the rtp know what we have done
+pattr = set_attr(pattr,'model','era');
