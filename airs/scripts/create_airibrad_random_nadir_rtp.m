@@ -22,7 +22,9 @@ set_process_dirs
 addpath(genpath(rtp_sw_dir));
 addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
 addpath('/asl/matlib/rtptools');   % for cat_rtp
-addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  % driver_sarta_cloud_rtp.m
+addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
+                                                      % driver_sarta_cloud_rtp.m
+% $$$ addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 
 % build output filename
 % assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
@@ -33,7 +35,7 @@ outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 if exist(outfile_path) ~= 0
-    fprintf(2, ['>>> Output file exists from previous run. Skipping\' ...
+    fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
                 'n']);
     return;
 end
@@ -51,7 +53,7 @@ for i=1:length(files)
     try
         [eq_x_tai, freq, prof0, pattr] = read_airibrad(infile);
     catch
-        fprintf(2, ['**>> Error in read_airibrad for granule %s. ' ...
+        fprintf(2, ['>>> ERROR: failure in read_airibrad for granule %s. ' ...
                     'Skipping.\n'], infile);
         continue;
     end
@@ -107,14 +109,26 @@ end
 
 % Add in model data
 fprintf(1, '>>> Running fill_era... ');
-[prof,head]  = fill_era(prof,head);
+try 
+    [prof,head]  = fill_era(prof,head);
+catch
+    fprintf(2, '>>> ERROR: fill_era failure for %s/%s\n', sYear, ...
+            sDoy);
+    return;
+end
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis...');
-[prof,pattr] = rtp_add_emis(prof,pattr);
+try
+    [prof,pattr] = rtp_add_emis(prof,pattr);
+catch
+    fprintf(2, '>>> ERROR: rtp_add_emis failure for %s/%s\n', sYear, ...
+            sDoy);
+    return;
+end
 fprintf(1, 'Done\n');
 
 % call klayers/sarta cloudy
@@ -135,7 +149,13 @@ pa = set_attr(pa, 'rtime', 'TAI:1958');
 
 % Now save the output random rtp file
 fprintf(1, '>>> writing output rtp files... ');
-rtpwrite(outfile_path, head, hattr, prof0, pa);
+try
+    rtpwrite(outfile_path, head, hattr, prof0, pa);
+catch
+    fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
+            sDoy);
+    return;
+end
 
 fprintf(1, 'Done\n');
 
