@@ -4,7 +4,15 @@
 %
 % Modify to include era?
 
-function [prof, head] = fill_ecmwf(prof, head);
+function [prof, head, pattr] = fill_ecmwf(prof, head, pattr);
+
+% Check args in and out to see if they conform to the new API and
+% aren't split between old and new styles
+if nargin ~= nargout
+    error(['>>> ERROR: mismatch between fill_ecmwf inputs and ' ...
+           'outputs.\n\tUse either [p,h]=fill_ecmwf(p,h) or ' ...
+           '[p,h,pa]=fill_ecmwf(p,h,pa) (preferred)\n\tTerminating'], '\n');
+end
 
 addpath /asl/matlib/aslutil
 
@@ -142,5 +150,12 @@ if isfield(prof,'tcc')
   end
 end
 
-% set an attribute string to let the rtp know what we have done
-pattr = set_attr(pattr,'model','ecmwf');
+switch nargin
+  case 2
+    fprintf(2, ['>>> WARNING: fill_ecmwf now sets model attribute in ' ...
+                'pattr.\n\tUpdate calls to fill_ecmwf to include pattr. ' ...
+                'i.e. [p,h,pa] = fill_ecmwf(p,h,pa)\n'])
+  case 3
+    % set an attribute string to let the rtp know what we have done
+    pattr = set_attr(pattr,'model','ecmwf');
+end

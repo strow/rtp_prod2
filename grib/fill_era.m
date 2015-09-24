@@ -4,7 +4,15 @@
 %
 % Start with fill_ecmwf.m and modify for ERA
 
-function [prof, head] = fill_era(prof, head)
+function [prof, head, pattr] = fill_era(prof, head, pattr)
+
+% Check args in and out to see if they conform to the new API and
+% aren't split between old and new styles
+if nargin ~= nargout
+    error(['>>> ERROR: mismatch between fill_era inputs and ' ...
+           'outputs.\n\tUse either [p,h]=fill_era(p,h) or ' ...
+           '[p,h,pa]=fill_era(p,h,pa) (preferred)\n\tTerminating'], '\n')
+end
 
 addpath /asl/matlib/aslutil
 
@@ -143,5 +151,12 @@ if isfield(prof,'tcc')
   end
 end
 
-% set an attribute string to let the rtp know what we have done
-pattr = set_attr(pattr,'model','era');
+switch nargin
+  case 2
+    fprintf(2, ['>>> WARNING: fill_era now sets model attribute in ' ...
+                'pattr.\n\tUpdate calls to fill_era to include pattr. ' ...
+                'i.e. [p,h,pa] = fill_era(p,h,pa)\n'])
+  case 3
+    % set an attribute string to let the rtp know what we have done
+    pattr = set_attr(pattr,'model','era');
+end
