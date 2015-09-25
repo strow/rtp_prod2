@@ -1,11 +1,11 @@
-function create_cris_ccast_hires_rtp(fnCrisInput, fnCrisOutput)
+function create_cris_ccast_hires_allfov_rtp(fnCrisInput, fnCrisOutput)
 % PROCESS_CRIS_HIRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
 
 %set_process_dirs;
 
-fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
+fprintf(1, '>> Running create_cris_ccast_hires_allfov_rtp for input: %s\n', ...
         fnCrisInput);
 
 % use fnCrisOutput to generate year and doy strings
@@ -75,32 +75,27 @@ head.ngas=2;
 
 % Add landfrac, etc.
 [head, hattr, prof, pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
+
 % Add Dan Zhou's emissivity and Masuda emis over ocean
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
-% $$$ fprintf(1, '>>> Running rtp_ad_emis...');
-% $$$ [prof,pattr] = rtp_add_emis(prof,pattr);
-% $$$ fprintf(1, 'Done\n');
-
+fprintf(1, '>>> Running rtp_ad_emis...');
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
+fprintf(1, 'Done\n');
 
-% Subset for quicker debugging
-% prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
+% $$$ % run Sergio's subsetting routine
+% $$$ px = prof;
+% $$$ % $$$ px = rmfield(prof,'rcalc');
+% $$$ hx = head; hx.pfields = 5;
+% $$$ fprintf(1, '>>> NGAS = %d\n', hx.ngas);
+% $$$ disp('>>> Sergio insists on knowing we are here')
+% $$$ prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
 
-% run Sergio's subsetting routine
-px = prof;
-% $$$ px = rmfield(prof,'rcalc');
-hx = head; hx.pfields = 5;
-fprintf(1, '>>> NGAS = %d\n', hx.ngas);
-disp('>>> Sergio insists on knowing we are here')
-prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
-
+% run klayers
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
-
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
 
-% run klayers
 unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 
@@ -144,7 +139,8 @@ fn_rtpi = fullfile(sTempPath, ['cris_' sID '_rtpi.rtp']);
 rtpwrite(fn_rtpi,head,hattr,prof,pattr);
 fn_rtprad = fullfile(sTempPath, ['cris_' sID '_rtprad.rtp']);
 disp('running SARTA for IASI channels 1-4231')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > sartastdout1.txt']);
+eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
+      sTempPath '/sartastdout1.txt']);
 %psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
 [head, hattr, prof, pattr] = rtpread(fn_rtprad);
 rad_pt1 = prof.rcalc;
@@ -154,7 +150,8 @@ head.ichan = (4232:8461)';
 head.vchan = fiasi(4232:8461);
 rtpwrite(fn_rtpi,head,hattr,prof,pattr);
 disp('running SARTA for IASI channels 4232-8461')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > sartastdout2.txt' ]);
+eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
+      sTempPath '/sartastdout2.txt' ]);
 %psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
 [head, hattr, prof, pattr] = rtpread(fn_rtprad);
 rad_pt2 = prof.rcalc;
@@ -190,23 +187,11 @@ rad_cris = tmp_rad_cris;
 % Insert rcalc for CrIS derived from IASI SARTA
 prof.rcalc = real(rad_cris); 
 
-% output rtp splitting from airxbcal processing
-% Subset into four types and save separately
-iclear = find(prof.iudef(1,:) == 1);
-isite  = find(prof.iudef(1,:) == 2);
-idcc   = find(prof.iudef(1,:) == 4);
-irand  = find(prof.iudef(1,:) == 8);
-
-prof_clear = rtp_sub_prof(prof,iclear);
-prof_site  = rtp_sub_prof(prof,isite);
-prof_dcc   = rtp_sub_prof(prof,idcc);
-prof_rand  = rtp_sub_prof(prof,irand);
-
 % Make directory if needed
 % cris hires data will be stored in
 % /asl/data/rtp_cris_ccast/{clear,dcc,site,random}/<year>/<doy>
 %
-asType = {'clear', 'site', 'dcc', 'random'};
+asType = {'allfov'};
 cris_out_dir = '/asl/data/rtp_cris_ccast_hires';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source
@@ -221,29 +206,9 @@ rtp_out_fn_head = fnCrisOutput;
 % Now save the four types of cris files
 fprintf(1, '>>> writing output rtp files... ');
 % if no profiles are captured in a subset, do not output a file
-if iclear ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-    rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
-end
-
-if isite ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(2)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
-end
-
-if idcc ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(3)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
-end
-
-if irand ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
-    rtp_outname = fullfile(cris_out_dir, char(asType(4)),cris_yearstr, cris_doystr,  rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
-end
+rtp_out_fn = [rtp_out_fn_head, '.rtp'];
+rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,  cris_doystr, rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof,pattr);
 fprintf(1, 'Done\n');
 
 

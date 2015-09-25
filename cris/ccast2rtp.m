@@ -157,9 +157,9 @@ xyz = geo.SCPosition; % [3 x 4*n]
 mtime = double(geo.MidTime)*1E-6 - tdif; % [1 x 4*n]
 isub = prof.rtime > 0;
 msel = [logical(1); diff(mtime) > 0];
-prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
-prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
-prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
+prof.udef(10,isub(2:end)) = interp1(mtime(msel(2:end)),xyz(1,msel(2:end)),prof.rtime(isub(2:end)),'linear','extrap');
+prof.udef(11,isub(2:end)) = interp1(mtime(msel(2:end)),xyz(2,msel(2:end)),prof.rtime(isub(2:end)),'linear','extrap');
+prof.udef(12,isub(2:end)) = interp1(mtime(msel(2:end)),xyz(3,msel(2:end)),prof.rtime(isub(2:end)),'linear','extrap');
 
 %-------------------------------
 % trim output to a valid subset
