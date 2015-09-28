@@ -15,12 +15,13 @@ if nargin ~= nargout
 end
 
 addpath /asl/matlib/aslutil
+addpath /asl/packages/time
 
 % Location of grib files
 fhdr = '/asl/data/era/';
 
 ename = '';  % This should be placed outside a rtp file loop
-mtime = datenum(1958,1,1,0,0,prof.rtime);
+mtime = tai2dnum(prof.rtime);
 
 % Get a cell array of era grib files for each time
 % Round to get 4 forecast hours per day
@@ -60,11 +61,14 @@ for i=1:n
    end   
 % Fill rtp fields
    m = find( ic == i );  % indices of first era file
+   fhi = 0;
    u_hour = unique(hourindex);
    nn = length(u_hour);
-   for fhi = 1:nn
-       l = find( hourindex == u_hour(fhi));
-       k = intersect(l,m);       
+   for jj = 1:nn
+       fhi = 1;
+       l = find( hourindex == u_hour(jj));
+       k = intersect(l,m);
+       if k > 0
    
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
        rlat = prof.rlat(k);
@@ -91,7 +95,6 @@ for i=1:n
 % Hybrid parameters
 % levid = 1 is top of atmosphere
 % b are the sortedd level IDs   
-%       prof.nlevs = ones(1,length(k))*length(F(fhi).levid);
        [b,j]=sort(F(fhi).levid);
        for l=1:length(F(fhi).levid)
           prof.ptemp(l,k) = F(fhi).t(j(l)).ig(rlat,rlon);
@@ -107,6 +110,7 @@ for i=1:n
        prof.nlevs(k) = length(F(fhi).levid);
    end
    fhi = fhi + 1;
+   end  % k loop
 end
 prof.nlevs = int32(prof.nlevs);
 
