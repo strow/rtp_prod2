@@ -245,6 +245,17 @@ if s == -1; disp('Error reading landFrac');end;
 junk2 = reshape( double(junk), 1,nobs);
 gdata.landfrac = junk2(i0);
 %
+[junk,s]=hdfsw('readfield',swath_id,'scan_node_type',[],[],[]);
+if s == -1; disp('Error reading scan_node_type');end;
+junk2 = reshape( ones(90,1)*double(junk)', 1,nobs);
+gdata.iudef(4,:) = junk2(i0);
+%
+[junk,s]=hdfsw('readfield',swath_id,'dust_flag',[],[],[]);
+if s == -1; disp('Error reading dust_flag');end;
+junk2 = reshape( double(junk), 1,nobs);
+gdata.iudef(3,:) = junk2(i0);
+%
+
 clear junk junk2 i0
 
 
@@ -261,7 +272,9 @@ gdata.robsqual = sum(gdata.calflag >= 64);
 % Assign attribute strings
 attr={{'profiles' 'rtime' 'Seconds since 0z, 1 Jan 1993'}, ...
       {'profiles' 'robsqual' 'Number of channels CalFlag+CalChanSummary>0'},...
-      {'profiles' 'calflag' cstr}};
+      {'profiles' 'calflag' cstr},...
+      {'profiles' 'Dust flag' '[1=true,0=false,-1=land,-2=cloud,-3=bad data] {dustflag}'},...
+      {'profiles' 'Node' '[Ascend/Descend/Npole/Spole/Zunknown] {scan_node_type}'}};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
