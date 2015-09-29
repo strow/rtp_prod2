@@ -22,6 +22,8 @@ newc = zeros(10,nobs);
 mtime = tai2dtime(rtime);
 
 mon = single(day(mtime,'dayofyear')/365);
+lat = single(lat);
+lon = single(lon);
 
 % Find interpolated expansion coefficients (linear is default)
 for i=1:10
