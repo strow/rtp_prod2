@@ -21,6 +21,8 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 set_process_dirs
 addpath(genpath(rtp_sw_dir));
 
+airxbcal_out_dir = '/asl/data/rtp_airxbcal_v5';
+
 % Location of AIRXBCAL year directories
 dn = '/asl/data/airs/AIRXBCAL';
 % Strings needed for file names
@@ -134,8 +136,8 @@ end
 fprintf(1, 'Done\n');
 
 % Add in model data
-fprintf(1, '>>> Running fill_era... ');
-[prof,head]  = fill_era(prof,head);
+fprintf(1, '>>> Running fill_ecmwf... ');
+[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
@@ -168,11 +170,14 @@ fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
 
+% update CO2 ppm for klayers
+prof.co2ppm = 400;
 
 % run klayers
 fprintf(1, '>>> running klayers... ');
 fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
-klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > /asl/s1/strow/kout.txt'];
+klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
+               sTempPath '/kout.txt'];
 unix(klayers_run);
 fprintf(1, 'Done\n');
 
@@ -219,7 +224,7 @@ for i = 1:length(asType)
     end
 end
 
-rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['ecmwf_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];

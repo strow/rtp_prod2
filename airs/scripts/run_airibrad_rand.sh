@@ -13,7 +13,7 @@
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem-per-cpu=18000
-#SBATCH --cpus-per-task 1
+#SBATCH --cpus-per-task=1
 #SBATCH --time=14:00:00
 ###SBATCH --array=0-156
 
