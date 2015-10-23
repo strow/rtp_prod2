@@ -1,3 +1,6 @@
+.gitignore
+*.old
+
 #
 # ccast git ignore file
 #
@@ -39,6 +42,7 @@ emis/DanZ_data
 *.svn
 *.bak
 *~
+*.sav
 
 # Don't ignore a few .mat files
 !test.mat
