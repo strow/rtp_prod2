@@ -59,6 +59,13 @@ fprintf(1, '>>> Reading input file: %s   ', fnfull);
 [prof, pattr, aux] = read_airxbcal(fnfull);
 fprintf(1, 'Done\n');
 
+% subset by 20 during debugging
+bDEBUG=0;
+if bDEBUG
+    % subset data 95% for faster debugging/testing runs
+    prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
+end
+
 % subset if nobs is greater than threshold lmax (to avoid hdf file size
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
@@ -99,13 +106,6 @@ head.vcmin = min(head.vchan);
 if isfield(prof,'zobs')
    iz = prof.zobs < 20000 & prof.zobs > 20;
    prof.zobs(iz) = prof.zobs(iz) * 1000;
-end
-
-% subset by 20 during debugging
-bDEBUG=0;
-if bDEBUG
-    % subset data 95% for faster debugging/testing runs
-    prof = rtp_sub_prof(prof,1:1:length(prof.rlat));
 end
 
 % Add in Scott's calflag
@@ -156,22 +156,14 @@ fprintf(1, 'Done\n');
 
 % Save the rtp file
 fprintf(1, '>>> Saving first rtp file... ');
-sNodeID = getenv('SLURM_PROCID');
-sScratchPath = getenv('JOB_SCRATCH_DIR');
-if ~isempty(sNodeID) && ~isempty(sScratchPath)
-    sTempPath = sScratchPath;
-    sID = sNodeID;
-else
-    sTempPath = '/tmp';
-    rng('shuffle');
-    sID = sprintf('%03d', randi(999));
-end
+[sID, sTempPath] = genscratchpath();
+
+% update CO2 ppm for klayers
+prof.co2ppm = ones(size(prof.rlat))*400;
+
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
-
-% update CO2 ppm for klayers
-prof.co2ppm = 400;
 
 % run klayers
 fprintf(1, '>>> running klayers... ');
@@ -199,7 +191,7 @@ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
 [h,ha,p,pa] = rtpread(fn_rtp3);
 prof.rcalc = p.rcalc;
 head.pfields = 7;
-%keyboard
+
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
 delete(fn_rtp1, fn_rtp2, fn_rtp3);
