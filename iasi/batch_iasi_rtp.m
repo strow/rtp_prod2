@@ -18,7 +18,9 @@ function batch_iasi_rtp(mondate,subset)
 % ------------------------------------------------
 % setup
 % ------------------------------------------------
-cd /home/chepplew/gitLib/rtp_prod2_new/iasi/run/
+cd /home/sbuczko1/git/rtp_prod2/iasi/run/
+addpath /asl/packages/rtp_prod2/iasi
+addpath /asl/packages/rtp_prod2/iasi/readers
 
 % ------------------------------------------------
 % Prep the requested jobs
@@ -56,7 +58,7 @@ FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-fprintf(FH,'#SBATCH --partition=batch\n');
+fprintf(FH,'#SBATCH --partition=strow\n');
 fprintf(FH,'#SBATCH --qos=normal\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
@@ -71,7 +73,7 @@ fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015a/bin/matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('srun $MATLAB $MATOPTS -r "run_iasi_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/asl/packages/rtp_prod2/iasi'');run_iasi_rtp(''%s'',''%s''); exit"',param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

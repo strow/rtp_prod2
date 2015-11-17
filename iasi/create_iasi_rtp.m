@@ -302,7 +302,7 @@ if(~SKIP)
 
   tmp = mktemp();
   outfiles = rtpwrite_12(tmp,hd,ha,pd,pa);
-  s1Path = '/asl/s1/chepplew/tmp/';
+  s1Path = '/tmp/';
   %disp(['tmp = ', tmp]);
 
   ifn_1 = outfiles{1};     ifn_2 = outfiles{2};

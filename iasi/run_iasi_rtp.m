@@ -18,9 +18,9 @@ function run_iasi_rtp(dateFile,subset)
 % prep the batch job from the dateFile.
 %-----------------------------------------------------------
 
-cd /home/chepplew/gitLib/rtp_prod2_new/iasi/run
-addpath /home/chepplew/gitLib/rtp_prod2_new/iasi
-addpath /home/chepplew/gitLib/rtp_prod2_new/iasi/readers
+cd /home/sbuczko1/git/rtp_prod2/iasi/run
+addpath /asl/packages/rtp_prod2/iasi
+addpath /asl/packages/rtp_prod2/iasi/readers
 
 ddc = load(dateFile);
 
