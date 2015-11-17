@@ -1,5 +1,6 @@
 .gitignore
 *.old
+run/
 
 #
 # ccast git ignore file
