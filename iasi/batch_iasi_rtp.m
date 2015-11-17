@@ -63,7 +63,7 @@ fprintf(FH,'#SBATCH --account=pi_strow\n');
 %%fprintf(FH,'#SBATCH -N1\n');
 fprintf(FH,'#SBATCH --output=iasiRTP_slurm-%%N.%%A.%%a.out\n');
 fprintf(FH,'#SBATCH --error=iasiRTP_slurm-%%N.%%A.%%a.err\n');
-fprintf(FH,'#SBATCH --mem-per-cpu=9000\n');
+fprintf(FH,'#SBATCH --mem=6000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 2\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
 
