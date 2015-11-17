@@ -18,21 +18,26 @@ function batch_iasi_rtp(mondate,subset)
 % ------------------------------------------------
 % setup
 % ------------------------------------------------
-cd /home/chepplew/projects/rtp_prod/iasi/
+cd /home/chepplew/gitLib/rtp_prod2_new/iasi/run/
 
 % ------------------------------------------------
 % Prep the requested jobs
 % ------------------------------------------------
-% delete date file if already exists
-if(exist('iasi_rtp_drv.mat','file') == 2) delete('iasi_rtp_drv.mat'); end
-
 % check the date string
 if (length(mondate) ~= 7) fprintf(1,'Error in date format\n'); return; end;
 syr = mondate(1:4);      smo = mondate(6:7);
 nyr = str2num(syr);      nmo = str2num(smo);
 if( nyr < 2007 | nyr > 2015 ) fprintf(1,'Error: year out of range\n'); return; end;
 if( nmo < 1 | nmo > 12 ) fprintf(1,'Error: month out of range\n'); return; end;
-endday = eomday(nyr, nmo);   njobs = endday;
+endday = eomday(nyr, nmo);   
+njobs = endday;
+
+% define the driver file
+dfname = ['iasi_rtp_' syr smo '_drv.mat'];
+
+% delete date file if already exists
+if(exist(dfname,'file') == 2) delete(dfname); end
+
 
 % generate a cell array of dates to pass to the parent script
 clear cellDates;
@@ -41,26 +46,26 @@ for i = 1:endday
 end
 
 % save this structure for use by the parent script
-dfname = 'iasi_rtp_drv.mat';
 save(dfname,'cellDates');
 
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
 batch = './batch_iasi_rtp.slurm';
-FH = fopen(batch,'w')
-fprintf(FH,'#!/bin/bash\n\n')
+FH = fopen(batch,'w');
+fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
 fprintf(FH,'#SBATCH --partition=batch\n');
-fprintf(FH,'#SBATCH --qos=medium\n');
+fprintf(FH,'#SBATCH --qos=normal\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
-fprintf(FH,'#SBATCH -N1\n');
-fprintf(FH,'#SBATCH --output=slurm-%%j.%%t.out\n');
-fprintf(FH,'#SBATCH --error=slurm-%%j.%%t.err\n');
+%%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
+%%fprintf(FH,'#SBATCH -N1\n');
+fprintf(FH,'#SBATCH --output=iasiRTP_slurm-%%N.%%A.%%a.out\n');
+fprintf(FH,'#SBATCH --error=iasiRTP_slurm-%%N.%%A.%%a.err\n');
 fprintf(FH,'#SBATCH --mem-per-cpu=9000\n');
-fprintf(FH,'#SBATCH --cpus-per-task 4\n');
-fprintf(FH,'#SBATCH --array=1\n\n')  %   -%d\n\n',njobs);         % was njobs
+fprintf(FH,'#SBATCH --cpus-per-task 2\n');
+fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
 
 fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015a/bin/matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');

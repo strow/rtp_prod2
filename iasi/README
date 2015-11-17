@@ -1,5 +1,13 @@
 IASI RTP Subset Production Scripts
 
+<<<<<<< HEAD
+This file edited: 29-Jul-2015.
+
+For use with IASI-1 (the first IASI, flown on MetOp-A with L1C granule filenames
+starting IASI_xxx_1C_M02_...
+
+=======
+>>>>>>> 362cf6bbe69c4c49525ccdf09295133ed14b6488
 Designed to process a calendar month of days of one type of subsetting at a time.
 Can be run on a single day by executing script 'run_iasi_rtp.m' given a file with
 the required date only. In this mode, the slurm job also has to be submitted manually.

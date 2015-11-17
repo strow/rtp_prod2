@@ -55,7 +55,15 @@ end
 clear qualflag randomflag coastflag  siteflag  imageunflag  hicloudflag;
 
 % load the granule
-data = readl1c_epsflip_all(sfile);
+% failures in some granules requires a trap here:
+try
+  data = readl1c_epsflip_all(sfile);
+catch ME
+  fprintf(1,'>>>> ERROR in readl1c_epsflip_all %s\n',sfile);
+  disp(ME.message);
+  head.N ='NULL'; hattr.N='NULL';prof.N='NULL';pattr.N='NULL';
+  return;          % This is the statement that exits this function
+end
 
 % get number of observations
 [nax,nif] = size(data.Latitude);
@@ -65,13 +73,46 @@ if( nax ~= 690 && nax ~= 660 || nif ~= 4)
 end
 nobs = single(round(nax*nif));
 
+% create the prof udefs
+% --------------------
+prof = struct;
+prof.udef  = zeros(20, nobs,'single');
+prof.iudef = zeros(10, nobs, 'int32');
+
+% set header attributes
+% ---------------------
+hattr = struct;
+hattr = {{'header', 'instid', 'IASI'},...
+         {'header', 'pltfid', 'MetOp-A'},...
+         {'header', 'reader', 'iasi2rtp'},...
+	 {'header', 'number FORs', nax},...
+        };
+
+% set header values
+% -----------------
+head         = struct;
+head.pfields = 4;                     % 4: IR Obs, 
+head.vchan   = fchan;                 % column vectors [8641 x 1] etc
+head.nchan   = nchan;
+head.ichan   = [indpt1; indpt2];                % [indpt1; indpt2];
+
+% set profile attributes
+% ----------------------
+pattr = struct;
+pattr = {{'profiles' 'rtime'      'seconds since 0z, 1 Jan 1958'},...
+	 {'profiles' 'robsqual'   'GQisFlagQual [0=OK,1=band1bad,2=band2bad,4=band3bad]'},...
+         {'profiles' 'iudef(3,:)' 'scan direction {scandir}'}, ...
+	 {'profiles' 'iudef(6,:)' 'state_vector_time-rtime {orbittime}'},...
+	};	 
+
+
 % convert IASI time to TAI-58 (needed for fill_ecmwf.m)
 ntime = data.Time2000 + 15340 * 24 * 3600;
 
-% trap bad data: defined by GQisFlagQual == 7, with in valid time -> 2001/01/01
+% trap bad data: defined by GQisFlagQual ~= 0, with invalid time -> 2001/01/01
 % and reset time so that fill_era.m will work.
 % get granule mean time
-badObs    = find(reshape(data.GQisFlagQual,[],nobs) == 7);
+badObs    = find(reshape(data.GQisFlagQual,[],nobs) ~= 0);
 junk      = reshape(ntime,[],nobs);
 junk(badObs) = NaN;
 gtimemn   = nanmean(junk);
@@ -94,45 +135,27 @@ prof.xtrack   = single(reshape(data.AMSU_FOV,1,nobs));
       % Note: IASI has no granule number (findex)
 prof.ifov     = single(reshape(data.IASI_FOV,1,nobs)); % pixel number
 prof.robs1    = single(reshape(data.IASI_Radiances,nobs,nchan)'); %'
-
 % observer pressures
 prof.pobs = zeros(1,nobs,'single');
-
 % upwelling radiances
 prof.upwell = ones(1,nobs,'int32');
 
-% set the prof udefs
-% ------------------
-prof.udef  = zeros(20, nobs,'single');
-prof.iudef = zeros(10, nobs, 'int32');
+% ascending = 0, descending = 1 flag.
+aflag = zeros(1,nobs,'single');
+junk  = prof.rtime - 15340 * 24 * 3600;
+tlag  = junk - data.state_vector_time;
+ix = find(tlag <= 1519 & tlag > -1519);     % ascending from prev orbit
+iy = find(tlag <= 4558 & tlag > 1519);      % descending
+iz = find(tlag <= 7597 & tlag > 4558);      % ascending to next orbit
+aflag(ix) = 0;
+aflag(iy) = 1;
+aflag(iz) = 0;
 
+% fill udefs and iudefs
+% ---------------------
 prof.iudef(3,:)  = reshape(data.Scan_Direction,1,nobs);
-
+prof.iudef(4,:)  = reshape(aflag,1,nobs);
 prof.udef(6,:)   = data.state_vector_time - prof.rtime;
 
-
-% set header attributes
-% ---------------------
-hattr = {{'header', 'instid', 'IASI'},...
-         {'header', 'pltfid', 'MetOp-A'},...
-         {'header', 'reader', 'iasi2rtp'},...
-	 {'header', 'number FORs', nax},...
-        };
-
-% set header values
-% -----------------
-head         = struct;
-head.pfields = 4;                     % 4: IR Obs, 
-head.vchan   = fchan;                 % column vectors [8641 x 1] etc
-head.nchan   = nchan;
-head.ichan   = [indpt1; indpt2];                % [indpt1; indpt2];
-
-% set profile attributes
-% ----------------------
-pattr = {{'profiles' 'rtime'      'seconds since 0z, 1 Jan 1958'},...
-	 {'profiles' 'robsqual'   'GQisFlagQual [0=OK,1=band1bad,2=band2bad,4=band3bad]'},...
-         {'profiles' 'iudef(3,:)' 'scan direction {scandir}'}, ...
-	 {'profiles' 'iudef(6,:)' 'state_vector_time-rtime {orbittime}'},...
-	};	 
 
 end   % of function
