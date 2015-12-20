@@ -52,18 +52,27 @@ syr = sdate(1:4);   smo = sdate(6:7); sdy = sdate(9:10);
 jdy = datenum(syr,'yyyy') - mydnum + 1;
 inPath = [inPath syr '/' smo '/' sdy '/'];
 
-fnLst = dir(strcat(inPath, 'IASI_xxx_1C_M02*.gz'));  % use only gzipped granules
-fprintf(1,'Found %d granule files to process\n',length(fnLst));
+% dir is causing headaches on the lustre filesystem so we are
+% moving toward using ls(), or running ls/find within a system
+% statement and parsing results in its place. Here use ls(). Pass
+% '-1' to system to make an easily parsable string (elements
+% separated by \n newline, strip trailing spaces and split
+fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M02*.gz'), '-1');  % use only
+                                                           % gzipped
+                                                           % granules
+fnLst1stripped = strsplit(strtrim(fnLst1),'\n');
 
+fprintf(1,'Found %d granule files to process\n',numel(fnLst1stripped));
 
 clear sav_profs all_profs; fcnt = 0;
-for ifn = 1:numel(fnLst)  % 56:61   %
-  clear hdx hax pdx pax;
-  infile = fnLst(ifn).name;
+for ifn = 1:numel(fnLst1stripped)  % 56:61   %
+    clear hdx hax pdx pax;
+    infile = fnLst1stripped{ifn};
 
-  if(fnLst(ifn).bytes > 2E7)                     % avoid deficient granules
-    fprintf(1,'Processing %d\t %s\n',ifn, infile);
-    [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
+    fnLst = dir(infile);
+    if(fnLst.bytes > 2E7)                     % avoid deficient granules
+        fprintf(1,'Processing %d\t %s\n',ifn, infile);
+        [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
 %    if (strcmp(class(hdx), 'char')) 
 %      if(strcmp(pdx,'NULL'))
 %        fprintf(1,'Continue to next granule\n'); 

@@ -5,32 +5,39 @@
 # 
 
 # sbatch options
-#SBATCH --job-name=RUN_CREATE_CRIS_RTP
+#SBATCH --job-name=RUN_CRIS_LR_DAY_BATCH
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
 #SBATCH --qos=medium
 #SBATCH --account=pi_strow
 #SBATCH -N1
-#SBATCH --mem-per-cpu=18000
+#SBATCH --mem=12000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=07:00:00
+#SBATCH --time=4:00:00
+#SBATCH --requeue
+
+#SBATCH --mail-user=sbuczko1@umbc.edu
+#SBATCH --mail-type=BEGIN
+#SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=REQUEUE
+#SBATCH --mail-type=TIME_LIMIT_50
+
+#SBATCH -o /home/sbuczko1/logs/sbatch/run_cris_lr_day_batch-%A_%a.out
+#SBATCH -e /home/sbuczko1/logs/sbatch/run_cris_lr_day_batch-%A_%a.err
 
 # matlab options
 MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
-
-LOGDIR=~/logs/sbatch
-DT=$(date +"%Y%m%d-%H%M%S")
-
 JOBSTEP=0
 
-echo "Executing srun of run_cris_day_batch"
-srun  --output=${LOGDIR}/run_create_cris-lr-day_rtp_%j_%t-${DT}.out \
-      $MATLAB $MATOPT -r "set_process_dirs; addpath(genpath(rtp_sw_dir)); run_cris_lr_day_batch; exit"
-    
-echo "Finished with srun of run_cris_batch"
+echo "Executing srun of run_cris_lr_day_batch"
+sleep $[ $RANDOM % 10 ]
+$MATLAB $MATOPT -r "set_process_dirs; addpath(genpath(rtp_sw_dir)); run_cris_lr_day_batch; exit"
+
+echo "Finished with srun of run_cris_lr_day_batch"
 
 
 

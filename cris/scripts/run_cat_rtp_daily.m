@@ -21,7 +21,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 30;
+chunk = 15;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
@@ -35,8 +35,10 @@ for i = 1:chunk
     %
     % cris-files-process.txt, then, contains lines like:
     %    /asl/data/cris/ccast/sdr60_hr/2015/048/SDR_d20150217_t1126169.mat
-    [status, indir] = system(sprintf('sed -n "%dp" %s | tr -d "\n"', ...
-                                     dayindex, cris_daily_file_list));
+    grabline = sprintf('sed -n "%dp" %s | tr -d "\n"', dayindex, ...
+                       cris_daily_file_list);
+    fprintf(1, '>>> Executing: %s\n', grabline);
+    [status, indir] = system(grabline);
     if strcmp(indir, '')
         break;
     end
@@ -47,16 +49,18 @@ for i = 1:chunk
     sYear = C{6};
     outpath = fullfile('/asl/data/rtp_cris_ccast_lowres/random_daily', ...
                        sYear);
-
+    
     % read in filenames in indir to build output filename
     mfiles = dir([indir '/rtp_*.rtp']);
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
     outfile = fullfile(outpath, [C{1} '_' C{2} '_random.rtp']);
 
+    fprintf(1, '>>> Output to: %s\n', outfile);
+
     % check to see if the output file is extant on the system
     % (don't overwrite for now.)
-    if exist(outfile, 'file') == 0
+% $$$     if exist(outfile, 'file') == 0
         % concatenate rtp files in indir
         [h,ha,p,pa] = cat_rtp_dir(indir);
 
@@ -71,11 +75,11 @@ for i = 1:chunk
         catch
             fprintf(2, '>>> rtpwrite failure in chunk %d for %s\n', i, indir);
         end  % end try-catch
-        fprintf(2, '>>> Successfully wrote %s\n', outfile);
+        fprintf(1, '>>> Successfully wrote %s\n', outfile);
                         
-    else
-        fprintf(2, '>>> %s exists. Skipping\n', outfile);
-    end  % end if exist()
+% $$$     else
+% $$$         fprintf(1, '>>> %s exists. Skipping\n', outfile);
+% $$$     end  % end if exist()
     
 end  % ends loop over chunk
 %% ****end function run_cat_rtp_daily****

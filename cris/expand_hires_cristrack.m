@@ -19,6 +19,12 @@ for ii = 1 : length(unique_atrack)
   for jj = 1 : length(unique_xtrack)
     xtrack = unique_xtrack(jj);
     fov = find(prof.atrack == atrack & prof.xtrack == xtrack);
+    if numel(fov) == 0
+        fprintf(2, ['>>> WARNING in expand_hires_cristrack: no fov ' ...
+                    'data returned for atrack = %d & xtrack = %d. ' ...
+                    'Skipping.\n'], atrack, xtrack);
+        continue;
+    end
     prof.expand1to9lats(fov) = sort(prof.rlat(fov));
     prof.expand1to9(fov)    =  fov(5) - fov;
     prof.expand_xtrack(fov) =  mod(fov-1,90) + 1;
@@ -26,7 +32,7 @@ for ii = 1 : length(unique_atrack)
   end
 end
 
-profin = prof;
+% $$$ profin = prof;
 
 %{
 [Y,I] = sort(prof.expand_atrack);
