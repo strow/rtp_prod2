@@ -61,56 +61,58 @@ for i=1:n
    end   
 % Fill rtp fields
    m = find( ic == i );  % indices of first era file
-   fhi = 0;
+   fhi = 0;   % this was new on Jul 20, 2015!
    u_hour = unique(hourindex);
+   u_hour(1)
+   dayindex(1)
    nn = length(u_hour);
+   % Only loop over hours needed
    for jj = 1:nn
-       fhi = 1;
-       l = find( hourindex == u_hour(jj));
-       k = intersect(l,m);
-       if k > 0
-   
+      % index for this hour (1:4);  u_hour = [0 6 12 18]
+      fhi = (u_hour(jj)/6) + 1;
+      l = find( hourindex == u_hour(jj));
+      k = intersect(l,m);
+      if k > 0         
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
-       rlat = prof.rlat(k);
-       rlon = prof.rlon(k);
-       rlon(rlon<0) = rlon(rlon<0) + 360;
+         rlat = prof.rlat(k);
+         rlon = prof.rlon(k);
+         rlon(rlon<0) = rlon(rlon<0) + 360;
 
-       prof.spres(k)   = F(fhi).sp.ig(rlat,rlon);
-       prof.stemp(k)   = F(fhi).skt.ig(rlat,rlon);
-       wind_v          = F(fhi).v10.ig(rlat,rlon);
-       wind_u          = F(fhi).u10.ig(rlat,rlon);
-       prof.wspeed(k)  = sqrt(wind_u.^2 + wind_v).^2;
-       prof.wsource(k) = mod(atan2(single(wind_u), single(wind_v)) * 180/pi,360);
-       prof.tcc(k)   = F(fhi).tcc.ig(rlat,rlon);
-       ci_udef = 1;
-       prof.udef(ci_udef,k) = F(fhi).ci.ig(rlat,rlon);
+         prof.spres(k)   = F(fhi).sp.ig(rlat,rlon);
+         prof.stemp(k)   = F(fhi).skt.ig(rlat,rlon);
+         wind_v          = F(fhi).v10.ig(rlat,rlon);
+         wind_u          = F(fhi).u10.ig(rlat,rlon);
+         prof.wspeed(k)  = sqrt(wind_u.^2 + wind_v).^2;
+         prof.wsource(k) = mod(atan2(single(wind_u), single(wind_v)) * 180/pi,360);
+         prof.tcc(k)   = F(fhi).tcc.ig(rlat,rlon);
+         ci_udef = 1;
+         prof.udef(ci_udef,k) = F(fhi).ci.ig(rlat,rlon);
 % Estimate model grid centers used
-       gdlat = abs(nanmean(diff(F(fhi).h_latitude)));  % lat spacing
-       gdlon = abs(nanmean(diff(F(fhi).h_longitude))); % lon spacing
-       prof.plat(k) = floor(rlat/gdlat)*gdlat + gdlat/2;
-       prof.plon(k) = floor(rlon/gdlon)*gdlon + gdlon/2;
+         gdlat = abs(nanmean(diff(F(fhi).h_latitude)));  % lat spacing
+         gdlon = abs(nanmean(diff(F(fhi).h_longitude))); % lon spacing
+         prof.plat(k) = floor(rlat/gdlat)*gdlat + gdlat/2;
+         prof.plon(k) = floor(rlon/gdlon)*gdlon + gdlon/2;
 
 % F(fhi).tcwv.ig  % Total column water?  Use this instead of ours?
 % F(fhi).msl.ig   % Not in rtp for now
 % Hybrid parameters
 % levid = 1 is top of atmosphere
 % b are the sortedd level IDs   
-       [b,j]=sort(F(fhi).levid);
-       for l=1:length(F(fhi).levid)
-          prof.ptemp(l,k) = F(fhi).t(j(l)).ig(rlat,rlon);
-          prof.gas_1(l,k) = F(fhi).q(j(l)).ig(rlat,rlon);
-          prof.gas_3(l,k) = F(fhi).o3(j(l)).ig(rlat,rlon);
-          prof.cc(l,k)    = F(fhi).cc(j(l)).ig(rlat,rlon);
-          prof.clwc(l,k)  = F(fhi).clwc(j(l)).ig(rlat,rlon);
-          prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
-       end
+         [b,j]=sort(F(fhi).levid);
+         for l=1:length(F(fhi).levid)
+            prof.ptemp(l,k) = F(fhi).t(j(l)).ig(rlat,rlon);
+            prof.gas_1(l,k) = F(fhi).q(j(l)).ig(rlat,rlon);
+            prof.gas_3(l,k) = F(fhi).o3(j(l)).ig(rlat,rlon);
+            prof.cc(l,k)    = F(fhi).cc(j(l)).ig(rlat,rlon);
+            prof.clwc(l,k)  = F(fhi).clwc(j(l)).ig(rlat,rlon);
+            prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
+         end
 % Only want pressure levels in grib file, in order
-       xtemp = p60_ecmwf(prof.spres(k));  % all 137 pressure levels
-       prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
-       prof.nlevs(k) = length(F(fhi).levid);
+         xtemp = p60_ecmwf(prof.spres(k));  % all 137 pressure levels
+         prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
+         prof.nlevs(k) = length(F(fhi).levid);
+      end  % k loop  LLS
    end
-   fhi = fhi + 1;
-   end  % k loop
 end
 prof.nlevs = int32(prof.nlevs);
 
