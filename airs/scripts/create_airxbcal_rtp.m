@@ -63,6 +63,7 @@ fprintf(1, 'Done\n');
 % subset by 20 during debugging
 bDEBUG=0;
 if bDEBUG
+    fprintf(2, '>>> SUBSETTING FOR DEBUG\n');
     % subset data 95% for faster debugging/testing runs
     prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
 end
@@ -71,7 +72,7 @@ end
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
 % of clear obs to meet threshold limit
-lmax = 72000;
+lmax = 60000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
 if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
@@ -124,6 +125,7 @@ elseif status == 98
 end
 
 matchedcalflag = transpose(tmatchedcalflag);
+clear tmatchedcalflag;
 
 nobs = length(prof.robs1);
 for iobsidx = [1:1000:nobs]
@@ -133,7 +135,7 @@ for iobsidx = [1:1000:nobs]
         matchedcalflag(:,  iobsblock), ...
         prof.rtime(:, iobsblock), prof.findex(:, iobsblock));
 end
-
+clear aux matchedcalflag;  % reclaiming some memory
 fprintf(1, 'Done\n');
 
 % Add in model data
@@ -160,7 +162,7 @@ fprintf(1, '>>> Saving first rtp file... ');
 [sID, sTempPath] = genscratchpath();
 
 % update CO2 ppm for klayers
-prof.co2ppm = ones(size(prof.rlat))*400;
+%prof.co2ppm = ones(size(prof.rlat))*400;
 
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
