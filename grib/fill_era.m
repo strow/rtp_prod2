@@ -63,8 +63,6 @@ for i=1:n
    m = find( ic == i );  % indices of first era file
    fhi = 0;   % this was new on Jul 20, 2015!
    u_hour = unique(hourindex);
-   u_hour(1)
-   dayindex(1)
    nn = length(u_hour);
    % Only loop over hours needed
    for jj = 1:nn
