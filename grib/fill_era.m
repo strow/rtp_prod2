@@ -38,6 +38,7 @@ hourindex = str2num(hstr);
 enames = [ystr mstr dstr];
 enames = cellstr(enames);
 [u_enames, ~, ic] = unique(enames);
+
 n = length(u_enames); % Generally 2 names for 1 day's worth of data
 
 for i=1:n
@@ -61,7 +62,7 @@ for i=1:n
    end   
 % Fill rtp fields
    m = find( ic == i );  % indices of first era file
-   fhi = 0;   % this was new on Jul 20, 2015!
+%   fhi = 0;   % this was new on Jul 20, 2015!
    u_hour = unique(hourindex);
    nn = length(u_hour);
    % Only loop over hours needed
@@ -70,6 +71,7 @@ for i=1:n
       fhi = (u_hour(jj)/6) + 1;
       l = find( hourindex == u_hour(jj));
       k = intersect(l,m);
+%      sfhi(k,:) = fhi;   % Debug, showed that fhi changes properly
       if k > 0         
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
          rlat = prof.rlat(k);
@@ -164,3 +166,5 @@ switch nargin
     % set an attribute string to let the rtp know what we have done
     pattr = set_attr(pattr,'model','era');
 end
+
+%  save ~/sfhi sfhi   % debug
