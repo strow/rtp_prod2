@@ -22,7 +22,7 @@ set_process_dirs
 addpath(genpath(rtp_sw_dir));
 
 %airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
-airxbcal_out_dir = '/asl/rtp/2015discontinuity';
+airxbcal_out_dir = '/home/sbuczko1/testoutput/2015discontinuity';
 
 % Location of AIRXBCAL year directories
 dn = '/asl/data/airs/AIRXBCAL';
@@ -72,7 +72,7 @@ end
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
 % of clear obs to meet threshold limit
-lmax = 60000;
+lmax = 55000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
 if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
