@@ -4,22 +4,27 @@ function create_airxbcal_rtp(airs_doy, airs_year)
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
 %
 % SYNOPSIS
-%   create_airxbcal_rtp(doy, year)
+%   create_airxbcal_rtp(doy, year, opt)
 %
 % INPUTS
 %   day   - integer day of year
 %   year  - integer year
-%
+%   opt   - OPTIONAL struct containing misc information
 % L. Strow, Jan. 14, 2015
 %
-% DISCUSSION (TBD)
+% REQUIRES:
+%      /asl/packages/rtp_prod2/airs, util, grib, emis
+%      /asl/packages/swutil
+func_name = 'create_airxbcal_rtp';
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
-% Execute user-defined paths
-set_process_dirs
-addpath(genpath(rtp_sw_dir));
+trace.githash = githash(func_name);
+trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
+                         'd-MMM-y HH:mm:ss Z'));
+fprintf(1, '>>> Run executed %s with git hash %s\n', ...
+        trace.RunDate, trace.githash);
 
 %airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
 airxbcal_out_dir = '/home/sbuczko1/testoutput/2015discontinuity';
@@ -29,17 +34,6 @@ dn = '/asl/data/airs/AIRXBCAL';
 % Strings needed for file names
 airs_doystr  = sprintf('%03d',airs_doy);
 airs_yearstr = sprintf('%4d',airs_year);
-
-% check to see if the clear output file already exists. If it does,
-% return to caller.
-% $$$ fn = dir(fullfile(airxbcal_out_dir, airs_yearstr, 'clear', ...
-% $$$                      ['era_airxbcal_day' airs_doystr ...
-% $$$                     '_clear.rtp']));
-% $$$ if length(fn) && (fn.bytes > 1000000000)
-% $$$     fprintf(1, ['>>> *** Clear output file already exists. Moving ' ...
-% $$$                 'to next day']);
-% $$$     return;
-% $$$ end
 
 indir = fullfile(dn, airs_yearstr, airs_doystr);
 fn = dir(fullfile(indir, '*.hdf'));
@@ -72,7 +66,7 @@ end
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
 % of clear obs to meet threshold limit
-lmax = 55000;
+lmax = 72000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
 if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
@@ -89,7 +83,9 @@ head.ngas = 0;
 
 % Assign header attribute strings
 hattr={ {'header' 'pltfid' 'Aqua'}, ...
-        {'header' 'instid' 'AIRS'} };
+        {'header' 'instid' 'AIRS'}, ...
+        {'header' 'githash' trace.githash}, ...
+        {'header' 'rundate' trace.RunDate} };
 
 nchan = size(prof.robs1,1);
 chani = (1:nchan)';
@@ -156,13 +152,9 @@ fprintf(1, '>>> Running rtp_ad_emis...');
 [prof,pattr] = rtp_add_emis(prof,pattr);
 fprintf(1, 'Done\n');
 
-
 % Save the rtp file
 fprintf(1, '>>> Saving first rtp file... ');
 [sID, sTempPath] = genscratchpath();
-
-% update CO2 ppm for klayers
-%prof.co2ppm = ones(size(prof.rlat))*400;
 
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
@@ -219,8 +211,8 @@ for i = 1:length(asType)
     end
 end
 
-% $$$ rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
-rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
+% $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];

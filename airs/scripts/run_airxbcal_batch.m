@@ -1,8 +1,5 @@
 function run_airxbcal_batch()
 
-set_process_dirs
-addpath(rtp_sw_dir);
-
 % 
 airs_daily_file_list = '~/airxbcal-days-to-process';
 

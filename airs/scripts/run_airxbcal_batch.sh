@@ -12,19 +12,27 @@
 #SBATCH --qos=medium
 #SBATCH --account=pi_strow
 #SBATCH --mem-per-cpu=18000
-#SBATCH --time=03:20:00
+#SBATCH --time=06:00:00
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
+#SBATCH --requeue
+
+#SBATCH --mail-user=sbuczko1@umbc.edu
+##SBATCH --mail-type=BEGIN
+##SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=REQUEUE
+#SBATCH --mail-type=TIME_LIMIT_50
+
+#SBATCH -o /home/sbuczko1/logs/sbatch/run_airxbcal_batch-%A_%a.out
+#SBATCH -e /home/sbuczko1/logs/sbatch/run_airxbcal_batch-%A_%a.err
 
 # matlab options
-MATLAB=/usr/local/matlab/2015a/bin/matlab
+MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
-#LOGDIR=~/logs/sbatch
-#DT=$(date +"%Y%m%d-%H%M%S")
-
 echo "Executing run_airxbcal_batch"
-$MATLAB $MATOPTS -r "addpath('~/git/rtp_prod2/airs/scripts'); run_airxbcal_batch; exit"
+$MATLAB $MATOPTS -r "addpath(genpath('~/git/rtp_prod2'), '~/git/swutils'); run_airxbcal_batch; exit"
     
 echo "Finished with run_airxbcal_batch"
 
