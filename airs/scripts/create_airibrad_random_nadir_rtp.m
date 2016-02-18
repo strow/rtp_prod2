@@ -15,8 +15,9 @@ function create_airibrad_random_nadir_rtp(inpath, outfile_head)
 % DISCUSSION (TBD)
 func_name = 'create_airibrad_random_nadir_rtp';
 
-% $$$ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-% $$$ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+
 addpath('/home/sbuczko1/git/swutils');
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
@@ -144,6 +145,9 @@ fprintf(1, 'Done\n');
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
 run_sarta.cumsum=9999;
+% driver_sarta_cloud_rtp ultimately looks for default sarta
+% executables in Sergio's directories. **DANGEROUS** These need to
+% be brought under separate control for traceability purposes.
 try
     [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 catch
