@@ -7,9 +7,9 @@
 # sbatch options
 #SBATCH --job-name=RUN_AIRIBRAD_RAND
 # partition = dev/batch
-#SBATCH --partition=strow
+#SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=medium
+#SBATCH --qos=normal
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
@@ -37,7 +37,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_airibrad_rand"
-$MATLAB $MATOPT -r "addpath('~/git/rtp_prod2/airs/scripts'); run_airibrad_rand; exit"
+$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2/airs/scripts'); run_airibrad_rand; exit"
     
 echo "Finished with run_airibrad_rand"
 
