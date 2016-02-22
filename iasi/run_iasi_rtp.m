@@ -72,7 +72,9 @@ for ifn = 1:numel(fnLst1stripped)  % 56:61   %
     fnLst = dir(infile);
     if(fnLst.bytes > 2E7)                     % avoid deficient granules
         fprintf(1,'Processing %d\t %s\n',ifn, infile);
-        [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
+% $$$         [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
+        infile
+        [hdx, hax, pdx, pax] = create_iasi_rtp(infile,subset);
 %    if (strcmp(class(hdx), 'char')) 
 %      if(strcmp(pdx,'NULL'))
 %        fprintf(1,'Continue to next granule\n'); 
@@ -93,7 +95,7 @@ end
 sav_profs = structmerge(all_profs);
 
 % Save the hourly/daily RTP file
-  savPath = ['/asl/data/rtp_iasi1/' subset '/' sdate '/'];
+  savPath = ['/asl/rtp/rtp_iasi1/' subset '/' sdate '/'];
   [pathstr,fnamin,ext] = fileparts(infile);
   [fparts,fmatches]    = strsplit(fnamin,'_');
   junk    = datestr(datenum(sdate,'yyyy/MM/dd'),'yyyyMMdd');
