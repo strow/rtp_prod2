@@ -21,6 +21,8 @@ function run_iasi_rtp(dateFile,subset)
 cd /home/sbuczko1/git/rtp_prod2/iasi/run
 addpath /asl/packages/rtp_prod2/iasi
 addpath /asl/packages/rtp_prod2/iasi/readers
+addpath /asl/matlib_2015/aslutil  % for utc2tai2000 (replace this
+                                  % with new time commands)
 
 ddc = load(dateFile);
 
@@ -66,14 +68,14 @@ fprintf(1,'Found %d granule files to process\n',numel(fnLst1stripped));
 
 clear sav_profs all_profs; fcnt = 0;
 for ifn = 1:numel(fnLst1stripped)  % 56:61   %
+%for ifn = 1:20
     clear hdx hax pdx pax;
     infile = fnLst1stripped{ifn};
 
     fnLst = dir(infile);
     if(fnLst.bytes > 2E7)                     % avoid deficient granules
         fprintf(1,'Processing %d\t %s\n',ifn, infile);
-% $$$         [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
-        infile
+
         [hdx, hax, pdx, pax] = create_iasi_rtp(infile,subset);
 %    if (strcmp(class(hdx), 'char')) 
 %      if(strcmp(pdx,'NULL'))
