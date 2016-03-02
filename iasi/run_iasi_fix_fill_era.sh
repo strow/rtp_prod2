@@ -12,7 +12,7 @@
 #SBATCH --qos=medium
 #SBATCH --account=pi_strow
 #SBATCH --mem-per-cpu=18000
-#SBATCH --time=05:00:00
+#SBATCH --time=12:00:00
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
 #SBATCH --requeue
@@ -32,7 +32,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_iasi_fix_fill_era"
-$MATLAB $MATOPTS -r "addpath('~/git/rtp_prod2/iasi'); run_iasi_fix_fill_era; exit"
+$MATLAB $MATOPTS -r "addpath('/asl/packages/rtp_prod2/iasi'); run_iasi_fix_fill_era; exit"
     
 echo "Finished with run_iasi_fix_fill_era"
 

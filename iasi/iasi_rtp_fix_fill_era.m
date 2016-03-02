@@ -24,6 +24,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
 % open requested rtp file and read in structures
+fprintf(1, '>>> reading input rtp file %s\n', rtpfile);
 [h,ha,p,pa] = rtpread_12(rtpfile);
 
 % reset h.ptype to 0 so that klayers will run (should be 1 in the
@@ -33,6 +34,7 @@ h.ptype = 0;
 % add run traceability info to header attributes
 fprintf(1, '>>> Adding traceability info\n');
 ha{end+1} = {'header' 'githash' trace.githash};
+ha{end+1} = {'header' 'fill_era' trace.fillera};
 ha{end+1} = {'header' 'rundate' trace.RunDate};
 ha{end+1} = {'header' 'sarta' trace.sarta};
 ha{end+1} = {'header' 'klayers' trace.klayers};
