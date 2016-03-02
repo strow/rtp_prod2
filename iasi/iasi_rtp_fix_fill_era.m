@@ -34,10 +34,10 @@ h.ptype = 0;
 % add run traceability info to header attributes
 fprintf(1, '>>> Adding traceability info\n');
 ha{end+1} = {'header' 'githash' trace.githash};
-ha{end+1} = {'header' 'fill_era' trace.fillera};
+% $$$ ha{end+1} = {'header' 'fill_era' trace.fillera};
 ha{end+1} = {'header' 'rundate' trace.RunDate};
-ha{end+1} = {'header' 'sarta' trace.sarta};
-ha{end+1} = {'header' 'klayers' trace.klayers};
+% $$$ ha{end+1} = {'header' 'sarta' trace.sarta};
+% $$$ ha{end+1} = {'header' 'klayers' trace.klayers};
 
 % remove p.plevs
 fprintf(1,'>>> Removing p.plevs\n');
