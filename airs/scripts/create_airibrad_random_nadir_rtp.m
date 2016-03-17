@@ -39,7 +39,7 @@ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', ['nomodel_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 if exist(outfile_path) ~= 0
@@ -116,7 +116,7 @@ if isfield(prof,'zobs')
    iz = prof.zobs < 20000 & prof.zobs > 20;
    prof.zobs(iz) = prof.zobs(iz) * 1000;
 end
-
+%{
 % Add in model data
 fprintf(1, '>>> Running fill_era... ');
 try 
@@ -155,7 +155,7 @@ catch
                 '%s/%s\n'], sYear, sDoy);
     return;
 end
-
+%}
 % profile attribute changes for airibrad
 pa = set_attr('profiles', 'robs1', infile);
 pa = set_attr(pa, 'rtime', 'TAI:1958');

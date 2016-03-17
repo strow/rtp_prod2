@@ -20,14 +20,16 @@ func_name = 'create_airxbcal_rtp';
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
+trace.klayers = klayers_exec;
+trace.sarta = sarta_exec;
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                          'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-%airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
-airxbcal_out_dir = '/home/sbuczko1/testoutput/2015discontinuity';
+airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
+%airxbcal_out_dir = '/home/sbuczko1/testoutput/2015discontinuity';
 
 % Location of AIRXBCAL year directories
 dn = '/asl/data/airs/AIRXBCAL';
@@ -135,8 +137,10 @@ clear aux matchedcalflag;  % reclaiming some memory
 fprintf(1, 'Done\n');
 
 % Add in model data
-fprintf(1, '>>> Running fill_era... ');
-[prof,head,pattr]  = fill_era(prof,head,pattr);
+% $$$ fprintf(1, '>>> Running fill_era... ');
+% $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
+fprintf(1, '>>> Running fill_ecmwf... ');
+[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
@@ -166,6 +170,7 @@ fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
 klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
                sTempPath '/kout.txt'];
 unix(klayers_run);
+hattr{end+1} = {'header' 'klayers' klayers_exec};
 fprintf(1, 'Done\n');
 
 % Run sarta
@@ -186,6 +191,7 @@ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
 [h,ha,p,pa] = rtpread(fn_rtp3);
 prof.rcalc = p.rcalc;
 head.pfields = 7;
+hattr{end+1} = {'header' 'sarta' sarta_exec};
 
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
@@ -211,7 +217,7 @@ for i = 1:length(asType)
     end
 end
 
-rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['ecmwf_airxbcal_day' airs_doystr];
 % $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');
