@@ -1,4 +1,4 @@
-function run_iasi_fix_fill_era()
+function run_iasi_rand_fix_fill_era()
 
 % 
 iasi_daily_file_list = '~/iasi-days-to-process';
@@ -31,8 +31,8 @@ for i = 1:chunk
         break;
     end
 
-    fprintf(1, 'run_iasi_fix_fill_era: processing %s\n', inpath);
+    fprintf(1, 'run_iasi_rand_fix_fill_era: processing %s\n', inpath);
 
-    iasi_rtp_fix_fill_era(inpath);
+    iasi_rtp_random_fix_fill_era(inpath);
 end
 
