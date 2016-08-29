@@ -52,11 +52,11 @@ addpath /asl/matlib/rtptools      % set_attr.m
 [pathstr,fnamin,ext] = fileparts(fnIasiIn);
 [pparts,pmatches]    = strsplit(pathstr,'/');      % parts 6=year, 7=mon, 8=day.
 [fparts,fmatches]    = strsplit(fnamin,'_');       % part 5=granule start time.
-savPath = [savPath pparts{6} '/' pparts{7} '/' pparts{8} '/'];
-savFil  = [fparts{5} '_' subset '.rtp'];
-
-% if save directory does not exist - create it:
- if(~exist(savPath,'dir')) mkdir(savPath); end
+% $$$ savPath = [savPath pparts{6} '/' pparts{7} '/' pparts{8} '/'];
+% $$$ savFil  = [fparts{5} '_' subset '.rtp'];
+% $$$ 
+% $$$ % if save directory does not exist - create it:
+% $$$  if(~exist(savPath,'dir')) mkdir(savPath); end
  
 % check and process subsetting option ('clear', 'random', 'center', 'dcc', 'sites')
 subset = lower(subset);
@@ -328,7 +328,10 @@ if(~SKIP)
   % read the results files back in
   cfin = [tmp '.sar'];
 
-  [hd ha pd pa] = rtpread_12(cfin);
+% $$$   [hd ha pd pa] = rtpread_12(cfin);
+  [~,~,ptemp,~] = rtpread_12(cfin);
+  pd.rcalc = ptemp.rcalc;
+  clear ptemp;
 
   % -----------------------------------------------------
   %               CLEAR-2 subset - using sarta calcs
@@ -354,7 +357,7 @@ if(~SKIP)
   %      save file and wrap up
   % ------------------------------------------
   if(~SKIP)
-    savF = [savPath savFil];
+% $$$     savF = [savPath savFil];
       %fprintf(1,'Saving %s\n',savF);
     %res  = rtpwrite_12(savF, hd, ha, pd, pa);
 

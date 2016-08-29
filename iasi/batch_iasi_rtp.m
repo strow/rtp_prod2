@@ -29,13 +29,13 @@ addpath /asl/packages/rtp_prod2/iasi/readers
 if (length(mondate) ~= 7) fprintf(1,'Error in date format\n'); return; end;
 syr = mondate(1:4);      smo = mondate(6:7);
 nyr = str2num(syr);      nmo = str2num(smo);
-if( nyr < 2007 | nyr > 2015 ) fprintf(1,'Error: year out of range\n'); return; end;
+if( nyr < 2007 | nyr > 2016 ) fprintf(1,'Error: year out of range\n'); return; end;
 if( nmo < 1 | nmo > 12 ) fprintf(1,'Error: month out of range\n'); return; end;
 endday = eomday(nyr, nmo);   
 njobs = endday;
 
 % define the driver file
-dfname = ['iasi_rtp_' syr smo '_drv.mat'];
+dfname = ['iasi_rtp_' syr smo '_' subset '_drv.mat'];
 
 % delete date file if already exists
 if(exist(dfname,'file') == 2) delete(dfname); end
@@ -53,19 +53,19 @@ save(dfname,'cellDates');
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
-batch = './batch_iasi_rtp.slurm';
+batch = ['./batch_iasi_' syr smo '_' subset '_rtp.slurm'];
 FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-%fprintf(FH,'#SBATCH --partition=strow\n');
+fprintf(FH,'#SBATCH --partition=batch\n');
 fprintf(FH,'#SBATCH --qos=medium\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
 fprintf(FH,'#SBATCH --time=05:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
 fprintf(FH,'#SBATCH -N1\n');
 fprintf(FH,'#SBATCH --output=iasiRTP_slurm-%%N.%%A.%%a.out\n');
-fprintf(FH,'#SBATCH --error=iasiRTP_slurm-%%N.%%A.%%a.err\n');
+fprintf(FH,'#SBATCH --error=/iasiRTP_slurm-%%N.%%A.%%a.err\n');
 fprintf(FH,'#SBATCH --mem=9000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 1\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
