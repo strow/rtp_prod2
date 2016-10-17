@@ -39,7 +39,7 @@ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['nomodel_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
