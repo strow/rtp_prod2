@@ -1,6 +1,5 @@
 function run_cris_batch()
-set_process_dirs;
-addpath(rtp_sw_dir);
+
 cris_ccast_file_list = '~/cris-hires-files-to-process';
 
 % grab the slurm array index for this process
@@ -8,6 +7,9 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
 % offset slurmindex to bypass MaxArraySize boundary
 %slurmindex = slurmindex + 19999
+
+% build config struct
+cfg.model = 'ecmwf';
 
 chunk = 3;
 for i = 1:chunk
@@ -28,15 +30,17 @@ for i = 1:chunk
     if strcmp(infile, '')
         break;
     end
+
+    % for ccast ICT error covariance tests, grab part of path to
+    % differentiate output path
+    % input of form /asl/data/cris/ccast/sdr60_hr_t-10/2016/020
+    % want to grab 't-10' like part
+    C = strsplit(infile, '/');
+    junk = C{6};
+    C = strsplit(junk, '_');
+    cfg.tag = C{3};
     
-    % separate out parts of file path. We want to keep the bulk of the
-    % filename intact but change SDR -> rtp and change the extension to
-    % rtp as well as we make the output file path
-    [path, name, ext] = fileparts(infile);
-
-    outfile = strrep(name, 'SDR', 'rtp');
-
     % call the processing function
-    create_cris_ccast_hires_rtp(infile, outfile)
+    create_cris_ccast_hires_rtp(infile, cfg)
 
 end

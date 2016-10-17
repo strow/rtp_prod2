@@ -1,32 +1,36 @@
-function create_cris_ccast_lowres_rtp(fnCrisInput)
-% PROCESS_CRIS_LOWRES process one granule of CrIS data
+function [head, hattr, prof, pattr] = create_uwcris_lowres_rtp(fnCrisInput)
+% CREATE_UWCRIS_LOWRES_RTP process one granule of UW CrIS data
 %
-% Process a single CrIS .mat granule file.
+% Process a single UW CrIS netcdf granule file.
 
 %set_process_dirs;
 
-fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
+% input granule names are of the form:
+% SNDR.SNPP.CRIS.20160120T2206.m06.g222.L1B_NSR.std.v01_00_00.W.160311163941.nc
+files = dir(fnCrisInput)
+fname = files(1).name;
+yearstr = fname(16:19);
+monthstr = fname(20:21);
+daystr = fname(22:23);
+doystr = char(datetime([yearstr '-' monthstr '-' daystr], 'Format', ...
+                       'DDD'));
+grantag = fname(16:37);
+
+fprintf(1, '>> Running create_uwcris_lowres_rtp for input: %s\n', ...
         fnCrisInput);
 
-% use fnCrisOutput to generate year and doy strings
-% fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
-fnCrisOutput = fnCrisInput(5:22);
-cris_yearstr = fnCrisOutput(2:5);
-month = str2num(fnCrisOutput(6:7));
-day = str2num(fnCrisOutput(8:9));
-dt = datetime(str2num(cris_yearstr), month, day);
-dt.Format = 'DDD';
-cris_doystr = char(dt);
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
-addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
+addpath /asl/packages/time
+addpath /asl/packages/ccast/motmsc/rtp_sarta
+addpath /asl/rtp_prod/cris/unapod  % cris_box_to_ham.m
 addpath /home/sbuczko1/git/rtp_prod2/cris
 addpath /home/sbuczko1/git/rtp_prod2/util
 addpath /home/sbuczko1/git/rtp_prod2/emis
@@ -39,9 +43,9 @@ nguard = 2;  % number of guard channels
 
 % Load up rtp
 try
-    [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard);
+    [head, hattr, prof, pattr] = uwnc2rtp(fnCrisInput);
 catch
-    fprintf(2, '>>> ERROR: ccast2rtp failed for %s\n', ...
+    fprintf(2, '>>> ERROR: uwnc2rtp failed for %s\n', ...
             fnCrisInput);
     return;
 end
@@ -54,6 +58,7 @@ temp = size(head.vchan)
 if temp(2) > 1
     head.vchan = head.vchan';
 end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% REMOVE THIS BEFORE PRODUCTION COMMIT     %%%%
@@ -74,9 +79,7 @@ fprintf(1, '>>> Running fill_era... ');
 [prof,head, pattr]=fill_era(prof,head,pattr);
 fprintf(1, 'Done\n');
 
-% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
-% $$$ [prof,head,pattr]=fill_ecmwf(prof,head,pattr);
-
+% $$$ [prof,head]=fill_ecmwf(prof,head);
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
 [nchan,nobs] = size(prof.robs1);
@@ -108,8 +111,7 @@ px = prof;
 % $$$ px = rmfield(prof,'rcalc');
 hx = head; hx.pfields = 5;
 
-prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr);
-%% super (if it works)
+prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr); %% super (if it works)
 % for redo of random subset. There are some issues with Sergio's
 % code that we are trying to find a way around. THIS WILL NOT WORK
 % FOR OTHER SUBSETS
@@ -120,9 +122,9 @@ prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr);
 % $$$                 'next granule.\n'])
 % $$$     return;
 % $$$ end
-
+% $$$ 
 % $$$ prof = rtp_sub_prof(prof,irand)
-fprintf(1, 'Done\n');
+% $$$ fprintf(1, 'Done\n');
 
 % run klayers
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
@@ -137,7 +139,7 @@ unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
       '/klayers_' sID '_stdout'])
 fprintf(1, 'Done\n');
 fprintf(1, '>>> Reading klayers output... ');
-% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
+[head, hattr, prof, pattr] = rtpread(fn_rtp2);
 fprintf(1, 'Done\n');
 
 % Run sarta
@@ -165,32 +167,18 @@ fprintf(1, 'Done\n');
 prof.rcalc = p.rcalc;
 head.pfields = 7;
 
-% Make directory if needed
-% cris lowres data will be stored in
-% /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
-%
-% $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-rtp_out_fn_head = ['era_' fnCrisOutput];
-% $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
-% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
-% $$$ rtp_outname2 = fullfile(cris_out_dir, char(asType(1)),cris_yearstr, ...
-% $$$                         cris_doystr,  rtp_out_fn);
+rtp_out_fn_head = ['era_' grantag];
+rtp_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_uw_lowres';
 
+% subset and output to rtp
 for i = 1:length(asType)
     % check for existence of output path and create it if necessary. This may become a source
     % for filesystem collisions once we are running under slurm.
-    sPath = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,cris_doystr);
+    sPath = fullfile(rtp_out_dir,char(asType(i)),yearstr,doystr);
     if exist(sPath) == 0
         mkdir(sPath);
     end
-
-
-% $$$ prof_site  = rtp_sub_prof(prof,isite);
-% $$$ prof_dcc   = rtp_sub_prof(prof,idcc);
-% $$$ prof_rand  = rtp_sub_prof(prof,irand);
-% $$$ prof_rand = prof;
 
     switch(char(asType(i)))
       case 'random'
@@ -209,7 +197,7 @@ for i = 1:length(asType)
         prof_out = rtp_sub_prof(prof,obsfound);
 % $$$         prof_out = prof_rand;
         rtp_out_fn = [rtp_out_fn_head '_' char(asType(i)) '.rtp'];
-        rtp_outname = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,  cris_doystr, rtp_out_fn);
+        rtp_outname = fullfile(rtp_out_dir,char(asType(i)),yearstr, doystr, rtp_out_fn);
         rtpwrite(rtp_outname,head,hattr,prof_out,pattr);
     else
         fprintf(1, '>> OUTPUT : No valid obs found for granule %s\n', ...

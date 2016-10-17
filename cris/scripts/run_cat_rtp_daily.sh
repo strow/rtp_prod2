@@ -14,12 +14,11 @@
 #SBATCH -N1
 #SBATCH --mem=12000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=01:00:00
+#SBATCH --time=03:00:00
 
 #SBATCH --requeue
 
 #SBATCH --mail-user=sbuczko1@umbc.edu
-#SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-type=REQUEUE

@@ -1,4 +1,4 @@
-function run_cris_lr_batch()
+function run_cris_lr_batch_iasi()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
 addpath('/asl/packages/rtp_prod2/util');
@@ -26,7 +26,7 @@ fprintf(1, '*** Task run start %s\n', char(datetime('now')));
 
 % run data in chunks to get around MaxArraySize
 % boundary AND better utilize the cluster
-chunk = 300;
+chunk = 1;
 for i = 1:chunk
     fileindex = (slurmindex*chunk) + i;
     % File ~/cris-files-process.txt is a list of filepaths to the input
@@ -55,7 +55,7 @@ for i = 1:chunk
 
     % call the processing function
     try
-        create_cris_ccast_lowres_rtp(infile, outfile)
+        create_cris_ccast_lowres_iasi_rtp(infile, outfile)
     catch
         fprintf(2, '>>> ERROR :: Processing failed for granule %s\n', ...
                 infile);

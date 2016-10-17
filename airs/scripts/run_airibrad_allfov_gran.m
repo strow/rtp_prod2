@@ -1,4 +1,4 @@
-function  run_airibrad_rand()
+function  run_airibrad_allfov_gran()
 % 
 %
 % read in a directory of rtp files (most likely constituting a day
@@ -11,7 +11,7 @@ addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
 addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
-airs_daily_file_list = '~/airibrad_days_to_process.txt';
+airs_daily_file_list = '~/airibrad_grans_to_process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -21,7 +21,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 1;
+chunk = 5;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
@@ -41,8 +41,6 @@ for i = 1:chunk
         break;
     end
 
-    outfile_head = '/asl/rtp/rtp_airibrad_v5';
-    create_airibrad_random_nadir_rtp(inpath, outfile_head);
+    create_airibrad_allfov_gran_rtp(inpath);
     
 end  % ends loop over chunk
-%% ****end function run_cat_rtp_daily****

@@ -81,11 +81,86 @@ end
 pf = fieldnames(p);
 m = length(pf);
 
-% build random subset and then subset the profile struct
+%**************************************************
+% Sergio's subsetting code does a lot of strange things under the
+% hood with klayers and sarta and other things. Trying to gain some
+% control over that process externally by stupidly copying and
+% running all of the basic data processing steps for each granule
+% read  (so, this whole block of code now exists here twice: once
+% here and once in the loop for the remaining granules)
+% UGLY UGLY UGLY UGLY
+%**************************************************
+% Add profile data
+fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
+[p,h, pa]=fill_era(p,h, pa);
+fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+h.pfields = 5;
+[nchan,nobs] = size(p.robs1);
+h.nchan = nchan;
+h.ngas=2;
+
+% Add landfrac, etc.
+fprintf(1, '>>> %s Running usgs_10dem...\n',char(datetime('now', 'Format', 'HHmmss')));
+[h, ha, p, pa] = rtpadd_usgs_10dem(h,ha,p, pa);
+fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+
+% Add Dan Zhou's emissivity and Masuda emis over ocean
+% Dan Zhou's one-year climatology for land surface emissivity and
+% standard routine for sea surface emissivity
+fprintf(1, '>>> %s Running add_emis...\n',char(datetime('now', 'Format', 'HHmmss')));
+[p,pa] = rtp_add_emis_single(p,pa);
+fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+
+% run klayers
+fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
+rtpwrite(fn_rtp1,h,ha,p,pa)
+fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
+
+fprintf(1, '>>> %s Running klayers...\n', char(datetime('now', 'Format', 'HHmmss')));
+klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+               '/klayers_' sID '_stdout']
+try
+    unix(klayers_run);
+catch
+    fprintf(2, '>>> %s ERROR: klayers failed for day %s\n', ...
+            char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+    return;
+end
+fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+
+% Run sarta
+fprintf(1, '>>> %s Running sarta...\n', char(datetime('now', 'Format', 'HHmmss')));
+fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
+sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+             sTempPath '/sarta_' sID '_stdout']
+try
+    unix(sarta_run);
+catch
+    fprintf(2, '>>> %s ERROR: sarta failed for day %s\n', ...
+            char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+    return;
+end
+fprintf(1, '>>> %s Reading in sarta output...\n', char(datetime('now', 'Format', 'HHmmss')));
+[h, ha, p, pa] = rtpread(fn_rtp3);
+fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+%**************************************************
+% end stupid way of doing things
+%**************************************************
+
+% run Sergio's subsetting routine
+p = uniform_clear_template_lowANDhires_HP(h,ha,p,pa); %% super (if it works)
+
+% subset for clear (for 4/20/2016 runs)
 npresub = numel(p.rlat);
-[irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(h, p);
-p = rtp_sub_prof(p,irand);
+iclear = find(p.iudef(1,:) == 1);
+p = rtp_sub_prof(p,iclear);
 npostsub = numel(p.rlat);
+
+% build random subset and then subset the profile struct
+% $$$ npresub = numel(p.rlat);
+% $$$ [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(h, p);
+% $$$ p = rtp_sub_prof(p,irand);
+% $$$ npostsub = numel(p.rlat);
 fprintf(1, ['>>> %s First granule obs count: pre-sub = %d\tpost-sub = ' ...
             '%d\n'], char(datetime('now', 'Format', 'HHmmss')), npresub, npostsub);
 
@@ -93,28 +168,98 @@ for i=2:numel(fnLst1)
     % incrementally build out the concatenated profile struct as we
     % read in new granule files. This is inefficient but, should do
     % the trick for now.
-    p1 = p; 
+    p1 = p;
+    clear p;  % h,ha,pa still in memory
     try
-        [h2, ha2, p2, pa2] = ccast2rtp(fullfile(fnCrisInput,fnLst1(i).name), nguard);
+        [~, ~, p2, ~] = ccast2rtp(fullfile(fnCrisInput,fnLst1(i).name), nguard);
     catch
         fprintf(2, ['>>> %s ERROR: ccast2rtp failure (block two). Trying ' ...
                     'next granule\n'], char(datetime('now', 'Format', 'HHmmss')));
         continue;
     end
 
+    h2 = h;
+    ha2 = ha;
+    pa2 = pa;
+    
+    %**************************************************
+    % stupid way of  doing things again
+    %**************************************************
+    % Add profile data
+    fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
+    [p2,h2, pa2]=fill_era(p2,h2, pa2);
+    fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+    h2.pfields = 5;
+    [nchan,nobs] = size(p2.robs1);
+    h2.nchan = nchan;
+    h2.ngas=2;
+    
+    % Add landfrac, etc.
+    fprintf(1, '>>> %s Running usgs_10dem...\n',char(datetime('now', 'Format', 'HHmmss')));
+    [h2, ha2, p2, pa2] = rtpadd_usgs_10dem(h2,ha2,p2, pa2);
+    fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+
+    % Add Dan Zhou's emissivity and Masuda emis over ocean
+    % Dan Zhou's one-year climatology for land surface emissivity and
+    % standard routine for sea surface emissivity
+    fprintf(1, '>>> %s Running add_emis...\n',char(datetime('now', 'Format', 'HHmmss')));
+    [p2,pa2] = rtp_add_emis_single(p2,pa2);
+    fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+
+    % run klayers
+    fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
+    rtpwrite(fn_rtp1,h2,ha2,p2,pa2)
+    fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
+
+    fprintf(1, '>>> %s Running klayers...\n', char(datetime('now', 'Format', 'HHmmss')));
+    klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+                   '/klayers_' sID '_stdout']
+    try
+        unix(klayers_run);
+    catch
+        fprintf(2, '>>> %s ERROR: klayers failed for day %s\n', ...
+                char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+        return;
+    end
+    fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+
+    % Run sarta
+    fprintf(1, '>>> %s Running sarta...\n', char(datetime('now', 'Format', 'HHmmss')));
+    fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
+    sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+                 sTempPath '/sarta_' sID '_stdout']
+    try
+        unix(sarta_run);
+    catch
+        fprintf(2, '>>> %s ERROR: sarta failed for day %s\n', ...
+                char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+        return;
+    end
+    fprintf(1, '>>> %s Reading in sarta output...\n', char(datetime('now', 'Format', 'HHmmss')));
+    [h2, ha2, p2, pa2] = rtpread(fn_rtp3);
+    fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+    %**************************************************
+    % end stupid way of doing things again
+    %**************************************************
+    
     % build random subset and then subset the profile struct    
     npresub = numel(p2.rlat);
     try
-        [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(h2, ...
-                                                          p2);
+        p2 = uniform_clear_template_lowANDhires_HP(h2,ha2,p2,pa2); %% super (if it works)
+% $$$         [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(h2, p2);
     catch
-        fprintf(2, ['>>> %s ERROR: hha_lat_sub... failure in granule ' ...
+% $$$         fprintf(2, ['>>> %s ERROR: hha_lat_sub... failure in granule ' ...
+% $$$                     '%s\n'], char(datetime('now', 'Format', 'HHmmss')), ...
+% $$$                 fullfile(fnCrisInput, fnLst1(i).name));
+        fprintf(2, ['>>> %s ERROR: uniform_clear_... failure in granule ' ...
                     '%s\n'], char(datetime('now', 'Format', 'HHmmss')), ...
                 fullfile(fnCrisInput, fnLst1(i).name));
         continue;
     end
-    
-    p2 = rtp_sub_prof(p2,irand);
+
+    iclear = find(p2.iudef(1,:) == 1);
+% $$$     p2 = rtp_sub_prof(p2,irand);
+    p2 = rtp_sub_prof(p2,iclear);
     npostsub = numel(p2.rlat);
     fprintf(1, ['>>> %s Granule obs count: pre-sub = %d\tpost-sub = ' ...
                 '%d\n'], char(datetime('now', 'Format', 'HHmmss')), npresub, npostsub);
@@ -149,62 +294,61 @@ end  % end loop over mat files
 % Need this later
 ichan_ccast = h.ichan;
 
-% Add profile data
-fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
-[p,h]=fill_era(p,h);
-fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
-h.pfields = 5;
-[nchan,nobs] = size(p.robs1);
-h.nchan = nchan;
-h.ngas=2;
+% $$$ % Add profile data
+% $$$ fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ [p,h, pa]=fill_era(p,h, pa);
+% $$$ fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+% $$$ h.pfields = 5;
+% $$$ [nchan,nobs] = size(p.robs1);
+% $$$ h.nchan = nchan;
+% $$$ h.ngas=2;
 
-
-% Add landfrac, etc.
-fprintf(1, '>>> %s Running usgs_10dem...\n',char(datetime('now', 'Format', 'HHmmss')));
-[h, ha, p, pa] = rtpadd_usgs_10dem(h,ha,p, pa);
-fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
-
-% Add Dan Zhou's emissivity and Masuda emis over ocean
-% Dan Zhou's one-year climatology for land surface emissivity and
-% standard routine for sea surface emissivity
-fprintf(1, '>>> %s Running add_emis...\n',char(datetime('now', 'Format', 'HHmmss')));
-[p,pa] = rtp_add_emis_single(p,pa);
-fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
-
-% run klayers
-fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
-rtpwrite(fn_rtp1,h,ha,p,pa)
-fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
-
-fprintf(1, '>>> %s Running klayers...\n', char(datetime('now', 'Format', 'HHmmss')));
-klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
-               '/klayers_' sID '_stdout']
-try
-    unix(klayers_run);
-catch
-    fprintf(2, '>>> %s ERROR: klayers failed for day %s\n', ...
-            char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
-    return;
-end
-fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
-
-fprintf(1, '>>> %s Reading in klayers output...\n', char(datetime('now', 'Format', 'HHmmss')));
-[h, ha, p, pa] = rtpread(fn_rtp2);
-fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
-
-% Run sarta
-fprintf(1, '>>> %s Running sarta...\n', char(datetime('now', 'Format', 'HHmmss')));
-fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
-sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-             sTempPath '/sarta_' sID '_stdout']
-try
-    unix(sarta_run);
-catch
-    fprintf(2, '>>> %s ERROR: sarta failed for day %s\n', ...
-            char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
-    return;
-end
-fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ % Add landfrac, etc.
+% $$$ fprintf(1, '>>> %s Running usgs_10dem...\n',char(datetime('now', 'Format', 'HHmmss')));
+% $$$ [h, ha, p, pa] = rtpadd_usgs_10dem(h,ha,p, pa);
+% $$$ fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+% $$$ 
+% $$$ % Add Dan Zhou's emissivity and Masuda emis over ocean
+% $$$ % Dan Zhou's one-year climatology for land surface emissivity and
+% $$$ % standard routine for sea surface emissivity
+% $$$ fprintf(1, '>>> %s Running add_emis...\n',char(datetime('now', 'Format', 'HHmmss')));
+% $$$ [p,pa] = rtp_add_emis_single(p,pa);
+% $$$ fprintf(1, '>>> %s Done\n',char(datetime('now', 'Format', 'HHmmss')));
+% $$$ 
+% $$$ % run klayers
+% $$$ fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
+% $$$ rtpwrite(fn_rtp1,h,ha,p,pa)
+% $$$ fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
+% $$$ 
+% $$$ fprintf(1, '>>> %s Running klayers...\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+% $$$                '/klayers_' sID '_stdout']
+% $$$ try
+% $$$     unix(klayers_run);
+% $$$ catch
+% $$$     fprintf(2, '>>> %s ERROR: klayers failed for day %s\n', ...
+% $$$             char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+% $$$     return;
+% $$$ end
+% $$$ fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ 
+% $$$ fprintf(1, '>>> %s Reading in klayers output...\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ [h, ha, p, pa] = rtpread(fn_rtp2);
+% $$$ fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ 
+% $$$ % Run sarta
+% $$$ fprintf(1, '>>> %s Running sarta...\n', char(datetime('now', 'Format', 'HHmmss')));
+% $$$ fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
+% $$$ sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+% $$$              sTempPath '/sarta_' sID '_stdout']
+% $$$ try
+% $$$     unix(sarta_run);
+% $$$ catch
+% $$$     fprintf(2, '>>> %s ERROR: sarta failed for day %s\n', ...
+% $$$             char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+% $$$     return;
+% $$$ end
+% $$$ fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
 
 % $$$ % print out path to compare to interacive session
 % $$$ fid = fopen('~/pathtest/hpcendpath.txt', 'wt');
@@ -232,8 +376,8 @@ fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
 % cris lowres data will be stored in
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
-asType = {'random'};
-cris_out_dir = '/asl/data/rtp_cris_ccast_lowres';
+asType = {'clear'};
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 %cris_out_dir = '/strow_temp/sbuczko1/testoutput/rtp_cris_ccast_lowres';
 for i = 1:length(asType)
     % check for existence of output path and create it if necessary. This may become a source
@@ -247,7 +391,7 @@ end
 % build output filename based on date stamp of input mat files
 parts = strsplit(fnLst1(1).name, '_');
 cris_datestr = parts{2};
-rtp_out_fn = ['rtp_' cris_datestr '_rand.rtp'];
+rtp_out_fn = ['rtp_' cris_datestr '_clear.rtp'];
 
 % Now save the four types of cris files
 nobs = numel(p.rlat);
