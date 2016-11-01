@@ -59,9 +59,9 @@ for i=1:n
       % every 6. hour indices here are to match both sets (may not
       % want this long term?)
       F(1) = grib_interpolate_merra(fn_sfc,fn_lev,1);
-      F(2) = grib_interpolate_merra(fn_sfc,fn_lev,7);
-      F(3) = grib_interpolate_merra(fn_sfc,fn_lev,13);
-      F(4) = grib_interpolate_merra(fn_sfc,fn_lev,19);
+      F(2) = grib_interpolate_merra(fn_sfc,fn_lev,2);
+      F(3) = grib_interpolate_merra(fn_sfc,fn_lev,3);
+      F(4) = grib_interpolate_merra(fn_sfc,fn_lev,4);
       ename = fn;
    end   
 % Fill rtp fields
@@ -77,16 +77,17 @@ for i=1:n
       k = intersect(l,m);
 %      sfhi(k,:) = fhi;   % Debug, showed that fhi changes properly
       if k > 0         
-% Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
+          % prof.rlat on interval [-90:90] as is interpolant
          rlat = prof.rlat(k);
-         rlon = prof.rlon(k);
-% $$$          rlon(rlon<0) = rlon(rlon<0) + 360;
+         % rtp lon are on interval [-180:180)  Need to be 0-360 for grib
+         % interpolation
+         rlon = wrapTo360(prof.rlon(k));
 
          prof.spres(k)   = F(fhi).sp.ig(rlat,rlon);
          prof.stemp(k)   = F(fhi).skt.ig(rlat,rlon);
          wind_v          = F(fhi).v10.ig(rlat,rlon);
          wind_u          = F(fhi).u10.ig(rlat,rlon);
-         prof.wspeed(k)  = sqrt(wind_u.^2 + wind_v).^2;
+         prof.wspeed(k)  = sqrt(wind_u.^2 + wind_v.^2);
          prof.wsource(k) = mod(atan2(single(wind_u), single(wind_v)) * 180/pi,360);
          prof.tcc(k)   = F(fhi).tcc.ig(rlat,rlon);
          ci_udef = 1;
@@ -112,11 +113,6 @@ for i=1:n
             prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
          end
          % Only want pressure levels in grib file, in order
-         %**** NOTE
-         % How safe are we keying pressure levels to
-         % ecmwf routines? Since this is a copy of fill_era, the
-         % question has applicability across the fill_* spectrum
-         %**** NOTE
          xtemp = p72_merra(prof.spres(k));  % all 137 pressure levels
          prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
          prof.nlevs(k) = length(F(fhi).levid);
