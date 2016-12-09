@@ -1,0 +1,340 @@
+
+>> rtp_addpaths
+>> addpath /asl/packages/time
+>> cd /asl/data/merra.2016/01
+Error using cd
+Cannot CD to /asl/data/merra.2016/01 (Name is nonexistent or not a directory).
+ 
+>> cd /asl/data/merra/2016/01
+>> ls
+20160118_lev.nc  20160119_lev.nc  20160120_lev.nc  20160121_lev.nc
+20160118_sfc.nc  20160119_sfc.nc  20160120_sfc.nc  20160121_sfc.nc
+
+>> merra_skt = ncread('20160120_sfc.nc', 'skt', [1 1 1], [Inf Inf 1]);
+>> merra_levs = ncread(('20160120_lev.nc', 'level');
+ merra_levs = ncread(('20160120_lev.nc', 'level');
+                                       |
+Error: Expression or statement is incorrect--possibly unbalanced (, {, or [.
+ 
+>> merra_levs = ncread('20160120_lev.nc', 'level');
+>> figure(1)
+>> plot(merra_levs)
+Warning: MATLAB has disabled some advanced graphics rendering features by
+switching to software OpenGL. For more information, click <a href="matlab:opengl('problems')">here</a>. 
+>> merra_sft = ncread('20160120_lev.nc', 't', [1 1 72 1], [Inf Inf 1 1]);
+>> clf
+>> histogram(merra_skt)
+>> hold on
+>> histogram(merra_sft)
+>> title('merra surface temps')
+>> legend('surface skin temp', 'Model surface level')
+>> cd /asl/data/era/2016/01
+>> era_skt = ncread('20160120_sfc.nc', 'skt', [1 1 1], [Inf Inf 1]);
+>> era_levs = ncread('20160120_lev.nc', 'level');
+>> figure(2)
+>> plot(era_levs)
+>> clf
+>> histogram(era_skt)
+>> hold on
+>> histogram(era_sft)
+Undefined function or variable 'era_sft'.
+ 
+>> era_sft = ncread('20160120_lev.nc', 't', [1 1 60 1], [Inf Inf 1 1]);
+>> histogram(era_sft)
+>> legend('surface skin temp', 'Model surface level')
+>> title('era surface temps')
+>> cd ~/git/rtp_prod2/airs/scripts
+>> dbstop in create_airxbcal_rtp at 149
+>> cfg.model = 'merra';
+>> create_airxbcal_rtp(20,2016,cfg)
+Warning: The system time zone setting, 'US/Eastern', does not specify a single
+time zone unambiguously. It will be treated as 'America/New_York'. See the
+<a href="matlab:doc('datetime.TimeZone')">datetime.TimeZone property</a> for details about specifying time zones. 
+> In getCanonicalTZ (line 7)
+  In verifyTimeZone (line 21)
+  In datetime (line 494)
+  In create_airxbcal_rtp (line 26) 
+>>> Run executed 31-Oct-2016 14:23:45 -0400 with git hash 4c8c358fb47645a88b5ec38f6a75d4e62290014c
+
+>>> Reading input file: /asl/data/airs/AIRXBCAL/2016/020/AIRS.2016.01.20.L1B.Cal_Subset.v5.0.23.0.G16021174815.hdf   Done
+>>> *** 63923 pre-subset obs ***
+>>> Matching calflags... Done
+>>> Add model: merra...149 head.pfields = 5;
+K>> whos
+  Name                     Size                   Bytes  Class      Attributes
+
+  airs_doy                 1x1                        8  double               
+  airs_doystr              1x3                        6  char                 
+  airs_year                1x1                        8  double               
+  airs_yearstr             1x4                        8  char                 
+  airxbcal_out_dir         1x24                      48  char                 
+  bDEBUG                   1x1                        8  double               
+  cfg                      1x1                      186  struct               
+  chani                 2378x1                    19024  double               
+  cstr                     1x194                    388  char                 
+  dn                       1x23                      46  char                 
+  fn                       1x1                     1051  struct               
+  fnfull                   1x90                     180  char                 
+  func_name                1x19                      38  char                 
+  hattr                    1x4                     2042  cell                 
+  head                     1x1                    31096  struct               
+  indir                    1x32                      64  char                 
+  iobsblock                1x923                   7384  double               
+  iobsidx                  1x1                        8  double               
+  iz                       1x63923                63923  logical              
+  klayers_exec             1x55                     110  char                 
+  lmax                     1x1                        8  double               
+  nchan                    1x1                        8  double               
+  nobs                     1x1                        8  double               
+  pattr                    1x23                   12890  cell                 
+  prof                     1x1                899274044  struct               
+  sarta_exec               1x57                     114  char                 
+  status                   1x1                        8  double               
+  trace                    1x1                     1062  struct               
+  vchan                 2378x1                     9512  single               
+
+K>> dbquit
+>> dbstop in fill_merra at 122
+>> create_airxbcal_rtp(20,2016,cfg)
+>>> Run executed 31-Oct-2016 14:26:55 -0400 with git hash 4c8c358fb47645a88b5ec38f6a75d4e62290014c
+
+>>> Reading input file: /asl/data/airs/AIRXBCAL/2016/020/AIRS.2016.01.20.L1B.Cal_Subset.v5.0.23.0.G16021174815.hdf   Done
+>>> *** 63923 pre-subset obs ***
+>>> Matching calflags... Done
+>>> Add model: merra...122 prof.nlevs = int32(prof.nlevs);
+K>> whos
+  Name               Size                    Bytes  Class     Attributes
+
+  F                  1x4                1464775008  struct              
+  b                 72x1                       576  double              
+  ci_udef            1x1                         8  double              
+  dayindex       63923x1                    511384  double              
+  dstr           63923x2                    255692  char                
+  ename              1x32                       64  char                
+  enames         63923x1                   8182144  cell                
+  fhdr               1x16                       32  char                
+  fhi                1x1                         8  double              
+  fn                 1x32                       64  char                
+  fn_lev             1x39                       78  char                
+  fn_sfc             1x39                       78  char                
+  gdlat              1x1                         8  double              
+  gdlon              1x1                         8  double              
+  head               1x1                     30352  struct              
+  hourindex      63923x1                    511384  double              
+  hstr           63923x2                    255692  char                
+  i                  1x1                         8  double              
+  ic             63923x1                    511384  double              
+  j                 72x1                       576  double              
+  jj                 1x1                         8  double              
+  k                  0x1                         0  double              
+  l              14377x1                    115016  double              
+  m               7660x1                     61280  double              
+  mstr           63923x2                    255692  char                
+  mtime              1x63923                511384  double              
+  n                  1x1                         8  double              
+  nn                 1x1                         8  double              
+  pattr              1x22                    12406  cell                
+  prof               1x1                 899529736  struct              
+  rlat               1x7660                  61280  double              
+  rlon               1x7660                  61280  double              
+  rmtime             1x63923                511384  double              
+  timestr        63923x10                  1278460  char                
+  u_enames           2x1                       256  cell                
+  u_hour             4x1                        32  double              
+  wind_u             1x7660                  30640  single              
+  wind_v             1x7660                  30640  single              
+  xtemp             72x7660                2206080  single              
+  yearindex      63923x1                    511384  double              
+  ystr           63923x4                    511384  char                
+
+K>> F
+
+F = 
+
+1x4 struct array with fields:
+
+    s_longitude
+    s_latitude
+    s_time
+    s_mtime
+    sp
+    skt
+    v10
+    u10
+    tcc
+    ci
+    h_longitude
+    h_latitude
+    levid
+    h_time
+    h_mtime
+    t
+    ciwc
+    cc
+    q
+    o3
+    clwc
+
+K>> F.skt
+
+ans = 
+
+    ig: [1x1 griddedInterpolant]
+
+
+ans = 
+
+    ig: [1x1 griddedInterpolant]
+
+
+ans = 
+
+    ig: [1x1 griddedInterpolant]
+
+
+ans = 
+
+    ig: [1x1 griddedInterpolant]
+
+K>> F.skt(1).ig
+Expected one output from a curly brace or dot indexing expression, but there
+were 4 results.
+ 
+K>> F.skt.ig(1)
+Expected one output from a curly brace or dot indexing expression, but there
+were 4 results.
+ 
+K>> F.skt(1)
+Expected one output from a curly brace or dot indexing expression, but there
+were 4 results.
+ 
+K>> F(1).skt
+
+ans = 
+
+    ig: [1x1 griddedInterpolant]
+
+K>> F(1).skt.ig
+
+ans = 
+
+  griddedInterpolant with properties:
+
+            GridVectors: {[1x361 double]  [1x576 double]}
+                 Values: [361x576 single]
+                 Method: 'linear'
+    ExtrapolationMethod: 'linear'
+
+K>> figure(3)
+K>> histogram(F(1).skt.ig.Values)
+K>> F(1)
+
+ans = 
+
+    s_longitude: [576x1 double]
+     s_latitude: [361x1 double]
+         s_time: 0
+        s_mtime: [0x1 double]
+             sp: [1x1 struct]
+            skt: [1x1 struct]
+            v10: [1x1 struct]
+            u10: [1x1 struct]
+            tcc: [1x1 struct]
+             ci: [1x1 struct]
+    h_longitude: [576x1 double]
+     h_latitude: [361x1 double]
+          levid: [72x1 double]
+         h_time: 0
+        h_mtime: [0x1 double]
+              t: [1x72 struct]
+           ciwc: [1x72 struct]
+             cc: [1x72 struct]
+              q: [1x72 struct]
+             o3: [1x72 struct]
+           clwc: [1x72 struct]
+
+K>> hold on
+K>> histogram(F(1).t(72).ig.Values)
+K>> title('merra gridded interpolant temp distributions at surface')
+K>> legend('surface skin temp', 'Model surface level')
+K>> dbcont
+149 head.pfields = 5;
+K>> whos
+  Name                     Size                   Bytes  Class      Attributes
+
+  airs_doy                 1x1                        8  double               
+  airs_doystr              1x3                        6  char                 
+  airs_year                1x1                        8  double               
+  airs_yearstr             1x4                        8  char                 
+  airxbcal_out_dir         1x24                      48  char                 
+  bDEBUG                   1x1                        8  double               
+  cfg                      1x1                      186  struct               
+  chani                 2378x1                    19024  double               
+  cstr                     1x194                    388  char                 
+  dn                       1x23                      46  char                 
+  fn                       1x1                     1051  struct               
+  fnfull                   1x90                     180  char                 
+  func_name                1x19                      38  char                 
+  hattr                    1x4                     2042  cell                 
+  head                     1x1                    31096  struct               
+  indir                    1x32                      64  char                 
+  iobsblock                1x923                   7384  double               
+  iobsidx                  1x1                        8  double               
+  iz                       1x63923                63923  logical              
+  klayers_exec             1x55                     110  char                 
+  lmax                     1x1                        8  double               
+  nchan                    1x1                        8  double               
+  nobs                     1x1                        8  double               
+  pattr                    1x23                   12890  cell                 
+  prof                     1x1                899274044  struct               
+  sarta_exec               1x57                     114  char                 
+  status                   1x1                        8  double               
+  trace                    1x1                     1062  struct               
+  vchan                 2378x1                     9512  single               
+
+K>> prof
+
+prof = 
+
+       robs1: [2378x63923 single]
+       rtime: [1x63923 double]
+        rlat: [1x63923 double]
+        rlon: [1x63923 double]
+        zobs: [1x63923 single]
+      findex: [1x63923 int16]
+      atrack: [1x63923 int16]
+      xtrack: [1x63923 int16]
+      satzen: [1x63923 single]
+      solzen: [1x63923 single]
+    landfrac: [1x63923 single]
+       salti: [1x63923 single]
+        udef: [16x63923 single]
+       iudef: [4x63923 int16]
+     calflag: [2378x63923 uint8]
+       spres: [1x63923 single]
+       stemp: [1x63923 single]
+      wspeed: [1x63923 single]
+     wsource: [1x63923 single]
+         tcc: [1x63923 single]
+        plat: [1x63923 double]
+        plon: [1x63923 double]
+       ptemp: [72x63923 single]
+       gas_1: [72x63923 single]
+       gas_3: [72x63923 single]
+          cc: [72x63923 single]
+        clwc: [72x63923 single]
+        ciwc: [72x63923 single]
+       plevs: [72x63923 single]
+       nlevs: [1x63923 int32]
+
+K>> figure(4)
+K>> histogram(prof.stemp)
+K>> hold on
+K>> histogram(prof.ptemp(72))
+K>> clf
+K>> histogram(prof.stemp)
+K>> hold on
+K>> histogram(prof.ptemp(72,:))
+K>> title('merra surface temps interpolated to obs')
+K>> legend('surface skin temp', 'Model surface level')
+K>> 

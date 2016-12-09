@@ -111,10 +111,12 @@ for i=1:n
             prof.cc(l,k)    = F(fhi).cc(j(l)).ig(rlat,rlon);
             prof.clwc(l,k)  = F(fhi).clwc(j(l)).ig(rlat,rlon);
             prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
+            delp(l,k)       = F(fhi).delp(j(l)).ig(rlat,rlon);
          end
          % Only want pressure levels in grib file, in order
-         xtemp = p72_merra(prof.spres(k));  % all 137 pressure levels
-         prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
+         xtemp = cumsum(delp(:,k),1)/100;
+% $$$          xtemp = p72_merra(prof.spres(k));  % all 137 pressure levels
+         prof.plevs(:,k) = xtemp;  % subset to ones in grib file
          prof.nlevs(k) = length(F(fhi).levid);
       end  % k loop  LLS
    end

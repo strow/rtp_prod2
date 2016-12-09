@@ -19,8 +19,8 @@ function batch_iasi_rtp(mondate,subset)
 % setup
 % ------------------------------------------------
 cd /home/sbuczko1/git/rtp_prod2/iasi/run/
-addpath /asl/packages/rtp_prod2/iasi
-addpath /asl/packages/rtp_prod2/iasi/readers
+addpath /home/sbuczko1/git/rtp_prod2/iasi
+addpath /home/sbuczko1/git/rtp_prod2/iasi/readers
 
 % ------------------------------------------------
 % Prep the requested jobs
@@ -64,8 +64,8 @@ fprintf(FH,'#SBATCH --account=pi_strow\n');
 fprintf(FH,'#SBATCH --time=05:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
 fprintf(FH,'#SBATCH -N1\n');
-fprintf(FH,'#SBATCH --output=iasiRTP_slurm-%%N.%%A.%%a.out\n');
-fprintf(FH,'#SBATCH --error=/iasiRTP_slurm-%%N.%%A.%%a.err\n');
+fprintf(FH,'#SBATCH --output=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.out\n');
+fprintf(FH,'#SBATCH --error=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.err\n');
 fprintf(FH,'#SBATCH --mem=9000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 1\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
@@ -74,7 +74,7 @@ fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015b/bin/matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/asl/packages/rtp_prod2/iasi'');run_iasi_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');run_iasi_rtp(''%s'',''%s''); exit"',param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

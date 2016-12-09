@@ -70,8 +70,8 @@ end
 ichan_ccast = head.ichan;
 
 % Add profile data
-fprintf(1, '>>> Running fill_era... ');
-[prof,head, pattr]=fill_era(prof,head,pattr);
+fprintf(1, '>>> Running fill_merra... ');
+[prof,head, pattr]=fill_merra(prof,head,pattr);
 fprintf(1, 'Done\n');
 
 % $$$ fprintf(1, '>>> Running fill_ecmwf... ');
@@ -171,7 +171,7 @@ head.pfields = 7;
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-rtp_out_fn_head = ['era_' fnCrisOutput];
+rtp_out_fn_head = ['merra_' fnCrisOutput];
 % $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';

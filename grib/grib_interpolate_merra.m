@@ -110,4 +110,10 @@ for i=1:length(F.levid)
 end
 clear clwc
 
+delp = permute(single(circshift(ncread(fn_h,'delp',[1 1 1 tindex],[Inf Inf Inf 1]),288,1)),[2,1,3]);
+for i=1:length(F.levid)
+   F.delp(i).ig = griddedInterpolant(X,Y,squeeze(delp(:,:,i)),'linear');
+end
+clear delp
+
 % whos

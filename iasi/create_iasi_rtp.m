@@ -105,16 +105,23 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
+fprintf(1, '>> Add model: era...');
 [pd, hd, pa] = fill_era(pd, hd, pa);
 
 % Update header to record profile has obs and model data
 hd.pfields = 5;
+fprintf(1, ' Done\n');
 
 % Add surface geology
+fprintf(1, '>> Add geology...');
 [hd ha pd pa] = rtpadd_usgs_10dem(hd,ha,pd,pa);
+fprintf(1, ' Done\n');
 
-% Add Dan Zhou's emissivity and Masuda emis over ocean (dep: seq_match.m)
+% Add Dan Zhou's emissivity and Masuda emis over ocean (dep:
+% seq_match.m)
+fprintf(1, '>> Add emissivity...');
 [pd pa] = rtp_add_emis_single(pd,pa);
+fprintf(1, ' Done\n');
 
 % at this point there are 6 profile attributes defined and set.
 
