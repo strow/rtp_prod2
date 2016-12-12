@@ -56,6 +56,7 @@ if nguard > nsarta
     return
 end
 
+
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
@@ -106,6 +107,8 @@ switch cfg.model
     [prof,head,pattr]=fill_ecmwf(prof,head,pattr);
   case 'era'
     [prof,head,pattr]=fill_era(prof,head,pattr);
+  case 'merra'
+    [prof,head,pattr]=fill_merra(prof,head,pattr);    
 end
 
 % rtp now has profile and obs data ==> 5
