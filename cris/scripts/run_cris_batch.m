@@ -9,7 +9,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 %slurmindex = slurmindex + 19999
 
 % build config struct
-cfg.model = 'ecmwf';
+cfg.model = 'merra';
 
 chunk = 3;
 for i = 1:chunk
@@ -31,14 +31,15 @@ for i = 1:chunk
         break;
     end
 
-    % for ccast ICT error covariance tests, grab part of path to
-    % differentiate output path
-    % input of form /asl/data/cris/ccast/sdr60_hr_t-10/2016/020
-    % want to grab 't-10' like part
-    C = strsplit(infile, '/');
-    junk = C{6};
-    C = strsplit(junk, '_');
-    cfg.tag = C{3};
+% $$$     % for ccast ICT error covariance tests, grab part of path to
+% $$$     % differentiate output path
+% $$$     % input of form /asl/data/cris/ccast/sdr60_hr_t-10/2016/020
+% $$$     % want to grab 't-10' like part
+% $$$     C = strsplit(infile, '/');
+% $$$     junk = C{6};
+% $$$     C = strsplit(junk, '_');
+% $$$     cfg.tag = C{3};
+    cfg.tag = '';
     
     % call the processing function
     create_cris_ccast_hires_rtp(infile, cfg)

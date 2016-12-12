@@ -14,7 +14,7 @@
 #SBATCH -N1
 #SBATCH --mem-per-cpu=18000
 #SBATCH --cpus-per-task 1
-###SBATCH --array=1-540
+#SBATCH --array=0-179
 #SBATCH --time=01:30:00
 
 #SBATCH -o /home/sbuczko1/logs/sbatch/run_cris_hr_batch-%A_%a.out
