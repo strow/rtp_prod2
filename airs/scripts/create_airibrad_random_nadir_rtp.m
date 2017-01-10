@@ -39,7 +39,7 @@ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['merra_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
@@ -79,7 +79,9 @@ for i=1:length(files)
         hattr={ {'header' 'pltfid' 'Aqua'}, ...
                 {'header' 'instid' 'AIRS'}, ...
                 {'header' 'githash' trace.githash}, ...
-                {'header' 'rundate' trace.RunDate} };
+                {'header' 'rundate' trace.RunDate}, ...
+                {'header' 'klayers_exec' klayers_exec}, ...
+                {'header' 'sarta_exec' sarta_exec} };
 
         nchan = size(prof0.robs1,1);
         chani = (1:nchan)';
@@ -120,11 +122,11 @@ end
 SKIP=0;
 if (~SKIP)
 % Add in model data
-fprintf(1, '>>> Running fill_merra... ');
+fprintf(1, '>>> Running fill_era... ');
 try 
-    [prof,head,pattr]  = fill_merra(prof,head,pattr);
+    [prof,head,pattr]  = fill_era(prof,head,pattr);
 catch
-    fprintf(2, '>>> ERROR: fill_merra failure for %s/%s\n', sYear, ...
+    fprintf(2, '>>> ERROR: fill_era failure for %s/%s\n', sYear, ...
             sDoy);
     return;
 end

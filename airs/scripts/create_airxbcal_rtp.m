@@ -28,8 +28,8 @@ trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-% $$$ airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
-airxbcal_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airxbcal_v5';
+airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
+% $$$ airxbcal_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airxbcal_v5';
 
 % Location of AIRXBCAL year directories
 dn = '/asl/data/airs/AIRXBCAL';
@@ -157,7 +157,7 @@ fprintf(1, 'Done\n');
 
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
-fprintf(1, '>>> Running rtp_ad_emis...');
+fprintf(1, '>>> Running rtp_add_emis...');
 [prof,pattr] = rtp_add_emis(prof,pattr);
 fprintf(1, 'Done\n');
 
@@ -226,7 +226,7 @@ for i = 1:length(asType)
     end
 end
 
-rtp_out_fn_head = ['merra_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
 % $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');

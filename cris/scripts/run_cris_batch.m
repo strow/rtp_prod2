@@ -9,9 +9,11 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 %slurmindex = slurmindex + 19999
 
 % build config struct
-cfg.model = 'merra';
+cfg.model = 'ecmwf';
+cfg.sarta_exec = '/asl/bin/crisg4_oct16';
+cfg.tag = 'csarta';
 
-chunk = 3;
+chunk = 1;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     fprintf(1, '>>> chunk %d  dayindex %d\n', i, dayindex);
@@ -39,7 +41,6 @@ for i = 1:chunk
 % $$$     junk = C{6};
 % $$$     C = strsplit(junk, '_');
 % $$$     cfg.tag = C{3};
-    cfg.tag = '';
     
     % call the processing function
     create_cris_ccast_hires_rtp(infile, cfg)

@@ -43,19 +43,19 @@ for i = 1:chunk
         break;
     end
 
-    tag = '';
     % generate output file name and path (presently to be
     % /asl/data/rtp_cris_ccast_lowres/clear_daily/<year>/rtp_d<date>_clear.rtp)
     C = strsplit(indir, '/');
     sYear = C{7};  % changed to fit local diectory structure
-    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres/clear', ...
-                       sYear, tag);
-        
+    sDoy = C{8};
+    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hires/clear', ...
+                       sYear);
+
     % read in filenames in indir to build output filename
-    mfiles = dir([indir '/merra_d*_t*_clear.rtp']);
+    mfiles = dir([indir '/cris_hr_*_clear.rtp']);
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, [C{1} '_' C{2} '_' C{3} '_clear.rtp']);
+    outfile = fullfile(outpath, [strjoin(C([1:6 8]), '_'), '.rtp']);
 
     fprintf(1, '>>> Output to: %s\n', outfile);
 
