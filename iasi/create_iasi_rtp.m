@@ -44,7 +44,7 @@ clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
 savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
 
-addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
+% $$$ addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
 addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
 addpath /asl/packages/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
 addpath /asl/matlib/rtptools      % set_attr.m
@@ -105,22 +105,42 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
-fprintf(1, '>> Add model: era...');
-[pd, hd, pa] = fill_era(pd, hd, pa);
+% $$$ fprintf(1, '>> Add model: era...');
+% $$$ [pd, hd, pa] = fill_era(pd, hd, pa);
+fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
+[pd, hd, pa] = fill_ecmwf(pd, hd, pa);
 
-% Update header to record profile has obs and model data
+% check for empty prof struct after fill_ecmwf
+if isempty(fieldnames(pd))
+    fprintf(2, ['>> No obs with valid ECMWF data. Returning to ' ...
+                'caller.\n']);
+    pd.N = 'NULL';
+    return;
+end
+
+% Some obs with valid model data so, Update header to record profile has obs and model data
 hd.pfields = 5;
 fprintf(1, ' Done\n');
 
 % Add surface geology
 fprintf(1, '>> Add geology...');
-[hd ha pd pa] = rtpadd_usgs_10dem(hd,ha,pd,pa);
+try
+    [hd ha pd pa] = rtpadd_usgs_10dem(hd,ha,pd,pa);
+catch
+    pd.N = 'NULL';
+    return;
+end
 fprintf(1, ' Done\n');
 
 % Add Dan Zhou's emissivity and Masuda emis over ocean (dep:
 % seq_match.m)
 fprintf(1, '>> Add emissivity...');
-[pd pa] = rtp_add_emis_single(pd,pa);
+try
+    [pd pa] = rtp_add_emis_single(pd,pa);
+catch
+    pd.N = 'NULL';
+    return;
+end
 fprintf(1, ' Done\n');
 
 % at this point there are 6 profile attributes defined and set.

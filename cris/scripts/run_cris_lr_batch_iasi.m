@@ -26,7 +26,7 @@ fprintf(1, '*** Task run start %s\n', char(datetime('now')));
 
 % run data in chunks to get around MaxArraySize
 % boundary AND better utilize the cluster
-chunk = 1;
+chunk = 30;
 for i = 1:chunk
     fileindex = (slurmindex*chunk) + i;
     % File ~/cris-files-process.txt is a list of filepaths to the input
@@ -40,22 +40,9 @@ for i = 1:chunk
     [status, infile] = system(sprintf('sed -n "%dp" %s | tr -d "\n"', ...
                                       fileindex, cris_ccast_file_list));
 
-    % separate out parts of file path. We want to keep the bulk of the
-    % filename intact but change SDR -> rtp and change the extension to
-    % rtp as well as we make the output file path
-    [path, name, ext] = fileparts(infile);
-% $$$ C = strsplit(path, '/');
-% $$$ t = numel(C);
-% $$$ sYear = C{t-1};
-% $$$ sDoy = C{t};
-% $$$ outpath = fullfile(cris_ccast_rtp_out_dir, sYear, sDoy);
-% $$$ mkdir(outpath);
-% $$$ outfile = fullfile(outpath, strrep(name, 'SDR', 'rtp'));
-    outfile = strrep(name, 'SDR', 'rtp');
-
     % call the processing function
     try
-        create_cris_ccast_lowres_iasi_rtp(infile, outfile)
+        create_cris_ccast_lowres_iasi_rtp(infile)
     catch
         fprintf(2, '>>> ERROR :: Processing failed for granule %s\n', ...
                 infile);

@@ -9,12 +9,12 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=short
+#SBATCH --qos=normal
 #SBATCH --account=pi_strow
 #SBATCH -N1
-#SBATCH --mem-per-cpu=10000
+#SBATCH --mem-per-cpu=18000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=01:00:00
+#SBATCH --time=02:30:00
 #SBATCH --requeue
 
 #SBATCH --mail-user=sbuczko1@umbc.edu

@@ -1,9 +1,9 @@
 function run_mod_cris_lr_batch_iasi_rtp()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
-addpath('/asl/packages/rtp_prod2/util');
+addpath('/home/sbuczko1/git/rtp_prod2/util');
 
-cris_ccast_mod_file_list = '~/cris_lr_mod_iasi';
+cris_ccast_mod_file_list = '~/cris_hr_mod_ch4';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));   % 0-19999
@@ -43,11 +43,12 @@ for i = 1:chunk
                                       fileindex, cris_ccast_mod_file_list));
 
     % call the processing function
-    try
-        modify_cris_ccast_lowres_iasi_rtp(infile);
-    catch
-        fprintf(2, '>>> ERROR :: Processing failed for cris rtp file %s\n', ...
-                infile);
-    end
+    fprintf(1, '> Processing cris rtp file %s\n', infile);
+
+        modify_cris_ccast_ch4_rtp(infile);
+% $$$     catch
+% $$$         fprintf(2, '>>> ERROR :: Processing failed for cris rtp file %s\n', ...
+% $$$                 infile);
+% $$$     end
 
 end  % end chunk loop

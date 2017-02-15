@@ -22,6 +22,7 @@ addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 addpath /home/sbuczko1/git/rtp_prod2/cris
 addpath /home/sbuczko1/git/rtp_prod2/util
+addpath /home/sbuczko1/git/swutils   % githash
 % $$$ addpath /home/sbuczko1/git/rtp_prod2/emis
 % $$$ addpath /home/sbuczko1/git/rtp_prod2/grib
 
@@ -29,11 +30,17 @@ addpath /home/sbuczko1/git/rtp_prod2/util
 sID = getenv('SLURM_ARRAY_TASK_ID');
 nguard = 2;  % number of guard channels
 
+fprintf(1, '>> Trace data:\n');
 trace.klayers = klayers_exec;
+fprintf(1, '>>> klayers : %s  (from existing rtp run)\n', trace.klayers);
 trace.sarta = sarta_exec;
+fprintf(1, '>>> sarta : %s\n', trace.sarta);
+func_name='modify_cris_ccast_lowres_iasi_rtp';
 trace.githash = githash(func_name);
+fprintf(1, '>>> githash for %s : %s\n', func_name, trace.githash);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
-                         'd-MMM-y HH:mm:ss Z'));
+                              'd-MMM-y HH:mm:ss Z'));
+fprintf(1, '>>> run date : %s\n', trace.RunDate);
 
 % generate output filename
 [pathstr,name,ext] = fileparts(fnCrisInput);
@@ -105,6 +112,7 @@ if (isfield(prof,'calflag'))
   prof = rmfield(prof,'calflag');
 end
 
+
 % Run IASI SARTA
 %%** fiasi is a LUT for the IASI frequency space channel
 %%allocations
@@ -168,20 +176,20 @@ ireal = find(ichan_ccast <= 2211);
 % $$$ rad_cris(ireal,:) = tmp_rad_cris;
 rad_cris = tmp_rad_cris;
 
-% Go get output from klayers, which is what we want except for rcalc
-[head, hattr, prof2, pattr] = rtpread(fnCrisInput);
+% Go get output from klayers, which is what we want except for
+% rcalc
+clear head hattr prof pattr;
+[head, hattr, prof, pattr] = rtpread(fnCrisInput);
 
 % Insert rcalc for CrIS derived from IASI SARTA
 prof.rcalc = real(rad_cris); 
 head.pfields = 7;
 
 % modify header attributes for traceability
-hattr={'header' 'pltfid' 'Aqua'};
-trace.klayers = klayers_exec;
-trace.sarta = sarta_exec;
-trace.githash = githash(func_name);
-trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
-                         'd-MMM-y HH:mm:ss Z'));
+% $$$ hattr{end+1}={'header' 'klayers' trace.klayers};
+hattr{end+1}={'header' 'sarta' trace.sarta};
+hattr{end+1}={'header' 'githash' trace.githash};
+hattr{end+1}={'header' 'moddate' trace.RunDate};
 
 % now resave rtp file
 rtpwrite(fnCrisOutput, head, hattr, prof, pattr);

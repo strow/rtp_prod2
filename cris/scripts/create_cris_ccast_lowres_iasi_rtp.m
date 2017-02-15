@@ -1,4 +1,4 @@
-function create_cris_ccast_lowres_iasi_rtp(fnCrisInput, fnCrisOutput)
+function create_cris_ccast_lowres_iasi_rtp(fnCrisInput)
 % PROCESS_CRIS_LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
@@ -10,9 +10,11 @@ fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
 
 % use fnCrisOutput to generate year and doy strings
 % fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
-cris_yearstr = fnCrisOutput(6:9);
-month = str2num(fnCrisOutput(10:11));
-day = str2num(fnCrisOutput(12:13));
+[path, name, ext] = fileparts(fnCrisInput);
+fnCrisOutput = name(4:end);
+cris_yearstr = name(6:9);
+month = str2num(name(10:11));
+day = str2num(name(12:13));
 dt = datetime(str2num(cris_yearstr), month, day);
 dt.Format = 'DDD';
 cris_doystr = char(dt);
@@ -36,7 +38,6 @@ addpath /home/sbuczko1/git/rtp_prod2/grib
 [sID, sTempPath] = genscratchpath();
 sID = getenv('SLURM_ARRAY_TASK_ID');
 nguard = 2;  % number of guard channels
-
 
 % Load up rtp
 try
@@ -261,10 +262,10 @@ prof_clear = rtp_sub_prof(prof,iclear);
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-rtp_out_fn_head = ['ecmwf_', fnCrisOutput];
-rtp_out_fn = [rtp_out_fn_head, '_iasirta_clear.rtp'];
+rtp_out_fn_head = ['ecmwf', fnCrisOutput];
+rtp_out_fn = [rtp_out_fn_head, '_isarta_clear.rtp'];
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-cris_out_dir = '/home/sbuczko1/testoutput/rtp_cris_ccast_lowres';
+cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 rtp_outname2 = fullfile(cris_out_dir, char(asType(1)),cris_yearstr, ...
                         cris_doystr,  rtp_out_fn);
 for i = 1:length(asType)

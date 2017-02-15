@@ -1,4 +1,4 @@
-function create_airibrad_random_nadir_rtp(inpath, outfile_head)
+function create_airibrad_random_nadir_rtp(inpath, outfile_head, cfg)
 %
 % NAME
 %   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
@@ -39,7 +39,7 @@ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', ['merra_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
@@ -122,13 +122,14 @@ end
 SKIP=0;
 if (~SKIP)
 % Add in model data
-fprintf(1, '>>> Running fill_era... ');
-try 
+fprintf(1, '>>> Add model: %s...', cfg.model)
+switch cfg.model
+  case 'ecmwf'
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+  case 'era'
     [prof,head,pattr]  = fill_era(prof,head,pattr);
-catch
-    fprintf(2, '>>> ERROR: fill_era failure for %s/%s\n', sYear, ...
-            sDoy);
-    return;
+  case 'merra'
+    [prof,head,pattr]  = fill_merra(prof,head,pattr);
 end
 head.pfields = 5;
 fprintf(1, 'Done\n');

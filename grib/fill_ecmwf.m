@@ -24,6 +24,10 @@ ename = '';  % This should be placed outside a rtp file loop
 
 mtime = tai2dnum(prof.rtime);
 
+nobs = length(mtime);  % for missing ecmwf file check
+goodObs = [];
+missingfiles = [];
+
 % Get a cell array of ecmwf grib files for each time
 % I think this will be BROKEN if using datetime above!!
 enames = get_ecmwf_enames(mtime);
@@ -32,8 +36,9 @@ enames = get_ecmwf_enames(mtime);
 [u_enames, ia, ic] = unique(enames);
 n = length(u_enames);
 
-% Loop over unique grib file names
+% Loop over unique grib file names and check file existence
 for i = 1:n
+    k = find(ic == i);  % find indices for current partition
 % Build file name from parts
    fne = ['UAD' u_enames{i} '001'];
    e_mth_year = datestr(mtime(ia(i)),'yyyymm');
@@ -43,9 +48,56 @@ for i = 1:n
    fn_h = [fn '-2.nc'];
 % Do the netcdf files exist?
    if exist(fn_s) == 0 | exist(fn_h) == 0 
-      disp(['Netcdf grib files missing for root: ' fn])
-      break % Go to next partition
+      fprintf(2, ['Netcdf grib files missing for root %s. Dropping ' ...
+                 '%d obs.\n'], fn, length(k));
+      missingfiles=union(missingfiles,k);
+   else
+       goodObs = union(goodObs, k);   % if files exist for
+                                      % partition, add to goodObs list
    end
+end
+
+% file existence has been checked. Now, deal with the results
+% if no goodObs are left, there is nothing to be done but pass back
+% empty structs so the calling function knows not to use the
+% results
+if length(goodObs) == 0
+    fprintf(2, 'ECMWF files missing for all input obs. Exiting.\n');
+    prof=struct;
+    head=struct;
+    pattr={};
+    return;
+end
+
+% if there are goodObs, compare to number of input obs and subset
+% out anything that doesn't have valid ecmwf data
+if length(goodObs) < nobs
+    prof = rtp_sub_prof(prof, goodObs);  % clear obs with no valid
+                                         % ecmwf files
+
+    % rebuild u_enames
+    mtime = tai2dnum(prof.rtime);
+    enames = get_ecmwf_enames(mtime);
+    [u_enames, ia, ic] = unique(enames);
+    n = length(u_enames);
+end
+
+% At this point, all obs in prof should have valid ecmwf files. It
+% is still possible that, while an ecmwf file exists, that it is
+% corrupt or otherwise incomplete so, downstream failures should
+% still be watched for. There is also a possible race condition as
+% files may have existed above but are being deleted (or
+% filesystems unmounted) as we proceed. However, in this case,
+% there are bigger problems in the processing.
+
+for i = 1:n
+% Build file name from parts
+   fne = ['UAD' u_enames{i} '001'];
+   e_mth_year = datestr(mtime(ia(i)),'yyyymm');
+   fn = fullfile(fhdr,e_mth_year(1:4),e_mth_year(5:6),fne);
+% Actually read grib1, grib2 .nc files
+   fn_s = [fn '-1.nc'];
+   fn_h = [fn '-2.nc'];
 % If the filename has changed, re-load F   
 %keyboard
    if ~strcmp(ename,fn) 

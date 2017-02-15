@@ -226,7 +226,7 @@ for i = 1:length(asType)
     end
 end
 
-rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['merra_airxbcal_day' airs_doystr];
 % $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');

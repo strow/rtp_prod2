@@ -7,14 +7,14 @@
 # sbatch options
 #SBATCH --job-name=RUN_CRIS_LR_DAY_BATCH
 # partition = dev/batch
-#SBATCH --partition=batch
+#SBATCH --partition=prod
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=medium
+#SBATCH --qos=medium_prod
 #SBATCH --account=pi_strow
 #SBATCH -N1
-#SBATCH --mem=12000
+#SBATCH --mem=8000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=4:00:00
+#SBATCH --time=06:00:00
 #SBATCH --requeue
 
 #SBATCH --mail-user=sbuczko1@umbc.edu

@@ -40,7 +40,7 @@ for i = 1:chunk
     fprintf(1, 'run_airxbcal_batch: processing day %d, year %d\n', ...
             iDoy, iYear)
 
-    cfg.model='era';
+    cfg.model='merra';
     create_airxbcal_rtp(iDoy, iYear, cfg);
 end
 
