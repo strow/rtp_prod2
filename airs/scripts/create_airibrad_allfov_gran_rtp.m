@@ -37,22 +37,22 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 
 % split the inpath string to pull the granule file name out 
 % v5 /asl/data/airs/AIRIBRAD/2016/018/AIRS.2016.01.18.027.L1B.AIRS_Rad.v5.0.23.0.G16018115634.hdf
-% $$$ C = strsplit(inpath, '/');
-% $$$ airs_doystr = C{7};
-% $$$ airs_yearstr = C{6};
-% $$$ % get the granule number
-% $$$ granfile = C{8};
-% $$$ C = strsplit(granfile, '.');
-% $$$ grannum = C{5};
-
-% v6 /asl/data/airs/AIRIBRAD/2014/085/v6/AIRS.2014.03.26.220.L1B.AIRS_Rad.v6.0.12.0.AIRSCAL.T14086180759.hdf
 C = strsplit(inpath, '/');
 airs_doystr = C{7};
 airs_yearstr = C{6};
 % get the granule number
-granfile = C{9};
+granfile = C{8};
 C = strsplit(granfile, '.');
 grannum = C{5};
+
+% $$$ % v6 /asl/data/airs/AIRIBRAD/2014/085/v6/AIRS.2014.03.26.220.L1B.AIRS_Rad.v6.0.12.0.AIRSCAL.T14086180759.hdf
+% $$$ C = strsplit(inpath, '/');
+% $$$ airs_doystr = C{7};
+% $$$ airs_yearstr = C{6};
+% $$$ % get the granule number
+% $$$ granfile = C{9};
+% $$$ C = strsplit(granfile, '.');
+% $$$ grannum = C{5};
 
 % Make output directory if needed
 asType = {'allfov'};
