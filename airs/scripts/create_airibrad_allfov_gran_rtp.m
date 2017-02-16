@@ -20,7 +20,7 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
 % Execute user-defined paths
 dn = '/asl/data/airs/AIRIBRAD';  % input granules path
-airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v6';
+airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis
@@ -118,8 +118,12 @@ end
 % $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
 % $$$ head.pfields = 5;
 % $$$ fprintf(1, 'Done\n');
-fprintf(1, '>>> Running fill_ecmwf... ');
-[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
+% $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
+fprintf(1, '>>> Running fill_merra... ');
+[prof,head,pattr]  = fill_merra(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
@@ -136,33 +140,48 @@ fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
 
-% run klayers
-fprintf(1, '>>> running klayers... ');
-fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
-klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
-               sTempPath '/kout.txt'];
-unix(klayers_run);
-fprintf(1, 'Done\n');
+% call klayers/sarta cloudy
+run_sarta.cloud=+1;
+run_sarta.clear=+1;
+run_sarta.cumsum=9999;
+% driver_sarta_cloud_rtp ultimately looks for default sarta
+% executables in Sergio's directories. **DANGEROUS** These need to
+% be brought under separate control for traceability purposes.
+try
+    [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
+catch
+    fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
+                '%s/%s\n'], sYear, sDoy);
+    return;
+end
 
-% Run sarta
-% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% below for clear,site,etc?) make call to external shell script to
-% run 'N' copies of sarta backgrounded
-fprintf(1, '>>> Running sarta... ');
-fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-% $$$ run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-% $$$              sTempPath '/sarta_' sID '_stdout.txt'];
-% $$$ fprintf(1, '>>> Running sarta: %s ...', run_sarta);
-% $$$ unix(run_sarta);
-psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
-fprintf(1, 'Done\n');
+% $$$ % run klayers
+% $$$ fprintf(1, '>>> running klayers... ');
+% $$$ fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
+% $$$ klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
+% $$$                sTempPath '/kout.txt'];
+% $$$ unix(klayers_run);
+% $$$ fprintf(1, 'Done\n');
+% $$$ 
+% $$$ % Run sarta
+% $$$ % *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
+% $$$ % below for clear,site,etc?) make call to external shell script to
+% $$$ % run 'N' copies of sarta backgrounded
+% $$$ fprintf(1, '>>> Running sarta... ');
+% $$$ fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
+% $$$ % $$$ run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+% $$$ % $$$              sTempPath '/sarta_' sID '_stdout.txt'];
+% $$$ % $$$ fprintf(1, '>>> Running sarta: %s ...', run_sarta);
+% $$$ % $$$ unix(run_sarta);
+% $$$ psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
+% $$$ fprintf(1, 'Done\n');
 
-% Read in new rcalcs and insert into origin prof field
-stFileInfo = dir(fn_rtp3);
-fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-            '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
-[h,ha,p,pa] = rtpread(fn_rtp3);
-prof.rcalc = p.rcalc;
+% $$$ % Read in new rcalcs and insert into origin prof field
+% $$$ stFileInfo = dir(fn_rtp3);
+% $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+% $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
+% $$$ [h,ha,p,pa] = rtpread(fn_rtp3);
+% $$$ prof.rcalc = p.rcalc;
 head.pfields = 7;
 
 % profile attribute changes for airibrad
@@ -174,11 +193,11 @@ pa = set_attr(pa, 'rtime', 'TAI:1958');
 % don't fill up the scratch drive.
 delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-rtp_out_fn_head = ['allfov_ecmwf_airibrad_day_' airs_yearstr airs_doystr '_' grannum ...
+rtp_out_fn_head = ['allfov_merra_airibrad_day_' airs_yearstr airs_doystr '_' grannum ...
                    '.rtp'];
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = fullfile(sPath, rtp_out_fn_head);
-rtpwrite(rtp_out_fn, head, hattr, prof, pattr);
+rtpwrite(rtp_out_fn, head, hattr, prof0, pa);
 
 fprintf(1, 'Done\n');
 
