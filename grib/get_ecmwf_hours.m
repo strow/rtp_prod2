@@ -5,7 +5,9 @@ function [dstr hstr] = get_ecmwf_hours(mtime);
 %  1. prepend 'UAD'
 %  2. postpend '0001'
 % These operations can be done right before reading the file
-
+% WARNING
+% Input here is datetime!!, not datenum like in get_ecwmf.m
+%
 % Modify to give full ename, so can do era as well?
 
 % Assign the fixed forecast creation times, indices are forecast times in 
@@ -19,6 +21,8 @@ fhrstr(16,:) = '1200';
 fhrstr(19,:) = '1800';
 fhrstr(22,:) = '1200';
 
+
+mtime = datenum(mtime);
 % round to get 8 forecast hours per day
 rmtime = round(mtime*8)/8;
 
