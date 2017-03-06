@@ -42,21 +42,21 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 % Generate save file from input file: (expect: IASI_xxx_1C_M02_20130101000254Z_20130101000557Z)
 clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
-savPath = ['/asl/data/rtp_iasi1/' subset '/'];
+savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
 
-addpath /asl/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
-addpath /asl/rtp_prod2/emis       % rtp_add_emis_single.m
-addpath /asl/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
+addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
+addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
+addpath /asl/packages/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
 addpath /asl/matlib/rtptools      % set_attr.m
 
 [pathstr,fnamin,ext] = fileparts(fnIasiIn);
 [pparts,pmatches]    = strsplit(pathstr,'/');      % parts 6=year, 7=mon, 8=day.
 [fparts,fmatches]    = strsplit(fnamin,'_');       % part 5=granule start time.
-savPath = [savPath pparts{6} '/' pparts{7} '/' pparts{8} '/'];
-savFil  = [fparts{5} '_' subset '.rtp'];
-
-% if save directory does not exist - create it:
- if(~exist(savPath,'dir')) mkdir(savPath); end
+% $$$ savPath = [savPath pparts{6} '/' pparts{7} '/' pparts{8} '/'];
+% $$$ savFil  = [fparts{5} '_' subset '.rtp'];
+% $$$ 
+% $$$ % if save directory does not exist - create it:
+% $$$  if(~exist(savPath,'dir')) mkdir(savPath); end
  
 % check and process subsetting option ('clear', 'random', 'center', 'dcc', 'sites')
 subset = lower(subset);
@@ -105,7 +105,7 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
-[pd, hd] = fill_era(pd, hd);
+[pd, hd, pa] = fill_era(pd, hd, pa);
 
 % Update header to record profile has obs and model data
 hd.pfields = 5;
@@ -328,7 +328,10 @@ if(~SKIP)
   % read the results files back in
   cfin = [tmp '.sar'];
 
-  [hd ha pd pa] = rtpread_12(cfin);
+% $$$   [hd ha pd pa] = rtpread_12(cfin);
+  [~,~,ptemp,~] = rtpread_12(cfin);
+  pd.rcalc = ptemp.rcalc;
+  clear ptemp;
 
   % -----------------------------------------------------
   %               CLEAR-2 subset - using sarta calcs
@@ -354,7 +357,7 @@ if(~SKIP)
   %      save file and wrap up
   % ------------------------------------------
   if(~SKIP)
-    savF = [savPath savFil];
+% $$$     savF = [savPath savFil];
       %fprintf(1,'Saving %s\n',savF);
     %res  = rtpwrite_12(savF, hd, ha, pd, pa);
 

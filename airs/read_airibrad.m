@@ -59,7 +59,8 @@ swath_id  = hdfsw('attach',file_id,'L1B_AIRS_Science');
 [junk,s]=hdfsw('readfield',swath_id,'state',[],[],[]);
 if s == -1; disp('Error reading state');end;
 state = reshape( double(junk), 1,nobs);
-i0=find( state == 0);  % Indices of "good" FOVs
+% $$$ i0=find( state == 0);  % Indices of "good" FOVs
+i0=find( state == 1);  % Indices of "good" FOVs (v6 'Special' processing)
 n0=length(i0);
 %
 clear state

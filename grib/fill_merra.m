@@ -1,24 +1,24 @@
-% fill_ecmwf.m
+% fill_merra.m
 % 
 % L. Strow, 12 Jan 2015
 %
-% Start with fill_ecmwf.m and modify for ERA
+% Start with fill_merra.m and modify for ERA
 
-function [prof, head, pattr] = fill_era(prof, head, pattr)
+function [prof, head, pattr] = fill_merra(prof, head, pattr)
 
 % Check args in and out to see if they conform to the new API and
 % aren't split between old and new styles
 if nargin ~= nargout
-    error(['>>> ERROR: mismatch between fill_era inputs and ' ...
-           'outputs.\n\tUse either [p,h]=fill_era(p,h) or ' ...
-           '[p,h,pa]=fill_era(p,h,pa) (preferred)\n\tTerminating'], '\n')
+    error(['>>> ERROR: mismatch between fill_merra inputs and ' ...
+           'outputs.\n\tUse either [p,h]=fill_merra(p,h) or ' ...
+           '[p,h,pa]=fill_merra(p,h,pa) (preferred)\n\tTerminating'], '\n')
 end
 
 addpath /asl/matlib/aslutil
 addpath /asl/packages/time
 
 % Location of grib files
-fhdr = '/asl/data/era/';
+fhdr = '/asl/data/merra/';
 
 ename = '';  % This should be placed outside a rtp file loop
 mtime = tai2dnum(prof.rtime);
@@ -53,11 +53,15 @@ for i=1:n
 % If the filename has changed, re-load F   
    if ~strcmp(ename,fn) 
       clear F  % Probably not needed
-%      disp('New file'); for debugging
-      F(1) = grib_interpolate_era(fn_sfc,fn_lev,1);
-      F(2) = grib_interpolate_era(fn_sfc,fn_lev,2);
-      F(3) = grib_interpolate_era(fn_sfc,fn_lev,3);
-      F(4) = grib_interpolate_era(fn_sfc,fn_lev,4);
+               %      disp('New file'); for debugging
+
+      % ASL merra files currently have data every 3 hrs but era is
+      % every 6. hour indices here are to match both sets (may not
+      % want this long term?)
+      F(1) = grib_interpolate_merra(fn_sfc,fn_lev,1);
+      F(2) = grib_interpolate_merra(fn_sfc,fn_lev,7);
+      F(3) = grib_interpolate_merra(fn_sfc,fn_lev,13);
+      F(4) = grib_interpolate_merra(fn_sfc,fn_lev,19);
       ename = fn;
    end   
 % Fill rtp fields
@@ -76,7 +80,7 @@ for i=1:n
 % Assume rtp lat/lon are +-180??  Need to be 0-360 for grib interpolation
          rlat = prof.rlat(k);
          rlon = prof.rlon(k);
-         rlon(rlon<0) = rlon(rlon<0) + 360;
+% $$$          rlon(rlon<0) = rlon(rlon<0) + 360;
 
          prof.spres(k)   = F(fhi).sp.ig(rlat,rlon);
          prof.stemp(k)   = F(fhi).skt.ig(rlat,rlon);
@@ -107,8 +111,13 @@ for i=1:n
             prof.clwc(l,k)  = F(fhi).clwc(j(l)).ig(rlat,rlon);
             prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
          end
-% Only want pressure levels in grib file, in order
-         xtemp = p60_ecmwf(prof.spres(k));  % all 137 pressure levels
+         % Only want pressure levels in grib file, in order
+         %**** NOTE
+         % How safe are we keying pressure levels to
+         % ecmwf routines? Since this is a copy of fill_era, the
+         % question has applicability across the fill_* spectrum
+         %**** NOTE
+         xtemp = p72_merra(prof.spres(k));  % all 137 pressure levels
          prof.plevs(:,k) = xtemp(b,:);  % subset to ones in grib file
          prof.nlevs(k) = length(F(fhi).levid);
       end  % k loop  LLS
@@ -124,7 +133,7 @@ head.gunit = [21; 21];
 head.pmin = min( prof.plevs(1,:) );
 head.pmax = max( prof.plevs(end,:) );
 % Setting attributes needs work...
-% pattr = set_attr(pattr,'profiles','ECMWF','profiles');
+% pattr = set_attr(pattr,'profiles','MERRA','profiles');
 
 % I think this is needed to avoid negatives in SARTA?
 min_H2O_gg = 3.1E-7;  % 0.5 pppm
@@ -159,12 +168,12 @@ end
 
 switch nargin
   case 2
-    fprintf(2, ['>>> WARNING: fill_era now sets model attribute in ' ...
-                'pattr.\n\tUpdate calls to fill_era to include pattr. ' ...
-                'i.e. [p,h,pa] = fill_era(p,h,pa)\n'])
+    fprintf(2, ['>>> WARNING: fill_merra now sets model attribute in ' ...
+                'pattr.\n\tUpdate calls to fill_merra to include pattr. ' ...
+                'i.e. [p,h,pa] = fill_merra(p,h,pa)\n'])
   case 3
     % set an attribute string to let the rtp know what we have done
-    pattr = set_attr(pattr,'model','era');
+    pattr = set_attr(pattr,'model','merra');
 end
 
 %  save ~/sfhi sfhi   % debug

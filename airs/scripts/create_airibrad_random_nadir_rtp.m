@@ -13,9 +13,17 @@ function create_airibrad_random_nadir_rtp(inpath, outfile_head)
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
+func_name = 'create_airibrad_random_nadir_rtp';
 
-% $$$ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-% $$$ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+
+addpath('/home/sbuczko1/git/swutils');
+trace.githash = githash(func_name);
+trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
+                         'd-MMM-y HH:mm:ss Z'));
+fprintf(1, '>>> Run executed %s with git hash %s\n', ...
+        trace.RunDate, trace.githash);
 
 % Execute user-defined paths
 set_process_dirs
@@ -31,14 +39,14 @@ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', ['nomodel_airibrad_day' ...
                     sDoy '_random.rtp']);
 
-if exist(outfile_path) ~= 0
-    fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
-                'n']);
-    return;
-end
+% $$$ if exist(outfile_path) ~= 0
+% $$$     fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
+% $$$                 'n']);
+% $$$     return;
+% $$$ end
 
 % This version operates on a day of AIRIBRAD granules and
 % concatenates the subset of random obs into a single output file
@@ -69,7 +77,9 @@ for i=1:length(files)
 
         % Assign header attribute strings
         hattr={ {'header' 'pltfid' 'Aqua'}, ...
-                {'header' 'instid' 'AIRS'} };
+                {'header' 'instid' 'AIRS'}, ...
+                {'header' 'githash' trace.githash}, ...
+                {'header' 'rundate' trace.RunDate} };
 
         nchan = size(prof0.robs1,1);
         chani = (1:nchan)';
@@ -107,10 +117,12 @@ if isfield(prof,'zobs')
    prof.zobs(iz) = prof.zobs(iz) * 1000;
 end
 
+SKIP=1;
+if (~SKIP)
 % Add in model data
 fprintf(1, '>>> Running fill_era... ');
 try 
-    [prof,head]  = fill_era(prof,head);
+    [prof,head,pattr]  = fill_era(prof,head,pattr);
 catch
     fprintf(2, '>>> ERROR: fill_era failure for %s/%s\n', sYear, ...
             sDoy);
@@ -135,6 +147,9 @@ fprintf(1, 'Done\n');
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
 run_sarta.cumsum=9999;
+% driver_sarta_cloud_rtp ultimately looks for default sarta
+% executables in Sergio's directories. **DANGEROUS** These need to
+% be brought under separate control for traceability purposes.
 try
     [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 catch
@@ -142,6 +157,7 @@ catch
                 '%s/%s\n'], sYear, sDoy);
     return;
 end
+end  % end if (~SKIP)
 
 % profile attribute changes for airibrad
 pa = set_attr('profiles', 'robs1', infile);

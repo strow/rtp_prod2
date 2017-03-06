@@ -21,6 +21,9 @@ function run_iasi_rtp(dateFile,subset)
 cd /home/sbuczko1/git/rtp_prod2/iasi/run
 addpath /asl/packages/rtp_prod2/iasi
 addpath /asl/packages/rtp_prod2/iasi/readers
+addpath /asl/matlib_2015/aslutil  % for utc2tai2000 (replace this
+                                  % with new time commands)
+addpath /asl/matlib/aslutil
 
 ddc = load(dateFile);
 
@@ -57,7 +60,7 @@ inPath = [inPath syr '/' smo '/' sdy '/'];
 % statement and parsing results in its place. Here use ls(). Pass
 % '-1' to system to make an easily parsable string (elements
 % separated by \n newline, strip trailing spaces and split
-fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M02*.gz'), '-1');  % use only
+fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M02*'), '-1');  % use only
                                                            % gzipped
                                                            % granules
 fnLst1stripped = strsplit(strtrim(fnLst1),'\n');
@@ -66,13 +69,15 @@ fprintf(1,'Found %d granule files to process\n',numel(fnLst1stripped));
 
 clear sav_profs all_profs; fcnt = 0;
 for ifn = 1:numel(fnLst1stripped)  % 56:61   %
+%for ifn = 1:20
     clear hdx hax pdx pax;
     infile = fnLst1stripped{ifn};
 
     fnLst = dir(infile);
     if(fnLst.bytes > 2E7)                     % avoid deficient granules
         fprintf(1,'Processing %d\t %s\n',ifn, infile);
-        [hdx, hax, pdx, pax] = create_iasi_rtp([inPath infile],subset);
+
+        [hdx, hax, pdx, pax] = create_iasi_rtp(infile,subset);
 %    if (strcmp(class(hdx), 'char')) 
 %      if(strcmp(pdx,'NULL'))
 %        fprintf(1,'Continue to next granule\n'); 
@@ -93,13 +98,18 @@ end
 sav_profs = structmerge(all_profs);
 
 % Save the hourly/daily RTP file
-  savPath = ['/asl/data/rtp_iasi1/' subset '/' sdate '/'];
-  [pathstr,fnamin,ext] = fileparts(infile);
-  [fparts,fmatches]    = strsplit(fnamin,'_');
-  junk    = datestr(datenum(sdate,'yyyy/MM/dd'),'yyyyMMdd');
-  savFil  = [junk '_' subset '.rtp'];
-  savF    = [savPath savFil]
+outpath = '/asl/rtp/rtp_iasi1';
+savPath = fullfile(outpath, subset, syr);
 
+if ~exist(savPath)
+    mkdir(savPath)
+end
+
+  savFil  = ['iasi1_era_d' syr smo sdy '_' subset '.rtp'];
+  savF    = fullfile(savPath, savFil);
+
+  fprintf(1, '>>> Writing to output file: %s\n', savF);
+  
   res = rtpwrite_12(savF, hdx, hax, sav_profs, pax);
   
 end % of function

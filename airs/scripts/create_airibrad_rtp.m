@@ -110,7 +110,7 @@ end
 
 % Add in model data
 fprintf(1, '>>> Running fill_era... ');
-[prof,head]  = fill_era(prof,head);
+[prof,head,pattr]  = fill_era(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
 

@@ -1,4 +1,4 @@
-function create_airxbcal_rtp(airs_doy, airs_year, cfg)
+function create_airxbcal_allfov_rtp(airs_doy, airs_year)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -15,7 +15,7 @@ function create_airxbcal_rtp(airs_doy, airs_year, cfg)
 % REQUIRES:
 %      /asl/packages/rtp_prod2/airs, util, grib, emis
 %      /asl/packages/swutil
-func_name = 'create_airxbcal_rtp';
+func_name = 'create_airxbcal_allfov_rtp';
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
@@ -137,15 +137,10 @@ clear aux matchedcalflag;  % reclaiming some memory
 fprintf(1, 'Done\n');
 
 % Add in model data
-fprintf(1, '>>> Add model: %s...', cfg.model)
-switch cfg.model
-  case 'ecmwf'
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
-  case 'era'
-    [prof,head,pattr]  = fill_era(prof,head,pattr);
-  case 'merra'
-    [prof,head,pattr]  = fill_merra(prof,head,pattr);
-end
+fprintf(1, '>>> Running fill_era... ');
+[prof,head,pattr]  = fill_era(prof,head,pattr);
+% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
+% $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
@@ -207,18 +202,10 @@ hattr{end+1} = {'header' 'sarta' sarta_exec};
 delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
 % Subset into four types and save separately
-iclear = find(bitget(prof.iudef(1,:),1));
-isite  = find(bitget(prof.iudef(1,:),2));
-idcc   = find(bitget(prof.iudef(1,:),3));
-% $$$ irand  = find(bitget(prof.iudef(1,:),4));
-
-prof_clear = rtp_sub_prof(prof,iclear);
-prof_site  = rtp_sub_prof(prof,isite);
-prof_dcc   = rtp_sub_prof(prof,idcc);
-% $$$ prof_rand  = rtp_sub_prof(prof,irand);
+%** allfov so no subsetting (except for size limits in rtp output)
 
 % Make directory if needed
-asType = {'clear', 'site', 'dcc'};
+asType = {'allfov'};
 for i = 1:length(asType)
     sPath = fullfile(airxbcal_out_dir,airs_yearstr,char(asType(i)));
     if exist(sPath) == 0
@@ -226,42 +213,15 @@ for i = 1:length(asType)
     end
 end
 
-rtp_out_fn_head = ['s_merra_airxbcal_day' airs_doystr];
+rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
 % $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
 % Now save the four types of airxbcal files
 fprintf(1, '>>> writing output rtp files... ');
 
-if length(iclear)
-    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-    rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
-else
-    fprintf(2, '>> AIRS year %c  day %c has no clear obs\n', airs_yearstr, ...
-            airs_doystr);
-end
+rtp_out_fn = [rtp_out_fn_head, '_allfov.rtp'];
+rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
+rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
 
-
-if length(isite)
-    rtp_out_fn = [rtp_out_fn_head, '_site.rtp'];
-    rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(2)), rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_site,pattr);
-else
-    fprintf(2, '>> AIRS year %c  day %c has no site obs\n', airs_yearstr, ...
-            airs_doystr);
-end
-
-if length(idcc)
-    rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-    rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(3)), rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
-else
-    fprintf(2, '>> AIRS year %c  day %c has no dcc obs\n', airs_yearstr, ...
-            airs_doystr);
-end
-
-% $$$ rtp_out_fn = [rtp_out_fn_head, '_rand.rtp'];
-% $$$ rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(4)), rtp_out_fn);
-% $$$ rtpwrite(rtp_outname,head,hattr,prof_rand,pattr);
 fprintf(1, 'Done\n');
 
 

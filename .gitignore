@@ -44,6 +44,7 @@ emis/DanZ_data
 *.bak
 *~
 *.sav
+\#*
 
 # Don't ignore a few .mat files
 !test.mat

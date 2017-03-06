@@ -1,4 +1,4 @@
-function create_cris_ccast_lowres_rtp(fnCrisInput)
+function create_cris_ccast_lowres_rtp(fnCrisInput, fnCrisOutput)
 % PROCESS_CRIS_LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
@@ -10,10 +10,9 @@ fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
 
 % use fnCrisOutput to generate year and doy strings
 % fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
-fnCrisOutput = fnCrisInput(5:22);
-cris_yearstr = fnCrisOutput(2:5);
-month = str2num(fnCrisOutput(6:7));
-day = str2num(fnCrisOutput(8:9));
+cris_yearstr = fnCrisOutput(6:9);
+month = str2num(fnCrisOutput(10:11));
+day = str2num(fnCrisOutput(12:13));
 dt = datetime(str2num(cris_yearstr), month, day);
 dt.Format = 'DDD';
 cris_doystr = char(dt);
@@ -108,20 +107,20 @@ px = prof;
 % $$$ px = rmfield(prof,'rcalc');
 hx = head; hx.pfields = 5;
 
-prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr);
+% $$$ prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr);
 %% super (if it works)
 % for redo of random subset. There are some issues with Sergio's
 % code that we are trying to find a way around. THIS WILL NOT WORK
 % FOR OTHER SUBSETS
-% $$$ fprintf(1, '>>> Running hha_lat_subsample... ');
-% $$$ [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(head, prof);
-% $$$ if numel(irand) == 0
-% $$$     fprintf(2, ['>>> ERROR : No random obs returned. Skipping to ' ...
-% $$$                 'next granule.\n'])
-% $$$     return;
-% $$$ end
+fprintf(1, '>>> Running hha_lat_subsample... ');
+[irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(head, prof);
+if numel(irand) == 0
+    fprintf(2, ['>>> ERROR : No random obs returned. Skipping to ' ...
+                'next granule.\n'])
+    return;
+end
 
-% $$$ prof = rtp_sub_prof(prof,irand)
+prof = rtp_sub_prof(prof,irand)
 fprintf(1, 'Done\n');
 
 % run klayers
@@ -170,8 +169,8 @@ head.pfields = 7;
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
-asType = {'clear'};
-rtp_out_fn_head = ['era_' fnCrisOutput];
+asType = {'random'};
+rtp_out_fn_head = ['era_', fnCrisOutput];
 % $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
@@ -190,32 +189,25 @@ for i = 1:length(asType)
 % $$$ prof_site  = rtp_sub_prof(prof,isite);
 % $$$ prof_dcc   = rtp_sub_prof(prof,idcc);
 % $$$ prof_rand  = rtp_sub_prof(prof,irand);
-% $$$ prof_rand = prof;
+prof_rand = prof;
 
     switch(char(asType(i)))
       case 'random'
 % $$$         obsfound = find(prof.iudef(1,:) == 8);
         obsfound = irand;
       case 'clear'
-        obsfound = find(prof.iudef(1,:) == 1);
-      case 'dcc'
-        obsfound   = find(prof.iudef(1,:) == 4);
-      case 'site'
-        obsfound  = find(prof.iudef(1,:) == 2);
+        obsfound = find(prof.iudef(1,:) == 1);    
+% $$$ isite  = find(prof.iudef(1,:) == 2);
+% $$$ idcc   = find(prof.iudef(1,:) == 4);
     end
 
     if obsfound ~= 0
-        fprintf(1, '>> OUTPUT : Valid obs found :: %d', length(obsfound));
-        prof_out = rtp_sub_prof(prof,obsfound);
-% $$$         prof_out = prof_rand;
+% $$$         prof_out = rtp_sub_prof(prof,obsfound);
+        prof_out = prof_rand;
         rtp_out_fn = [rtp_out_fn_head '_' char(asType(i)) '.rtp'];
         rtp_outname = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,  cris_doystr, rtp_out_fn);
         rtpwrite(rtp_outname,head,hattr,prof_out,pattr);
-    else
-        fprintf(1, '>> OUTPUT : No valid obs found for granule %s\n', ...
-                fnCrisInput);
     end
-    
 end
 
 fprintf(1, 'Done\n');

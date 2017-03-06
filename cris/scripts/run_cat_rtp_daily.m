@@ -15,13 +15,13 @@ cris_daily_file_list = '~/cris-days-to-process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-%slurmindex = 0;
+% $$$ slurmindex = 0;
 
 % for each slurm array index, process 30 days from the to-process
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 15;
+chunk = 1;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
@@ -43,18 +43,19 @@ for i = 1:chunk
         break;
     end
 
+    tag = 't-10';
     % generate output file name and path (presently to be
     % /asl/data/rtp_cris_ccast_lowres/clear_daily/<year>/rtp_d<date>_clear.rtp)
     C = strsplit(indir, '/');
-    sYear = C{6};
-    outpath = fullfile('/asl/data/rtp_cris_ccast_lowres/random_daily', ...
-                       sYear);
-    
+    sYear = C{7};  % changed to fit local diectory structure
+    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hire/clear', ...
+                       sYear, tag);
+        
     % read in filenames in indir to build output filename
-    mfiles = dir([indir '/rtp_*.rtp']);
+    mfiles = dir([indir '/cris_hr_ecmwf_d20160120_*.rtp']);
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, [C{1} '_' C{2} '_random.rtp']);
+    outfile = fullfile(outpath, [C{1} '_' C{2} '_' C{3} '_dcc.rtp']);
 
     fprintf(1, '>>> Output to: %s\n', outfile);
 

@@ -5,14 +5,14 @@
 # 
 
 # sbatch options
-#SBATCH --job-name=RUN_CREATE_AIRXBCAL_RTP
+#SBATCH --job-name=RUN_IASI_FIX_FILL_ERA
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
 #SBATCH --qos=medium
 #SBATCH --account=pi_strow
-#SBATCH --mem-per-cpu=18000
-#SBATCH --time=06:00:00
+#SBATCH --mem-per-cpu=12000
+#SBATCH --time=14:00:00
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
 #SBATCH --requeue
@@ -24,17 +24,17 @@
 #SBATCH --mail-type=REQUEUE
 #SBATCH --mail-type=TIME_LIMIT_50
 
-#SBATCH -o /home/sbuczko1/logs/sbatch/run_airxbcal_batch-%A_%a.out
-#SBATCH -e /home/sbuczko1/logs/sbatch/run_airxbcal_batch-%A_%a.err
+#SBATCH -o /home/sbuczko1/logs/sbatch/run_iasi_fix_fill_era-%A_%a.out
+#SBATCH -e /home/sbuczko1/logs/sbatch/run_iasi_fix_fill_era-%A_%a.err
 
 # matlab options
 MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
-echo "Executing run_airxbcal_batch"
-$MATLAB $MATOPTS -r "addpath(genpath('~/git/rtp_prod2'), '~/git/swutils'); run_airxbcal_batch; exit"
+echo "Executing run_iasi_fix_fill_era"
+$MATLAB $MATOPTS -r "addpath('/home/sbuczko1/git/rtp_prod2/iasi', '/home/sbuczko1/git/rtp_prod2/grib', '/home/sbuczko1/git/rtp_prod2/emis'); run_iasi_fix_fill_era; exit"
     
-echo "Finished with run_airxbcal_batch"
+echo "Finished with run_iasi_fix_fill_era"
 
 
 
