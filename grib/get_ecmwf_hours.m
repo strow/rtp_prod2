@@ -34,7 +34,8 @@ hstr = timestr(:,9:10);
 
 % index for fhrstr
 h = str2num(hstr);
+d = str2num(dstr);
 
-enames = [mstr dstr fhrstr(h+1,:) mstr dstr hstr];
+enames = [mstr dstr fhrstr(h+1,:) mstr d h];
 enames = cellstr(enames);
 
