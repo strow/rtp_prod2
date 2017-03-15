@@ -57,7 +57,14 @@ for i = 1:length(fn)
     % Read the AIRIBRAD file
     infile = fullfile(indir,fn(i).name);
     fprintf(1, '>>> Reading input file: %s   ', infile);
-    [eq_x_tai, freq, prof, pattr] = read_airibrad(infile);
+    try
+        [eq_x_tai, freq, prof, pattr] = read_airibrad(infile);
+    catch
+        fprintf(2, 'No good obs in %s: moving to next gran\n', ...
+                infile);
+        continue;
+    end
+    
     fprintf(1, 'Done\n');
 
     % subset if nobs is greater than threshold lmax (to avoid hdf file size

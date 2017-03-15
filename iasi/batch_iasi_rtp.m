@@ -61,12 +61,12 @@ fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
 fprintf(FH,'#SBATCH --partition=batch\n');
 fprintf(FH,'#SBATCH --qos=medium\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
-fprintf(FH,'#SBATCH --time=05:30:00\n');
+fprintf(FH,'#SBATCH --time=07:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
 fprintf(FH,'#SBATCH -N1\n');
 fprintf(FH,'#SBATCH --output=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.out\n');
 fprintf(FH,'#SBATCH --error=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.err\n');
-fprintf(FH,'#SBATCH --mem=9000\n');
+fprintf(FH,'#SBATCH --mem=14000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 1\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
 

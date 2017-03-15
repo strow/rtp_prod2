@@ -26,6 +26,7 @@ addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis
 addpath /home/sbuczko1/git/rtp_prod2/airs
 addpath /home/sbuczko1/git/swutils
+addpath /home/sbuczko1/git/matlib/clouds/sarta  % driver_cloudy_sarta
 
 trace.klayers = klayers_exec;
 trace.sarta = sarta_exec;
@@ -114,18 +115,18 @@ if isfield(prof,'zobs')
 end
 
 % Add in model data
-% $$$ fprintf(1, '>>> Running fill_era... ');
-% $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
-% $$$ head.pfields = 5;
+fprintf(1, '>>> Running fill_era... ');
+[prof,head,pattr]  = fill_era(prof,head,pattr);
+head.pfields = 5;
 % $$$ fprintf(1, 'Done\n');
 % $$$ fprintf(1, '>>> Running fill_ecmwf... ');
 % $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
 % $$$ head.pfields = 5;
 % $$$ fprintf(1, 'Done\n');
-fprintf(1, '>>> Running fill_merra... ');
-[prof,head,pattr]  = fill_merra(prof,head,pattr);
-head.pfields = 5;
-fprintf(1, 'Done\n');
+% $$$ fprintf(1, '>>> Running fill_merra... ');
+% $$$ [prof,head,pattr]  = fill_merra(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
 
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
@@ -147,13 +148,13 @@ run_sarta.cumsum=9999;
 % driver_sarta_cloud_rtp ultimately looks for default sarta
 % executables in Sergio's directories. **DANGEROUS** These need to
 % be brought under separate control for traceability purposes.
-try
+% $$$ try
     [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
-catch
-    fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
-                '%s/%s\n'], sYear, sDoy);
-    return;
-end
+% $$$ catch
+% $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
+% $$$                 '%s/%s\n'], sYear, sDoy);
+% $$$     return;
+% $$$ end
 
 % $$$ % run klayers
 % $$$ fprintf(1, '>>> running klayers... ');
@@ -191,9 +192,9 @@ pa = set_attr(pa, 'rtime', 'TAI:1958');
 %keyboard
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
-delete(fn_rtp1, fn_rtp2, fn_rtp3);
+% $$$ delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-rtp_out_fn_head = ['allfov_merra_airibrad_day_' airs_yearstr airs_doystr '_' grannum ...
+rtp_out_fn_head = ['allfov_era_airibrad_day_' airs_yearstr airs_doystr '_' grannum ...
                    '.rtp'];
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = fullfile(sPath, rtp_out_fn_head);

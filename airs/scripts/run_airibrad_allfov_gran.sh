@@ -13,11 +13,12 @@
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
+#SBATCH --requeue
 
 # Previous runs (2313403) put MaxRSS below 7GB
 #SBATCH --mem=12000
 
-# Previous runs put run time at ~90 seconds for a granule
+# Previous runs put run time at ~6 minutes for a granule
 #SBATCH --time=00:59:00
 
 #SBATCH --mail-user=sbuczko1@umbc.edu

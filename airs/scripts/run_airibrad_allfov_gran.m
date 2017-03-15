@@ -21,7 +21,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 5;
+chunk = 2;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing

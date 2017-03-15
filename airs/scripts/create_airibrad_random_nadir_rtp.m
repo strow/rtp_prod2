@@ -30,9 +30,9 @@ set_process_dirs
 addpath(genpath(rtp_sw_dir));
 addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
 addpath('/asl/matlib/rtptools');   % for cat_rtp
-addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
+% $$$ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
                                                       % driver_sarta_cloud_rtp.m
-% $$$ addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
+addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 
 % build output filename
 % assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
@@ -149,17 +149,17 @@ fprintf(1, 'Done\n');
 % call klayers/sarta cloudy
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
-run_sarta.cumsum=9999;
+run_sarta.cumsum=-1;
 % driver_sarta_cloud_rtp ultimately looks for default sarta
 % executables in Sergio's directories. **DANGEROUS** These need to
 % be brought under separate control for traceability purposes.
-try
+% $$$ try
     [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
-catch
-    fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
-                '%s/%s\n'], sYear, sDoy);
-    return;
-end
+% $$$ catch
+% $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
+% $$$                 '%s/%s\n'], sYear, sDoy);
+% $$$     return;
+% $$$ end
 end  % end if (~SKIP)
 
 % profile attribute changes for airibrad

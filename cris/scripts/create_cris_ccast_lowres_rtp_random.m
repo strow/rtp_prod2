@@ -1,4 +1,4 @@
-function create_cris_ccast_lowres_rtp(fnCrisInput, fnCrisOutput)
+function create_cris_ccast_lowres_rtp_random(fnCrisInput, cfg)
 % PROCESS_CRIS_LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
@@ -9,10 +9,14 @@ fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
         fnCrisInput);
 
 % use fnCrisOutput to generate year and doy strings
-% fnCrisOutput will be of the form rtp_d<YYYMMDD>_t<granule time>
-cris_yearstr = fnCrisOutput(6:9);
-month = str2num(fnCrisOutput(10:11));
-day = str2num(fnCrisOutput(12:13));
+% /asl/data/cris/ccast/sdr60/2016/153/SDR_d20160601_t0006523.mat
+[path, fname, ext] = fileparts(fnCrisInput);
+
+% fnCrisOutput will be of the form <model>_d<YYYMMDD>_t<granule time>
+fnCrisOutput = [cfg.model '_' fname(5:22)];
+cris_yearstr = fname(6:9);
+month = str2num(fname(10:11));
+day = str2num(fname(12:13));
 dt = datetime(str2num(cris_yearstr), month, day);
 dt.Format = 'DDD';
 cris_doystr = char(dt);
@@ -69,19 +73,21 @@ end
 ichan_ccast = head.ichan;
 
 % Add profile data
-fprintf(1, '>>> Running fill_era... ');
-[prof,head, pattr]=fill_era(prof,head,pattr);
-fprintf(1, 'Done\n');
-
-% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
-% $$$ [prof,head,pattr]=fill_ecmwf(prof,head,pattr);
-
+fprintf(1, '>>> Add model: %s...', cfg.model)
+switch cfg.model
+  case 'ecmwf'
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+  case 'era'
+    [prof,head,pattr]  = fill_era(prof,head,pattr);
+  case 'merra'
+    [prof,head,pattr]  = fill_merra(prof,head,pattr);
+end
 % rtp now has profile and obs data ==> 5
 head.pfields = 5;
 [nchan,nobs] = size(prof.robs1);
 head.nchan = nchan;
 head.ngas=2;
-
+fprintf(1, 'Done\n');
 
 % Add landfrac, etc.
 fprintf(1, '>>> Running usgs_10dem... ');
@@ -170,7 +176,7 @@ head.pfields = 7;
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'random'};
-rtp_out_fn_head = ['era_', fnCrisOutput];
+rtp_out_fn_head = ['cris_lr_', fnCrisOutput];
 % $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';

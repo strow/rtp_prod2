@@ -42,7 +42,7 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 % Generate save file from input file: (expect: IASI_xxx_1C_M02_20130101000254Z_20130101000557Z)
 clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
-savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
+savPath = ['/asl/rtp/rtp_iasi2/' subset '/'];
 
 % $$$ addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
 addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
@@ -105,10 +105,10 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
-% $$$ fprintf(1, '>> Add model: era...');
-% $$$ [pd, hd, pa] = fill_era(pd, hd, pa);
-fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
-[pd, hd, pa] = fill_ecmwf(pd, hd, pa);
+fprintf(1, '>> Add model: era...');
+[pd, hd, pa] = fill_era(pd, hd, pa);
+% $$$ fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
+% $$$ [pd, hd, pa] = fill_ecmwf(pd, hd, pa);
 
 % check for empty prof struct after fill_ecmwf
 if isempty(fieldnames(pd))
