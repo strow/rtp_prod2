@@ -28,7 +28,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 % Execute user-defined paths
 set_process_dirs
 addpath(genpath(rtp_sw_dir));
-addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
+% $$$ addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
 addpath('/asl/matlib/rtptools');   % for cat_rtp
 % $$$ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
                                                       % driver_sarta_cloud_rtp.m
