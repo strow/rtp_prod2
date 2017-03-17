@@ -30,10 +30,10 @@ addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
-addpath /home/sbuczko1/git/rtp_prod2/cris
-addpath /home/sbuczko1/git/rtp_prod2/util
-addpath /home/sbuczko1/git/rtp_prod2/emis
-addpath /home/sbuczko1/git/rtp_prod2/grib
+addpath /asl/packages/rtp_prod2/cris
+addpath /asl/packages/rtp_prod2/util
+addpath /asl/packages/rtp_prod2/emis
+addpath /asl/packages/rtp_prod2/grib
 
 [sID, sTempPath] = genscratchpath();
 sID = getenv('SLURM_ARRAY_TASK_ID');
@@ -179,8 +179,8 @@ head.pfields = 7;
 asType = {'clear'};
 rtp_out_fn_head = fnCrisOutput;
 % $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
-% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
+% $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 % $$$ rtp_outname2 = fullfile(cris_out_dir, char(asType(1)),cris_yearstr, ...
 % $$$                         cris_doystr,  rtp_out_fn);
 

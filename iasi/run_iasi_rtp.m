@@ -18,12 +18,12 @@ function run_iasi_rtp(dateFile,subset)
 % prep the batch job from the dateFile.
 %-----------------------------------------------------------
 
-    cd /home/sbuczko1/git/rtp_prod2/iasi/run
-    addpath /home/sbuczko1/git/rtp_prod2/emis
-    addpath /home/sbuczko1/git/rtp_prod2/util
-    addpath /home/sbuczko1/git/rtp_prod2/grib
-addpath /home/sbuczko1/git/rtp_prod2/iasi
-addpath /home/sbuczko1/git/rtp_prod2/iasi/readers
+    cd /asl/packages/rtp_prod2/iasi/run
+    addpath /asl/packages/rtp_prod2/emis
+    addpath /asl/packages/rtp_prod2/util
+    addpath /asl/packages/rtp_prod2/grib
+addpath /asl/packages/rtp_prod2/iasi
+addpath /asl/packages/rtp_prod2/iasi/readers
 addpath /asl/matlib_2015/aslutil  % for utc2tai2000 (replace this
                                   % with new time commands)
 addpath /asl/matlib/aslutil

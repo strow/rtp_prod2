@@ -7,8 +7,8 @@ function  run_cat_rtp_daily()
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
+addpath('/asl/packages/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
+addpath('/asl/packages/rtp_prod2/airs');  % sub_airxbcal
 
 % 
 cris_daily_file_list = '~/cris-days-to-process';
@@ -48,7 +48,7 @@ for i = 1:chunk
     C = strsplit(indir, '/');
     sYear = C{7};  % changed to fit local diectory structure
     sDoy = C{8};
-    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres/clear', ...
+    outpath = fullfile('/asl/rtp/rtp_cris_ccast_lowres/clear', ...
                        sYear);
 
     % read in filenames in indir to build output filename

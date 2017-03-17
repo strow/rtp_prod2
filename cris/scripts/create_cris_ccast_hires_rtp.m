@@ -4,10 +4,10 @@ function create_cris_ccast_hires_rtp(fnCrisInput, cfg)
 % Process a single CrIS .mat granule file.
 
 %set_process_dirs;
-addpath /home/sbuczko1/git/rtp_prod2/util
-addpath /home/sbuczko1/git/rtp_prod2/grib
-addpath /home/sbuczko1/git/rtp_prod2/emis
-addpath /home/sbuczko1/git/rtp_prod2/cris
+addpath /asl/packages/rtp_prod2/util
+addpath /asl/packages/rtp_prod2/grib
+addpath /asl/packages/rtp_prod2/emis
+addpath /asl/packages/rtp_prod2/cris
 
 fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
         fnCrisInput);
@@ -275,8 +275,8 @@ prof_rand  = rtp_sub_prof(prof,irand);
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
-cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hires';
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
+% $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hires';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source
 % for filesystem collisions once we are running under slurm.

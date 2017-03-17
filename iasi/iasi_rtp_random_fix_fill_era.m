@@ -9,7 +9,7 @@ addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/matlib/rtptools
 addpath /asl/matlib/aslutil
-addpath /home/sbuczko1/git/swutils
+addpath /asl/packages/swutils
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';

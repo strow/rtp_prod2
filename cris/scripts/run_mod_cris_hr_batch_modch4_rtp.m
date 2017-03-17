@@ -1,7 +1,7 @@
 function run_mod_cris_hr_batch_modch4_rtp()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
-addpath('/home/sbuczko1/git/rtp_prod2/util');
+addpath('/asl/packages/rtp_prod2/util');
 
 cris_ccast_mod_file_list = '~/cris_hr_mod_ch4';
 

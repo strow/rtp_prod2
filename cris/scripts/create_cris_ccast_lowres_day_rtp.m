@@ -11,10 +11,10 @@ sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
 % $$$ % Need these two paths to use iasi2cris.m in iasi_decon
 % $$$ addpath /asl/packages/iasi_decon
 % $$$ addpath /asl/packages/ccast/source
-addpath /home/sbuczko1/git/rtp_prod2/cris
-addpath /home/sbuczko1/git/rtp_prod2/util
-addpath /home/sbuczko1/git/rtp_prod2/emis
-addpath /home/sbuczko1/git/rtp_prod2/grib
+addpath /asl/packages/rtp_prod2/cris
+addpath /asl/packages/rtp_prod2/util
+addpath /asl/packages/rtp_prod2/emis
+addpath /asl/packages/rtp_prod2/grib
 
 % $$$ % print out path to compare to interacive session
 % $$$ fid = fopen('~/pathtest/hpcstartpath.txt', 'wt');
