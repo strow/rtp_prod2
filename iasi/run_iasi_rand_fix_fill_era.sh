@@ -12,7 +12,7 @@
 #SBATCH --qos=medium
 #SBATCH --account=pi_strow
 #SBATCH --mem-per-cpu=12000
-#SBATCH --time=23:00:00
+#SBATCH --time=10:00:00
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
 #SBATCH --requeue

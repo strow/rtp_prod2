@@ -178,8 +178,8 @@ head.pfields = 7;
 asType = {'random'};
 rtp_out_fn_head = ['cris_lr_', fnCrisOutput];
 % $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
-cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-% $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
+% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
+cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 % $$$ rtp_outname2 = fullfile(cris_out_dir, char(asType(1)),cris_yearstr, ...
 % $$$                         cris_doystr,  rtp_out_fn);
 

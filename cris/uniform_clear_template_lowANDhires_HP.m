@@ -1,4 +1,4 @@
-function [pout] = uniform_clear_template_lowANDhires_HP(head, hattr, prof, pattr, idtestu, idtestc);
+function [pout, ikeep] = uniform_clear_template_lowANDhires_HP(head, hattr, prof, pattr, idtestu, idtestc);
 %
 % Run the CrIS xuniform.m and xfind_clear.m codes for a Proxy data
 % file and save some results. The input RTP should contain unapodized

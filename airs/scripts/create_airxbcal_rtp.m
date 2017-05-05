@@ -140,6 +140,7 @@ fprintf(1, 'Done\n');
 fprintf(1, '>>> Add model: %s...', cfg.model)
 switch cfg.model
   case 'ecmwf'
+    which fill_ecmwf
     [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
   case 'era'
     [prof,head,pattr]  = fill_era(prof,head,pattr);

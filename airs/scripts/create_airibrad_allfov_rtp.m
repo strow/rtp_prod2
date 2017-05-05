@@ -1,4 +1,4 @@
-function create_airibrad_allfov_rtp(year, doy)
+function create_airibrad_allfov_rtp(year, doy, model)
 %
 % NAME
 %   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
@@ -113,8 +113,16 @@ for i = 1:length(fn)
     end
 
     % Add in model data
-    fprintf(1, '>>> Running fill_era... ');
-    [prof,head,pattr]  = fill_era(prof,head,pattr);
+    fprintf(1, '>>> Add model: %s...', cfg.model)
+    switch model
+      case 'ecmwf'
+        which fill_ecmwf
+        [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+      case 'era'
+        [prof,head,pattr]  = fill_era(prof,head,pattr);
+      case 'merra'
+        [prof,head,pattr]  = fill_merra(prof,head,pattr);
+    end
     head.pfields = 5;
     fprintf(1, 'Done\n');
 
@@ -165,7 +173,7 @@ for i = 1:length(fn)
     % don't fill up the scratch drive.
     delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-    rtp_out_fn_head = ['allfov_era_airibrad_day_' airs_yearstr airs_doystr ...
+    rtp_out_fn_head = sprintf('allfov_%s_airibrad_day_%4d%03d.rtp' airs_yearstr airs_doystr ...
                 '.rtp'];
     fprintf(1, '>>> writing output rtp files... ');
     rtp_out_fn = fullfile(sPath, rtp_out_fn_head);

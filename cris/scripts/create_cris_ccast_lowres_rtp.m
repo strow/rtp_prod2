@@ -8,6 +8,11 @@ function create_cris_ccast_lowres_rtp(fnCrisInput,cfg)
 fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
         fnCrisInput);
 
+bSaveComplex = false;
+if isfield(cfg, 'bSaveComplex') & cfg.bSaveComplex == true
+    bSaveComplex = true;
+end
+
 % use fnCrisOutput to generate year and doy strings
 % /asl/data/cris/ccast/sdr60/2016/153/SDR_d20160601_t0006523.mat
 [path, fname, ext] = fileparts(fnCrisInput);
@@ -25,7 +30,8 @@ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
-addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
@@ -42,7 +48,7 @@ nguard = 2;  % number of guard channels
 
 % Load up rtp
 try
-    [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard);
+    [head, hattr, prof, pattr, aux] = ccast2rtp(fnCrisInput, nguard);
 catch
     fprintf(2, '>>> ERROR: ccast2rtp failed for %s\n', ...
             fnCrisInput);
@@ -99,35 +105,8 @@ fprintf(1, 'Done\n');
 % Add Dan Zhou's emissivity and Masuda emis over ocean
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
-% $$$ fprintf(1, '>>> Running rtp_ad_emis...');
-% $$$ [prof,pattr] = rtp_add_emis(prof,pattr);
-% $$$ fprintf(1, 'Done\n');
 fprintf(1, '>>> Running add_emis... ');
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
-fprintf(1, 'Done\n');
-
-% Subset for quicker debugging
-% prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
-
-% run Sergio's subsetting routine
-px = prof;
-% $$$ px = rmfield(prof,'rcalc');
-hx = head; hx.pfields = 5;
-
-prof = uniform_clear_template_lowANDhires_HP(hx,hattr,px,pattr);
-%% super (if it works)
-% for redo of random subset. There are some issues with Sergio's
-% code that we are trying to find a way around. THIS WILL NOT WORK
-% FOR OTHER SUBSETS
-% $$$ fprintf(1, '>>> Running hha_lat_subsample... ');
-% $$$ [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(head, prof);
-% $$$ if numel(irand) == 0
-% $$$     fprintf(2, ['>>> ERROR : No random obs returned. Skipping to ' ...
-% $$$                 'next granule.\n'])
-% $$$     return;
-% $$$ end
-
-% $$$ prof = rtp_sub_prof(prof,irand)
 fprintf(1, 'Done\n');
 
 % run klayers
@@ -142,14 +121,8 @@ fprintf(1, '>>> Running klayers: %s ...', run_klayers);
 unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
       '/klayers_' sID '_stdout'])
 fprintf(1, 'Done\n');
-fprintf(1, '>>> Reading klayers output... ');
-% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-fprintf(1, 'Done\n');
 
 % Run sarta
-% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% below for clear,site,etc?) make call to external shell script to
-% run 'N' copies of sarta backgrounded
 fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
 run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
              sTempPath '/sarta_' sID '_stdout.txt'];
@@ -158,18 +131,18 @@ unix(run_sarta);
 fprintf(1, 'Done\n');
 
 % Read in new rcalcs and insert into origin prof field
-% $$$ stFileInfo = dir(fn_rtp3);
-% $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-% $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
 fprintf(1, '>>> Reading sarta output... ');
 [h,ha,p,pa] = rtpread(fn_rtp3);
 fprintf(1, 'Done\n');
 
-% Go get output from klayers, which is what we want except for rcalc
-% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-% Insert rcalc for CrIS derived from IASI SARTA
+% Insert rcalc for CrIS
 prof.rcalc = p.rcalc;
 head.pfields = 7;
+
+px = uniform_clear_template_lowANDhires_HP(head,hattr,prof,pattr);
+clear prof;
+px = rmfield(px, 'clrflag');
+fprintf(1, 'Done\n');
 
 % Make directory if needed
 % cris lowres data will be stored in
@@ -178,11 +151,8 @@ head.pfields = 7;
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
 rtp_out_fn_head = fnCrisOutput;
-% $$$ rtp_out_fn = [rtp_out_fn_head, '_random.rtp'];
-cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-% $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
-% $$$ rtp_outname2 = fullfile(cris_out_dir, char(asType(1)),cris_yearstr, ...
-% $$$                         cris_doystr,  rtp_out_fn);
+% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
+cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 
 for i = 1:length(asType)
     % check for existence of output path and create it if necessary. This may become a source
@@ -192,31 +162,38 @@ for i = 1:length(asType)
         mkdir(sPath);
     end
 
-
-% $$$ prof_site  = rtp_sub_prof(prof,isite);
-% $$$ prof_dcc   = rtp_sub_prof(prof,idcc);
-% $$$ prof_rand  = rtp_sub_prof(prof,irand);
-% $$$ prof_rand = prof;
-
     switch(char(asType(i)))
       case 'random'
-% $$$         obsfound = find(prof.iudef(1,:) == 8);
+% $$$         obsfound = find(px.iudef(1,:) == 8);
         obsfound = irand;
       case 'clear'
-        obsfound = find(prof.iudef(1,:) == 1);
+        obsfound = find(px.iudef(1,:) == 1 | px.iudef(1,:) == 9);
       case 'dcc'
-        obsfound   = find(prof.iudef(1,:) == 4);
+        obsfound   = find(px.iudef(1,:) == 4);
       case 'site'
-        obsfound  = find(prof.iudef(1,:) == 2);
+        obsfound  = find(px.iudef(1,:) == 2);
     end
 
     if obsfound ~= 0
         fprintf(1, '>> OUTPUT : Valid obs found :: %d', length(obsfound));
-        prof_out = rtp_sub_prof(prof,obsfound);
-% $$$         prof_out = prof_rand;
+        px_out = rtp_sub_prof(px,obsfound);
+% $$$         px_out = px_rand;
         rtp_out_fn = [rtp_out_fn_head '_' char(asType(i)) '.rtp'];
         rtp_outname = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,  cris_doystr, rtp_out_fn);
-        rtpwrite(rtp_outname,head,hattr,prof_out,pattr);
+        rtpwrite(rtp_outname,head,hattr,px_out,pattr);
+
+        % if aux with complex spectra exists, output to mat file
+        if bSaveComplex == true
+            aux.cobs1 = aux.cobs1(:,obsfound);
+            fprintf(1, ['>> OUTPUT : complex spectra. Writing ' ...
+                        'to mat file\n']);
+            mat_out_fn = [rtp_out_fn_head '_' char(asType(i)) ...
+                          '.mat'];
+            mat_outname = fullfile(cris_out_dir,char(asType(i)), ...
+                                   cris_yearstr,  cris_doystr, mat_out_fn);
+            save(mat_outname, 'aux');
+        end
+        
     else
         fprintf(1, '>> OUTPUT : No valid obs found for granule %s\n', ...
                 fnCrisInput);

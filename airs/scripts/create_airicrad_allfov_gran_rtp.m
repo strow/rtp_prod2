@@ -1,4 +1,4 @@
-function create_airibrad_allfov_gran_rtp(inpath, cfg)
+function create_airicrad_allfov_gran_rtp(inpath)
 %
 % NAME
 %   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
@@ -13,14 +13,14 @@ function create_airibrad_allfov_gran_rtp(inpath, cfg)
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
-func_name = 'create_airibrad_allfov_gran_rtp';
+func_name = 'create_airicrad_allfov_gran_rtp';
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
 % Execute user-defined paths
 dn = '/asl/data/airs/AIRIBRAD';  % input granules path
-airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
+airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airicrad_v5';
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis
@@ -37,12 +37,12 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
 % split the inpath string to pull the granule file name out 
-% v5 /asl/data/airs/AIRIBRAD/2016/018/AIRS.2016.01.18.027.L1B.AIRS_Rad.v5.0.23.0.G16018115634.hdf
+%% /asl/s1/strow/Data/Jpl_L1c/2016/018/AIRS.2016.01.18.001.L1C.AIRS_Rad.v6.1.2.0.G16018120326.hdf
 C = strsplit(inpath, '/');
-airs_doystr = C{7};
-airs_yearstr = C{6};
+airs_doystr = C{8};
+airs_yearstr = C{7};
 % get the granule number
-granfile = C{8};
+granfile = C{9};
 C = strsplit(granfile, '.');
 grannum = C{5};
 
@@ -64,9 +64,9 @@ for i = 1:length(asType)
     end
 end
 
-% Read the AIRIBRAD file
+% Read the AIRICRAD file
 fprintf(1, '>>> Reading input file: %s   ', inpath);
-[eq_x_tai, freq, prof, pattr] = read_airibrad(inpath);
+[eq_x_tai, freq, prof, pattr] = read_airicrad(inpath);
 fprintf(1, 'Done\n');
 
 % subset if nobs is greater than threshold lmax (to avoid hdf file size
@@ -95,16 +95,20 @@ hattr={ {'header' 'pltfid' 'Aqua'}, ...
         {'header' 'rundate' trace.RunDate} };
 
 nchan = size(prof.robs1,1);
-chani = (1:nchan)';
+% $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
+% $$$                     % for chan 2378 and higher
+% following line loads array 'ichan' which gets swapped for chani below
+load /home/sbuczko1/git/rtp_prod2/airs/sarta_chans_for_l1c.mat
+
 %vchan = aux.nominal_freq(:);
 vchan = freq;
 
 % Assign header variables
 head.instid = 800; % AIRS 
 head.pltfid = -9999;
-head.nchan = length(chani);
-head.ichan = chani;
-head.vchan = vchan(chani);
+head.nchan = length(ichan); % was chani
+head.ichan = ichan;  % was chani
+head.vchan = vchan; % was vchan(chani)
 head.vcmax = max(head.vchan);
 head.vcmin = min(head.vchan);
 
@@ -115,18 +119,18 @@ if isfield(prof,'zobs')
 end
 
 % Add in model data
-fprintf(1, '>>> Add model: %s...', cfg.model)
-switch cfg.model
-  case 'ecmwf'
-    which fill_ecmwf
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
-  case 'era'
-    [prof,head,pattr]  = fill_era(prof,head,pattr);
-  case 'merra'
-    [prof,head,pattr]  = fill_merra(prof,head,pattr);
-end
+% $$$ fprintf(1, '>>> Running fill_era... ');
+% $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
+fprintf(1, '>>> Running fill_ecmwf... ');
+[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
+% $$$ fprintf(1, '>>> Running fill_merra... ');
+% $$$ [prof,head,pattr]  = fill_merra(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
 
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
@@ -186,19 +190,19 @@ run_sarta.cumsum=9999;
 head.pfields = 7;
 
 % profile attribute changes for airibrad
-pa = set_attr('profiles', 'robs1', inpath);
-pa = set_attr(pa, 'rtime', 'TAI:1958');
+pattr = set_attr(pattr, 'robs1', inpath);
+pattr = set_attr(pattr, 'rtime', 'TAI:1958');
 
 %keyboard
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
 % $$$ delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-rtp_out_fn_head = sprintf('allfov_%s_airibrad_day_%s%s_%s.rtp', ...
-                          cfg.model, airs_yearstr, airs_doystr, grannum);
+rtp_out_fn_head = ['allfov_ecmwf_airicrad_day_' airs_yearstr airs_doystr '_' grannum ...
+                   '.rtp'];
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = fullfile(sPath, rtp_out_fn_head);
-rtpwrite(rtp_out_fn, head, hattr, prof0, pa);
+rtpwrite(rtp_out_fn, head, hattr, prof0, pattr);
 
 fprintf(1, 'Done\n');
 

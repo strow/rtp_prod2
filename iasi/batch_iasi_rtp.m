@@ -18,9 +18,9 @@ function batch_iasi_rtp(mondate,subset)
 % ------------------------------------------------
 % setup
 % ------------------------------------------------
-cd /asl/packages/rtp_prod2/iasi/run/
-addpath /asl/packages/rtp_prod2/iasi
-addpath /asl/packages/rtp_prod2/iasi/readers
+cd /home/sbuczko1/git/rtp_prod2/iasi/run/
+addpath /home/sbuczko1/git/rtp_prod2/iasi
+addpath /home/sbuczko1/git/rtp_prod2/iasi/readers
 
 % ------------------------------------------------
 % Prep the requested jobs
@@ -29,13 +29,13 @@ addpath /asl/packages/rtp_prod2/iasi/readers
 if (length(mondate) ~= 7) fprintf(1,'Error in date format\n'); return; end;
 syr = mondate(1:4);      smo = mondate(6:7);
 nyr = str2num(syr);      nmo = str2num(smo);
-if( nyr < 2007 | nyr > 2016 ) fprintf(1,'Error: year out of range\n'); return; end;
+if( nyr < 2007 | nyr > 2017 ) fprintf(1,'Error: year out of range\n'); return; end;
 if( nmo < 1 | nmo > 12 ) fprintf(1,'Error: month out of range\n'); return; end;
 endday = eomday(nyr, nmo);   
 njobs = endday;
 
 % define the driver file
-dfname = ['iasi_rtp_' syr smo '_' subset '_drv.mat'];
+dfname = ['iasi2_rtp_' syr smo '_' subset '_drv.mat'];
 
 % delete date file if already exists
 if(exist(dfname,'file') == 2) delete(dfname); end
@@ -53,7 +53,7 @@ save(dfname,'cellDates');
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
-batch = ['./batch_iasi_' syr smo '_' subset '_rtp.slurm'];
+batch = ['./batch_iasi2_' syr smo '_' subset '_rtp.slurm'];
 FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
@@ -74,7 +74,7 @@ fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015b/bin/matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/asl/packages/rtp_prod2/iasi'');run_iasi_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');run_iasi2_rtp(''%s'',''%s''); exit"',param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

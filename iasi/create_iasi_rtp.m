@@ -42,7 +42,7 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 % Generate save file from input file: (expect: IASI_xxx_1C_M02_20130101000254Z_20130101000557Z)
 clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
-savPath = ['/asl/rtp/rtp_iasi2/' subset '/'];
+savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
 
 % $$$ addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
 addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
@@ -222,7 +222,9 @@ if(strcmp(subset,'clear'))
 
   % Test image & spectral uniformity first (these can be done b4 sarta calculations):
   % Imager uniformity:
-  [imageunflag btall btsub nall nsub stdall stdsub] = imager_uniformity(fnIasiIn);
+  [timageunflag btall btsub nall nsub stdall stdsub] = imager_uniformity(fnIasiIn);
+  fprintf(2, '>*** Bypassing imager uniformity check***\n');
+  imageunflag = ones(size(timageunflag));
   pd.udef(10,:) = reshape(imageunflag,[],nobs);
   pa = set_attr(pa,'udef(10,:)','Imager uniformity flag (1=uniform)');
   % iimagun = find(imageunflag == 1);

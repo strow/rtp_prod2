@@ -9,7 +9,7 @@ addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/matlib/rtptools
 addpath /asl/matlib/aslutil
-addpath /asl/packages/swutils
+addpath /home/sbuczko1/git/swutils
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
@@ -155,9 +155,9 @@ rtpwrite(ofn_4, head, hattr, prof0, pattr);
 fprintf(1, '>>> moving files\n');
 [pathstr, fname, ext] = fileparts(rtpfile);
 % break path down to remove 'Old' leaf
-C = strsplit(pathstr, '/');  % 'Old' is C{end}
-basepath = fullfile('/', C{1:end-1});
-outfilebase = fullfile(basepath, [fname '.rtp']);
+% $$$ C = strsplit(pathstr, '/');  % 'Old' is C{end}
+% $$$ basepath = fullfile('/', C{1:end-1});
+outfilebase = fullfile(pathstr, [fname '-cldy.rtp']);
 movefile(ofn_3, [outfilebase '_1']);
 movefile(ofn_4, [outfilebase '_2']);
 
