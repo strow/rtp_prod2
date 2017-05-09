@@ -87,15 +87,24 @@ for i=1:numel(fnLst1)
     end
 
     % ensure that we have column vectors in head
-    temp = size(h2.ichan)
+    temp = size(h2.ichan);
     if temp(2) > 1
         h2.ichan = h2.ichan';
     end
-    temp = size(h2.vchan)
+    temp = size(h2.vchan); 
     if temp(2) > 1
         h2.vchan = h2.vchan';
     end
 
+    % sarta puts limits on satzen/satang (satzen comes out in the
+    % profiles form ccast2rtp) so, filter to remove profiles
+    % outside this range to keep sarta from failing.
+    inrange = find(p2.satzen >= 0.0 & p2.satzen < 63.0);
+    p2 = rtp_sub_prof(p2, inrange);
+    cobs = aux.cobs1(:,inrange);
+    aux.cobs1 = cobs;
+    clear cobs inrange;
+    
     % Add profile data
     fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
     [p2,h2, pa2]=fill_era(p2,h2, pa2);
@@ -124,7 +133,7 @@ for i=1:numel(fnLst1)
 
     fprintf(1, '>>> %s Running klayers...\n', char(datetime('now', 'Format', 'HHmmss')));
     klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
-                   '/klayers_' sID '_stdout']
+                   '/klayers_' sID '_stdout'];
     try
         unix(klayers_run);
     catch
@@ -138,7 +147,7 @@ for i=1:numel(fnLst1)
     fprintf(1, '>>> %s Running sarta...\n', char(datetime('now', 'Format', 'HHmmss')));
     fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
     sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-                 sTempPath '/sarta_' sID '_stdout']
+                 sTempPath '/sarta_' sID '_stdout'];
     try
         unix(sarta_run);
     catch
@@ -236,11 +245,11 @@ cris_datestr = parts{2};
 rtp_out_fn = ['rtp_' cris_datestr '_clear.rtp'];
 
 % Now save the four types of cris files
-nobs = numel(p2.rlat);
+nobs = numel(p.rlat);
 rtp_outname = fullfile(sPath, rtp_out_fn);
 fprintf(1, '>>> %s writing %d profiles to output rtp file\n\t%s ... ', ...
         char(datetime('now', 'Format', 'HHmmss')), nobs, rtp_outname);
-rtpwrite(rtp_outname,h2,ha2,p2,pa2);
+rtpwrite(rtp_outname,h,ha2,p,pa2);
 fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
 
 
