@@ -79,7 +79,7 @@ for i=1:numel(fnLst1)
     % try reading the granule files and concatenate profiles for
     % each granule read
     try
-        [h2, ha2, p2, pa2, aux] = ccast2rtp(fullfile(fnCrisInput,fnLst1(i).name), nguard);
+        [h2, ha2, p2, pa2] = ccast2rtp(fullfile(fnCrisInput,fnLst1(i).name), nguard);
     catch
         fprintf(2, ['>>> %s ERROR: ccast2rtp failure. Trying ' ...
                     'next granule\n'], char(datetime('now', 'Format', 'HHmmss')));
@@ -101,9 +101,10 @@ for i=1:numel(fnLst1)
     % outside this range to keep sarta from failing.
     inrange = find(p2.satzen >= 0.0 & p2.satzen < 63.0);
     p2 = rtp_sub_prof(p2, inrange);
-    cobs = aux.cobs1(:,inrange);
-    aux.cobs1 = cobs;
-    clear cobs inrange;
+% $$$     cobs = aux.cobs1(:,inrange);
+% $$$     aux.cobs1 = cobs;
+% $$$     clear cobs inrange;
+    clear inrange;
     
     % Add profile data
     fprintf(1, '>>> %s Running fill_era...\n', char(datetime('now', 'Format', 'HHmmss')));
@@ -202,23 +203,23 @@ for i=1:numel(fnLst1)
         ha = ha2;
         p = p2;
         pa = pa2;
-        % subset complex spectra to match uniform_clear_ ... output
-        cobs = aux.cobs1(:,ikeep);
-        % subset again with the clears
-        cobs1 = cobs(:,iclear);
-        clear cobs;
+% $$$         % subset complex spectra to match uniform_clear_ ... output
+% $$$         cobs = aux.cobs1(:,ikeep);
+% $$$         % subset again with the clears
+% $$$         cobs1 = cobs(:,iclear);
+% $$$         clear cobs;
         
         bFirstGranRead = true;
     else
         [h, p] = cat_rtp(h, p, h2, p2);
 
-        % subset complex spectra to mathc uniform_clear_ ... otput
-        cobs = aux.cobs1(:,ikeep);
-        % subset again with the clears
-        cobs1a = cobs(:,iclear);
-        % concatenate onto running array
-        cobs1 = cat(2, cobs1, cobs1a);
-        clear cobs1a cobs;
+% $$$         % subset complex spectra to mathc uniform_clear_ ... otput
+% $$$         cobs = aux.cobs1(:,ikeep);
+% $$$         % subset again with the clears
+% $$$         cobs1a = cobs(:,iclear);
+% $$$         % concatenate onto running array
+% $$$         cobs1 = cat(2, cobs1, cobs1a);
+% $$$         clear cobs1a cobs;
     end
     
 end  % end loop over mat files
@@ -242,7 +243,7 @@ end
 % build output filename based on date stamp of input mat files
 parts = strsplit(fnLst1(1).name, '_');
 cris_datestr = parts{2};
-rtp_out_fn = ['rtp_' cris_datestr '_clear.rtp'];
+rtp_out_fn = ['rtp_' cris_datestr '_NewQA_clear.rtp'];
 
 % Now save the four types of cris files
 nobs = numel(p.rlat);
@@ -254,8 +255,8 @@ fprintf(1, '>>> %s Done\n', char(datetime('now', 'Format', 'HHmmss')));
 
 
 % now save the complex spectra (in mat file associated with rtp)
-mat_out_fn = ['cspectra_' cris_datestr '_clear.mat'];
-save(fullfile(sPath, mat_out_fn), 'cobs1');
+% $$$ mat_out_fn = ['cspectra_' cris_datestr '_NewQA_clear.mat'];
+% $$$ save(fullfile(sPath, mat_out_fn), 'cobs1');
 
 % Next delete temporary files
 delete(fn_rtp1);delete(fn_rtp2)

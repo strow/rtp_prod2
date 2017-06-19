@@ -49,14 +49,14 @@ for i = 1:chunk
     C = strsplit(indir, '/');
     sYear = C{7};  % changed to fit local diectory structure
     sDoy = C{8};
-    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres/random', ...
+    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres/clear', ...
                        sYear);
 
     % read in filenames in indir to build output filename
-    mfiles = dir([indir '/cris_lr_era_d*_random.rtp']);
+    mfiles = dir([indir '/era_d*_clear.rtp']);
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, ['cris_lr_era_' C{4} '_random.rtp']);
+    outfile = fullfile(outpath, ['cris_lr_era_' C{2} '_clear.rtp']);
 % $$$     outfile = fullfile(outpath, [strjoin(C([1:6 8]), '_'), '.rtp']);
 
     fprintf(1, '>>> Output to: %s\n', outfile);

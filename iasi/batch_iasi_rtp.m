@@ -35,7 +35,7 @@ endday = eomday(nyr, nmo);
 njobs = endday;
 
 % define the driver file
-dfname = ['iasi2_rtp_' syr smo '_' subset '_drv.mat'];
+dfname = ['iasi1_rtp_' syr smo '_' subset '_drv.mat'];
 
 % delete date file if already exists
 if(exist(dfname,'file') == 2) delete(dfname); end
@@ -53,13 +53,13 @@ save(dfname,'cellDates');
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
-batch = ['./batch_iasi2_' syr smo '_' subset '_rtp.slurm'];
+batch = ['./batch_iasi1_' syr smo '_' subset '_rtp.slurm'];
 FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-fprintf(FH,'#SBATCH --partition=batch\n');
-fprintf(FH,'#SBATCH --qos=medium\n');
+fprintf(FH,'#SBATCH --partition=production\n');
+fprintf(FH,'#SBATCH --qos=medium_prod\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
 fprintf(FH,'#SBATCH --time=07:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
@@ -74,7 +74,7 @@ fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015b/bin/matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');run_iasi2_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');run_iasi1_rtp(''%s'',''%s''); exit"',param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

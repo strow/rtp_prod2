@@ -7,14 +7,14 @@
 # sbatch options
 #SBATCH --job-name=RUN_CAT_RTP_DAILY
 # partition = dev/batch
-#SBATCH --partition=batch
+#SBATCH --partition=prod
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=medium_prod
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem=12000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 
 #SBATCH --requeue
 

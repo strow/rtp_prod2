@@ -112,7 +112,7 @@ fprintf(1, '>> Add model: era...');
 
 % check for empty prof struct after fill_ecmwf
 if isempty(fieldnames(pd))
-    fprintf(2, ['>> No obs with valid ECMWF data. Returning to ' ...
+    fprintf(2, ['>> No obs with valid model data. Returning to ' ...
                 'caller.\n']);
     pd.N = 'NULL';
     return;

@@ -13,8 +13,7 @@ function [keep,keep_ind] = hha_lat_subsample_equal_area2_cris_hires(head0,prof0)
 addpath /asl/packages/ccast/motmsc/time
 addpath /asl/matlib/rtptools/
 
-prof00 = prof0;
-prof0 = expand_hires_cristrack(prof0);   %% basically just creates "fake" expand_atrack and expand_xtrack
+% $$$ prof0 = expand_hires_cristrack(prof0);   %% basically just creates "fake" expand_atrack and expand_xtrack
 
 head = head0;
 prof = prof0;
@@ -126,25 +125,29 @@ if iFlip > 0
 end
 nsave = floor(sn*abs(cos(mean(blat2(:))/57.3))+0.5);
 
-if iFlip > 0
-  fprintf(1,'<lat> = %8.6f : orig nsave = %3i, final nsave = %3i -- will reduce by 1/6 \n',mean(blat2(:)),nsave0,nsave)
-  nsave = min(nsave,nsave0);
-else
-  fprintf(1,'<lat> = %8.6f : nsave = %3i -- will reduce by 1/6 \n',mean(blat2(:)),nsave)
-end
-
-if abs(mean(blat2(:))) > 30
-  PX = [-6.781163592359652e-06     8.826415250236825e-04    -3.817478053811275e-02     1.534451094844683e+00];
-  adj_factor = polyval(PX,abs(mean(blat2(:))));
-  fprintf(1,'     *** *** *** adjusting nsave by factor %8.6f \n',adj_factor);
-  nsave = ceil(nsave * adj_factor);
-end
+% $$$ if iFlip > 0
+% $$$   fprintf(1,'<lat> = %8.6f : orig nsave = %3i, final nsave = %3i -- will reduce by 1/6 \n',mean(blat2(:)),nsave0,nsave)
+% $$$   nsave = min(nsave,nsave0);
+% $$$ else
+% $$$   fprintf(1,'<lat> = %8.6f : nsave = %3i -- will reduce by 1/6 \n',mean(blat2(:)),nsave)
+% $$$ end
+% $$$ 
+% $$$ if abs(mean(blat2(:))) > 30
+% $$$   PX = [-6.781163592359652e-06     8.826415250236825e-04    -3.817478053811275e-02     1.534451094844683e+00];
+% $$$   adj_factor = polyval(PX,abs(mean(blat2(:))));
+% $$$   fprintf(1,'     *** *** *** adjusting nsave by factor %8.6f \n',adj_factor);
+% $$$   nsave = ceil(nsave * adj_factor);
+% $$$ end
 
 % This leads to too many random, so pick every 6th one
 % Remember vxr is already randomized so this is OK
 jump = 6;   %%% this gives about 7000 daily random, while AIRS v6 gives about 21000
 jump = 6/3; %%% so this should this give about 7000 x 3 daily random, while AIRS v6 gives about 21000
-vc = vxr(1:jump:nsave); 
+fprintf(1, ['>>> Random index subselect off. Keeping all nsave=%d ' ...
+            'indices.\n'], nsave);
+jump = 1;
+vc = vxr(1:jump:nsave);
+fprintf(1, '>>> length(vc) = %d\n', length(vc));
 
 % Set the reason flag
 reason(vc) = bitset(reason(vc),4);

@@ -23,26 +23,24 @@ F.s_mtime     = datenum(1900,0,0,double(F.s_time),0,0);
 iX = flipud(X); iY = flipud(Y);
 
 F.sst.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'sst'))'),'linear');
-% Some early ECMWF files have surface pressure 'sp' in the hybrid
-% levels file NOT in the surface file (and not always at the same
-% level in the hybrid file. If 'sp' is not found in the surface
-% file, look for it in the hybrid
 try
    F.sp.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'sp'))'/100),'linear');
 catch
-    fprintf(1, ['>>> spres not in ECMWF surface file. Looking in ' ...
-                'hybrid levels file\n']);
-   hybrid_sp   = ncread(fn_h,'sp')/100;
-   sp_lev = find(isfinite(squeeze(hybrid_sp(360,180,:))));
-   if length(sp_lev) == 1
-     fprintf(1,' >>> found SPRES is finite on hybrid level level %2i \n',sp_lev);
-   elseif length(sp_lev) == 0
+   junk   = ncread(fn_h,'sp')/100;
+   plot(1:60,squeeze(junk(360,180,:)),'o-'); title('HAHAH SPRES ON LEVELS HAHAHA')
+   woof = squeeze(junk(360,180,:));
+   woof = find(isfinite(woof)); 
+   if length(woof) == 1
+     fprintf(1,' >>> found SPRES is finite on hybrid level level %2i \n',woof);
+   elseif length(woof) == 0
      error('>>> try catch did not find any HYBRID LEVELS where spres is finite')
-   elseif length(sp_lev) > 1
+   elseif length(woof) > 1
      error('>>> try catch found more than one HYBRID LEVELS where spres is finite')
    end
-   F.sp.ig   = griddedInterpolant(iX,iY,flipud(single(squeeze(hybrid_sp(:,:,sp_lev))')),'linear');
+   junk = squeeze(junk(:,:,woof));
+   F.sp.ig   = griddedInterpolant(iX,iY,flipud(single(junk')),'linear');
 end
+   
 F.skt.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'skt'))'),'linear');
 F.v10.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'v10'))'),'linear');
 F.u10.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'u10'))'),'linear');

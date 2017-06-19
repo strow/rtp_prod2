@@ -137,23 +137,3 @@ keep2D(:,1) = mod(vc-1,90) + 1;
 keep2D(:,2) = idivide(int32(vc-1),int32(90)) + 1;   %% integer division
 keep_ind = vc;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Done, now see what we have
-iPlot = -1;
-if iPlot > 0
-  figure(1); clf; plot(lat2(46,:)); title(num2str(mean(lat20(:))));
-  figure(2); clf; plot(blat2(46,:)); title(num2str(mean(blat2(:))));
-
-  figure(3); clf
-  imagesc(sza'); colorbar; title('colorbar = sza')
-  hold on;
-  line([45.5 45.5],[0 numAtrack],'color','k','linewidth',2);
-  line([43 43],[0 numAtrack],'color','k');
-  line([48 48],[0 numAtrack],'color','k');
-  [ii,jj]=ind2sub([90 numAtrack],vc);
-  plot(ii,jj,'ro')
-  hold off
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

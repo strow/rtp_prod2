@@ -1,4 +1,4 @@
-function run_iasi_rtp(dateFile,subset)
+function run_iasi1_rtp(dateFile,subset)
 
 % This version designed for use with batch_iasi_rtp.m
 %   takes a file of days to process, assigning one day to one slurm array.
