@@ -38,22 +38,22 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 
 % split the inpath string to pull the granule file name out 
 %% /asl/s1/strow/Data/Jpl_L1c/2016/018/AIRS.2016.01.18.001.L1C.AIRS_Rad.v6.1.2.0.G16018120326.hdf
-C = strsplit(inpath, '/');
-airs_doystr = C{8};
-airs_yearstr = C{7};
-% get the granule number
-granfile = C{9};
-C = strsplit(granfile, '.');
-grannum = C{5};
-
-% $$$ % v6 /asl/data/airs/AIRIBRAD/2014/085/v6/AIRS.2014.03.26.220.L1B.AIRS_Rad.v6.0.12.0.AIRSCAL.T14086180759.hdf
 % $$$ C = strsplit(inpath, '/');
-% $$$ airs_doystr = C{7};
-% $$$ airs_yearstr = C{6};
+% $$$ airs_doystr = C{8};
+% $$$ airs_yearstr = C{7};
 % $$$ % get the granule number
 % $$$ granfile = C{9};
 % $$$ C = strsplit(granfile, '.');
 % $$$ grannum = C{5};
+
+% $$$ % v6 /asl/data/airs/AIRIBRAD/2014/085/v6/AIRS.2014.03.26.220.L1B.AIRS_Rad.v6.0.12.0.AIRSCAL.T14086180759.hdf
+C = strsplit(inpath, '/');
+airs_doystr = C{7};
+airs_yearstr = C{6};
+% get the granule number
+granfile = C{8};
+C = strsplit(granfile, '.');
+grannum = C{5};
 
 % Make output directory if needed
 asType = {'allfov'};
@@ -119,14 +119,14 @@ if isfield(prof,'zobs')
 end
 
 % Add in model data
-% $$$ fprintf(1, '>>> Running fill_era... ');
-% $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
-% $$$ head.pfields = 5;
-% $$$ fprintf(1, 'Done\n');
-fprintf(1, '>>> Running fill_ecmwf... ');
-[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+fprintf(1, '>>> Running fill_era... ');
+[prof,head,pattr]  = fill_era(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
+% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
+% $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
 % $$$ fprintf(1, '>>> Running fill_merra... ');
 % $$$ [prof,head,pattr]  = fill_merra(prof,head,pattr);
 % $$$ head.pfields = 5;
@@ -198,7 +198,7 @@ pattr = set_attr(pattr, 'rtime', 'TAI:1958');
 % don't fill up the scratch drive.
 % $$$ delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-rtp_out_fn_head = ['allfov_ecmwf_airicrad_day_' airs_yearstr airs_doystr '_' grannum ...
+rtp_out_fn_head = ['allfov_era_airicrad_day_' airs_yearstr airs_doystr '_' grannum ...
                    '.rtp'];
 fprintf(1, '>>> writing output rtp files... ');
 rtp_out_fn = fullfile(sPath, rtp_out_fn_head);

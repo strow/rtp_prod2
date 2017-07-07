@@ -1,4 +1,4 @@
-function  run_airibrad_rand_nn()
+function  run_airicrad_rand()
 % 
 %
 % read in a directory of rtp files (most likely constituting a day
@@ -11,7 +11,7 @@ addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
 addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
-airs_daily_file_list = '~/airibrad_days_to_process.txt';
+airs_daily_file_list = '~/airicrad_days_to_process.txt';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -41,11 +41,10 @@ for i = 1:chunk
         break;
     end
 
-    cfg.chanID = 1291;
     cfg.model = 'era';
-    cfg.outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
-
-    create_airibrad_random_nadir_nn_rtp(inpath, cfg);
+% $$$     outfile_head = '/asl/rtp/rtp_airicrad_v5';
+    outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airicrad_v5';
+    create_airicrad_random_nadir_rtp(inpath, outfile_head, cfg);
     
 end  % ends loop over chunk
 %% ****end function run_cat_rtp_daily****

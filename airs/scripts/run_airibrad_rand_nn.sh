@@ -18,7 +18,7 @@
 #SBATCH --mem=12000
 
 # Previous runs (2313403) put run time at ~2 hours for a 4 day chunk (.5 hour/day) 
-#SBATCH --time=00:30:00
+#SBATCH --time=00:45:00
 
 ###SBATCH --array=0-156
 

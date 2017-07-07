@@ -1,45 +1,22 @@
-function create_airibrad_random_nadir_nn_rtp(inpath, cfg)
+function create_airicrad_random_nadir_rtp(inpath, outfile_head, cfg)
 %
 % NAME
-%   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
+%   create_airicrad_rtp -- wrapper to process AIRICRAD to RTP
 %
 % SYNOPSIS
-%   create_airibrad_rtp(infile, cfg)
+%   create_airicrad_rtp(infile, outfile_head)
 %
 % INPUTS
-%    infile :   path to input AIRIBRAD hdf file
-%    cfg :  structure of configuration options to overide defaults
+%    infile :   path to input AIRICRAD hdf file
+%    outfile_head  : path to output rtp file (minus extension)
 %
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
-func_name = 'create_airibrad_random_nadir_rtp';
+func_name = 'create_airicrad_random_nadir_rtp';
 
-% set some defaults
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = ['/asl/packages/sartaV108/BinV201/' ...
-                'sarta_apr08_m140_wcon_nte'];
-model = 'era';
-chanID = 764; % match to CrIS chanID 404
-outfile_head = '/asl/rtp/rtp_airibrad_v5/';
-
-if nargin == 2 % cfg structure present to overide defaults
-    if isfield(cfg, 'klayers_exec')
-        klayers_exec = cfg.klayers_exec;
-    end
-    if isfield(cfg, 'sarta_exec')
-        sarta_exec = cfg.sarta_exec;
-    end
-    if isfield(cfg, 'model')
-        model = cfg.model;
-    end
-    if isfield(cfg, 'chanID')
-        chanID = cfg.chanID;
-    end
-    if isfield(cfg, 'outfile_head')
-        outfile_head = cfg.outfile_head;
-    end
-end
+sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 
 addpath('/home/sbuczko1/git/swutils');
 trace.githash = githash(func_name);
@@ -49,24 +26,21 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
 % Execute user-defined paths
-addpath /home/sbuczko1/git/rtp_prod2/airs   % new equal_area random
-                                            % code
+set_process_dirs
+addpath(genpath(rtp_sw_dir));
+% $$$ addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
 addpath('/asl/matlib/rtptools');   % for cat_rtp
-addpath /asl/matlib/aslutil   % int2bits
-
+% $$$ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
+                                                      % driver_sarta_cloud_rtp.m
+addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 
 % build output filename
-% assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
+% assumes path is like: /asl/data/airs/AIRICRAD/<year>/<doy>
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-fname = sprintf('%s_airibrad_day%s_random-smear-chan%d.rtp', model, sDoy, ...
-                chanID);
-outfile_path = fullfile(outfile_head, sYear, 'random');
-if ~exist(outfile_path)
-    mkdir(outfile_path);
-end
-outfile = fullfile(outfile_path, fname);
+outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airicrad_day' ...
+                    sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
 % $$$     fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
@@ -74,29 +48,26 @@ outfile = fullfile(outfile_path, fname);
 % $$$     return;
 % $$$ end
 
-% This version operates on a day of AIRIBRAD granules and
+% This version operates on a day of AIRICRAD granules and
 % concatenates the subset of random obs into a single output file
 % >> inpath is the path to an AIRS day of data
-% /asl/data/airs/AIRIBRAD/<year>/<doy>
+% /asl/data/airs/AIRICRAD/<year>/<doy>
 files = dir(fullfile(inpath, '*.hdf'));
 
 for i=1:length(files)
-    % Read the AIRIBRAD file
+    % Read the AIRICRAD file
     infile = fullfile(inpath, files(i).name);
     fprintf(1, '>>> Reading input file: %s   ', infile);
     try
-        [eq_x_tai, freq, p, pattr] = read_airibrad(infile);
+        [eq_x_tai, freq, prof0, pattr] = read_airicrad(infile);
     catch
-        fprintf(2, ['>>> ERROR: failure in read_airibrad for granule %s. ' ...
+        fprintf(2, ['>>> ERROR: failure in read_airicrad for granule %s. ' ...
                     'Skipping.\n'], infile);
         continue;
     end
     fprintf(1, 'Done\n');
 
-    % only need one chan, so just pull that out now to save space
-    p.robs1 = p.robs1(chanID,:);
-    p.calflag = p.calflag(chanID,:);
-    
+        
     % filter out nadir FOVs (45&46  (+ neighbors))
     fovs = [45 46];
     nadir = ismember(p.xtrack,fovs);
@@ -106,12 +77,12 @@ for i=1:length(files)
     crprof = rtp_sub_prof(p, nrinds);
     crprof.robs1 = [crprof.robs1(1,:)' p.robs1(1,nrinds-1)' ...
                     p.robs1(1,nrinds+1)']';
-    crprof.calflag = [crprof.calflag(1,:)' p.calflag(1,nrinds-1)' ...
-                      p.calflag(1,nrinds+1)']';
+% $$$     crprof.calflag = [crprof.calflag(1,:)' p.calflag(1,nrinds-1)' ...
+% $$$                       p.calflag(1,nrinds+1)']';
     p=crprof;
     clear crprof;
 
-    if ~exist('head') % only need to build the head structure once but, we do
+    if i == 1 % only need to build the head structure once but, we do
               % need freq data read in from first data file
               % Header 
         head = struct;
@@ -127,8 +98,9 @@ for i=1:length(files)
                 {'header' 'klayers_exec' klayers_exec}, ...
                 {'header' 'sarta_exec' sarta_exec} };
 
-        nchan = size(p.robs1,1);
-        chani = repmat(chanID, 3, 1);
+        nchan = size(prof0.robs1,1);
+        chani = (1:nchan)';
+        %vchan = aux.nominal_freq(:);
         vchan = freq;
 
         % Assign header variables
@@ -141,12 +113,12 @@ for i=1:length(files)
         head.vcmin = min(head.vchan);
     end  % end if i == 1
         
-       % concatenate rtp structs
-    if ~exist('prof')
-        prof = p;
-    else
-        [head, prof] = cat_rtp(head, prof, head, p);
-    end
+        % concatenate rtp structs
+        if ~exist('prof')
+            prof = p;
+        else
+            [head, prof] = cat_rtp(head, prof, head, p);
+        end
 
 end  % end for i=1:length(files)
 
@@ -157,10 +129,10 @@ if isfield(prof,'zobs')
 end
 
 SKIP=0;
-% $$$ if (~SKIP)
+if (~SKIP)
 % Add in model data
-fprintf(1, '>>> Add model: %s...', model)
-switch model
+fprintf(1, '>>> Add model: %s...', cfg.model)
+switch cfg.model
   case 'ecmwf'
     [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
   case 'era'
@@ -183,30 +155,30 @@ catch
 end
 fprintf(1, 'Done\n');
 
-% $$$ % call klayers/sarta cloudy
-% $$$ run_sarta.cloud=+1;
-% $$$ run_sarta.clear=+1;
-% $$$ run_sarta.cumsum=-1;
-% $$$ % driver_sarta_cloud_rtp ultimately looks for default sarta
-% $$$ % executables in Sergio's directories. **DANGEROUS** These need to
-% $$$ % be brought under separate control for traceability purposes.
-% $$$ % $$$ try
-% $$$     [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
-% $$$ % $$$ catch
-% $$$ % $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
-% $$$ % $$$                 '%s/%s\n'], sYear, sDoy);
-% $$$ % $$$     return;
-% $$$ % $$$ end
-% $$$ end  % end if (~SKIP)
+% call klayers/sarta cloudy
+run_sarta.cloud=+1;
+run_sarta.clear=+1;
+run_sarta.cumsum=-1;
+% driver_sarta_cloud_rtp ultimately looks for default sarta
+% executables in Sergio's directories. **DANGEROUS** These need to
+% be brought under separate control for traceability purposes.
+% $$$ try
+    [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
+% $$$ catch
+% $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
+% $$$                 '%s/%s\n'], sYear, sDoy);
+% $$$     return;
+% $$$ end
+end  % end if (~SKIP)
 
-% profile attribute changes for airibrad
+% profile attribute changes for airicrad
 pa = set_attr('profiles', 'robs1', infile);
-pa = set_attr(pattr, 'rtime', 'TAI:1958');
+pa = set_attr(pa, 'rtime', 'TAI:1958');
 
 % Now save the output random rtp file
 fprintf(1, '>>> writing output rtp files... ');
 try
-    rtpwrite(outfile, head, hattr, prof, pattr);
+    rtpwrite(outfile_path, head, hattr, prof0, pa);
 catch
     fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
             sDoy);
