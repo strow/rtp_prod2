@@ -14,7 +14,7 @@
 #SBATCH -N1
 #SBATCH --mem=8000
 #SBATCH --cpus-per-task 1
-#SBATCH --time=01:30:00
+#SBATCH --time=03:30:00
 #SBATCH --requeue
 
 #SBATCH --mail-user=sbuczko1@umbc.edu

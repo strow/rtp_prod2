@@ -15,7 +15,7 @@
 #SBATCH --cpus-per-task=1
 
 # Previous runs (2313403) put MaxRSS below 7GB
-#SBATCH --mem=12000
+#SBATCH --mem=18000
 
 # Previous runs (2313403) put run time at ~2 hours for a 4 day chunk (.5 hour/day) 
 #SBATCH --time=04:00:00

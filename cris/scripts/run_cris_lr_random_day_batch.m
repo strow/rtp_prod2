@@ -41,13 +41,9 @@ for i = 1:chunk
                                       fileindex, '/home/sbuczko1/cris-days-to-process'));
 
     % call the processing function
-    try
-        create_cris_ccast_lowres_random_day_rtp(indir);
-    catch
-        fprintf(2, '>>> %s ERROR :: Processing failed for day %s\n', ...
-                char(datetime('now', 'Format', 'HHmmss')), indir);
-    end
-
+    cfg.model = 'era';
+    create_cris_ccast_lowres_random_day_rtp(indir,cfg);
+    
 end  % end chunk loop
 
     fprintf(1, '*** Task run end %s\n', char(datetime('now')));

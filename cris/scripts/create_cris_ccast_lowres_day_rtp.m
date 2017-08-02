@@ -243,7 +243,7 @@ end
 % build output filename based on date stamp of input mat files
 parts = strsplit(fnLst1(1).name, '_');
 cris_datestr = parts{2};
-rtp_out_fn = ['rtp_' cris_datestr '_NewQA_clear.rtp'];
+rtp_out_fn = ['rtp_' cris_datestr '_clear.rtp'];
 
 % Now save the four types of cris files
 nobs = numel(p.rlat);

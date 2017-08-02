@@ -6,7 +6,6 @@ function runAIRIBRADcalflag ( year, daynumstart, daynumend)
 
 % this function exists at this point, primarily to allow splitting
 % data processing of multiple years over several HPC nodes
-addpath('/home/sbuczko1/prgdir/src/matlab');
 
 aStart = tic;  % let's build some timing statistics
 

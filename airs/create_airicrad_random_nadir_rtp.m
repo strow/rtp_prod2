@@ -1,19 +1,19 @@
-function create_airibrad_random_nadir_rtp(inpath, outfile_head, cfg)
+function create_airicrad_random_nadir_rtp(inpath, outfile_head, cfg)
 %
 % NAME
-%   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
+%   create_airicrad_rtp -- wrapper to process AIRICRAD to RTP
 %
 % SYNOPSIS
-%   create_airibrad_rtp(infile, outfile_head)
+%   create_airicrad_rtp(infile, outfile_head)
 %
 % INPUTS
-%    infile :   path to input AIRIBRAD hdf file
+%    infile :   path to input AIRICRAD hdf file
 %    outfile_head  : path to output rtp file (minus extension)
 %
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
-func_name = 'create_airibrad_random_nadir_rtp';
+func_name = 'create_airicrad_random_nadir_rtp';
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
@@ -35,11 +35,15 @@ addpath('/asl/matlib/rtptools');   % for cat_rtp
 addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 
 % build output filename
-% assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
+% assumes path is like: /asl/data/airs/AIRICRAD/<year>/<doy>
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
+outfile_base = fullfile(outfile_head, sYear, 'random');
+if exist(outfile_base) == 0
+    status = mkdir(outfile_base);
+end
+outfile_path = fullfile(outfile_base, ['era_airicrad_day' ...
                     sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
@@ -48,24 +52,35 @@ outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
 % $$$     return;
 % $$$ end
 
-% This version operates on a day of AIRIBRAD granules and
+% This version operates on a day of AIRICRAD granules and
 % concatenates the subset of random obs into a single output file
 % >> inpath is the path to an AIRS day of data
-% /asl/data/airs/AIRIBRAD/<year>/<doy>
+% /asl/data/airs/AIRICRAD/<year>/<doy>
 files = dir(fullfile(inpath, '*.hdf'));
 
 for i=1:length(files)
-    % Read the AIRIBRAD file
+    % Read the AIRICRAD file
     infile = fullfile(inpath, files(i).name);
     fprintf(1, '>>> Reading input file: %s   ', infile);
     try
-        [eq_x_tai, freq, prof0, pattr] = read_airibrad(infile);
+        [eq_x_tai, freq, p, pattr] = read_airicrad(infile);
     catch
-        fprintf(2, ['>>> ERROR: failure in read_airibrad for granule %s. ' ...
+        fprintf(2, ['>>> ERROR: failure in read_airicrad for granule %s. ' ...
                     'Skipping.\n'], infile);
         continue;
     end
     fprintf(1, 'Done\n');
+
+        
+    % filter out nadir FOVs (45&46  (+ neighbors))
+    fovs = [45 46];
+    nadir = ismember(p.xtrack,fovs);
+    limit = 0.011*44;  % preserves ~20k obs/day
+    randoms = get_equal_area_sub_indices(p.rlat, limit);
+    nrinds = find(nadir & randoms);
+    crprof = rtp_sub_prof(p, nrinds);
+    p=crprof;
+    clear crprof;
 
     if i == 1 % only need to build the head structure once but, we do
               % need freq data read in from first data file
@@ -83,7 +98,7 @@ for i=1:length(files)
                 {'header' 'klayers_exec' klayers_exec}, ...
                 {'header' 'sarta_exec' sarta_exec} };
 
-        nchan = size(prof0.robs1,1);
+        nchan = size(p.robs1,1);
         chani = (1:nchan)';
         %vchan = aux.nominal_freq(:);
         vchan = freq;
@@ -98,19 +113,13 @@ for i=1:length(files)
         head.vcmin = min(head.vchan);
     end  % end if i == 1
         
-        % find random, nadir subset
-        % uses sergio's hha_...3.m
-        % need head for input
-        [keep, nadir_ind] = hha_lat_subsample_equal_area3(head, prof0);
-        
-        if i ==1
-            prof = rtp_sub_prof(prof0, nadir_ind);
+        % concatenate rtp structs
+        if ~exist('prof')
+            prof = p;
         else
-            prof1 = prof;
-            prof2 = rtp_sub_prof(prof0, nadir_ind);
-            % concatenate new random rtp data into running random rtp structure
-            [head, prof] = cat_rtp(head, prof1, head, prof2);
+            [head, prof] = cat_rtp(head, prof, head, p);
         end
+
 end  % end for i=1:length(files)
 
 % Fix for zobs altitude units
@@ -162,19 +171,22 @@ run_sarta.cumsum=-1;
 % $$$ end
 end  % end if (~SKIP)
 
-% profile attribute changes for airibrad
+% profile attribute changes for airicrad
 pa = set_attr('profiles', 'robs1', infile);
 pa = set_attr(pa, 'rtime', 'TAI:1958');
 
 % Now save the output random rtp file
 fprintf(1, '>>> writing output rtp files... ');
-try
-    rtpwrite(outfile_path, head, hattr, prof0, pa);
-catch
-    fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
-            sDoy);
-    return;
-end
+
+rtpwrite(outfile_path, head, hattr, prof0, pa);
+
+% $$$ try
+% $$$     rtpwrite(outfile_path, head, hattr, prof0, pa);
+% $$$ catch
+% $$$     fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
+% $$$             sDoy);
+% $$$     return;
+% $$$ end
 
 fprintf(1, 'Done\n');
 
