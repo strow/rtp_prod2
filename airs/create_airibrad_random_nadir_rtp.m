@@ -41,7 +41,7 @@ addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', ['era_airibrad_day' ...
+outfile_path = fullfile(outfile_head, sYear, 'random', [cfg.model '_airibrad_day' ...
                     sDoy '_random.rtp']);
 
 % $$$ if exist(outfile_path) ~= 0
@@ -121,8 +121,7 @@ if isfield(prof,'zobs')
    prof.zobs(iz) = prof.zobs(iz) * 1000;
 end
 
-SKIP=0;
-if (~SKIP)
+if (~strcmp(cfg.model, 'nomodel'))
 % Add in model data
 fprintf(1, '>>> Add model: %s...', cfg.model)
 switch cfg.model
@@ -162,7 +161,7 @@ run_sarta.cumsum=-1;
 % $$$                 '%s/%s\n'], sYear, sDoy);
 % $$$     return;
 % $$$ end
-end  % end if (~SKIP)
+end  % end if (~strcmp(cfg.model, 'nomodel'))
 
 % profile attribute changes for airibrad
 pa = set_attr('profiles', 'robs1', infile);
