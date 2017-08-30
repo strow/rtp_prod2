@@ -132,6 +132,18 @@ switch cfg.model
   case 'merra'
     [prof,head,pattr]  = fill_merra(prof,head,pattr);
 end
+% check that we have same number of model entries as we do obs because
+% corrupt model files will leave us with an unbalanced rtp
+% structure which WILL fail downstream (ideally, this should be
+% checked for in the fill_* routines but, this is faster for now)
+[~,nobs] = size(prof.robs1);
+[~,mobs] = size(prof.gas_1);
+if mobs ~= nobs
+    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                'with nobs ***\n'])
+    return;
+end
+
 head.pfields = 5;
 fprintf(1, 'Done\n');
 
