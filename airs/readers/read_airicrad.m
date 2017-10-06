@@ -51,14 +51,14 @@ f_default = f;
 
 % Read "state" and find good FOVs
 junk = hdfread(fn, 'state');
-state = reshape( double(junk), 1,nobs);
+state = reshape( double(junk'), 1,nobs);
 i0=find( state == 0);  % Indices of "good" FOVs
 n0=length(i0);
 %
 
 % Read latitude
 junk = hdfread(fn, 'Latitude');
-rlat = reshape( double(junk), 1,nobs);
+rlat = reshape( double(junk'), 1,nobs);
 ii=find( rlat > -90.01);  % Indices of "good" FOVs
 i0=intersect(i0,ii);
 n0=length(i0);
@@ -152,11 +152,13 @@ gdata.zobs   = tmp_zobs(i0);
 %
 clear tmp_atrack tmp_xtrack tmp_zobs
 
+% *** native reads with hdfread are atrack x xtrack (135 x 90) ***
+% *** must transpose before reshaping to 1-D array             ***
 
 % Read in observed radiance, reshape, and subset for state.
 % Note: this is a very large array!
 % observed radiance is stored as (nxtrack x natrack x nchan)
-junk = permute(hdfread(fn, 'radiances'), [3 1 2]);
+junk = permute(hdfread(fn, 'radiances'), [3 2 1]);
 % reshape but do not convert to double yet
 junk2 = reshape(junk, nchan,nobs);
 clear junk
@@ -170,69 +172,69 @@ gdata.rlat = rlat(i0);
 clear rlat
 %
 junk = hdfread(fn, 'Longitude');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.rlon = junk2(i0);
 %
 junk = hdfread(fn, 'Time');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.rtime = junk2(i0);
 gdata.rtime = gdata.rtime  + 12784 * 86400 + 27;
 %
 junk = hdfread(fn, 'scanang');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.scanang = junk2(i0);
 %
 junk = hdfread(fn, 'satzen');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.satzen = junk2(i0);
 %
 junk = hdfread(fn, 'satazi');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.satazi = junk2(i0);
 %
 junk = hdfread(fn, 'solzen');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.solzen = junk2(i0);
 %
 junk = hdfread(fn, 'solazi');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.solazi = junk2(i0);
 %
 junk = hdfread(fn, 'topog');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.salti =junk2(i0);
 %
 junk = hdfread(fn, 'landFrac');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.landfrac = junk2(i0);
 %
 
 % iudefs (maximum of 10?)
 junk = hdfread(fn, 'dust_flag');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.iudef(1,:) = junk2(i0);
 %
 junk = hdfread(fn, 'dust_score');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.iudef(2,:) = junk2(i0);
 %
-junk = permute(hdfread(fn, 'L1cProc'), [3 1 2]);
+junk = permute(hdfread(fn, 'L1cProc'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
 gdata.iudef(3,:,:) = junk2(i0);
 %
 junk = cell2mat(hdfread(fn, 'scan_node_type'));
-junk2 = reshape( ones(90,1)*double(junk), 1,nobs);
+junk2 = reshape( (ones(90,1)*double(junk))', 1,nobs);
 gdata.iudef(4,:) = junk2(i0);
 
-junk = permute(hdfread(fn, 'L1cSynthReason'), [3 1 2]);
+junk = permute(hdfread(fn, 'L1cSynthReason'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
 gdata.iudef(5,:,:) = junk2(i0);
 %
 junk = hdfread(fn, 'SceneInhomogeneous');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.iudef(6,:) = junk2(i0);
 %
-junk = permute(hdfread(fn, 'AB_Weight'), [3 1 2]);
+junk = permute(hdfread(fn, 'AB_Weight'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
 gdata.iudef(7,:,:) = junk2(i0);
 %
@@ -240,31 +242,31 @@ gdata.iudef(7,:,:) = junk2(i0);
 % udefs (maximum of 20?)
 %
 junk = hdfread(fn, 'sun_glint_distance');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(3,:) = junk2(i0);
 %
 junk = hdfread(fn, 'spectral_clear_indicator');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(4,:) = junk2(i0);
 %
 junk = hdfread(fn, 'BT_diff_SO2');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(5,:) = junk2(i0);
 %
-junk = permute(hdfread(fn, 'NeN'), [3 1 2]);
+junk = permute(hdfread(fn, 'NeN'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
 gdata.udef(6,:,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Inhomo850');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(7,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Rdiff_swindow');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(8,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Rdiff_lwindow');
-junk2 = reshape( double(junk), 1,nobs);
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(9,:) = junk2(i0);
 %
 
