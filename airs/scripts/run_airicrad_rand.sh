@@ -9,7 +9,7 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=short
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
@@ -18,7 +18,7 @@
 #SBATCH --mem=18000
 
 # Previous runs (2313403) put run time at ~2 hours for a 4 day chunk (.5 hour/day) 
-#SBATCH --time=04:00:00
+#SBATCH --time=00:59:00
 
 ###SBATCH --array=0-156
 
