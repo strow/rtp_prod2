@@ -43,14 +43,17 @@ outfile_base = fullfile(outfile_head, sYear, 'random');
 if exist(outfile_base) == 0
     status = mkdir(outfile_base);
 end
-outfile_path = fullfile(outfile_base, ['era_airicrad_day' ...
-                    sDoy '_random.rtp']);
+outfile_path = fullfile(outfile_base, ...
+                        sprintf('%s_airicrad_day%s_random.rtp', ...
+                                cfg.model, sDoy));
 
 % $$$ if exist(outfile_path) ~= 0
 % $$$     fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
 % $$$                 'n']);
 % $$$     return;
 % $$$ end
+
+load /home/sbuczko1/git/rtp_prod2/airs/util/sarta_chans_for_l1c.mat
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of random obs into a single output file
@@ -99,16 +102,15 @@ for i=1:length(files)
                 {'header' 'sarta_exec' sarta_exec} };
 
         nchan = size(p.robs1,1);
-        chani = (1:nchan)';
         %vchan = aux.nominal_freq(:);
         vchan = freq;
 
         % Assign header variables
         head.instid = 800; % AIRS 
         head.pltfid = -9999;
-        head.nchan = length(chani);
-        head.ichan = chani;
-        head.vchan = vchan(chani);
+        head.nchan = length(ichan);
+        head.ichan = ichan;
+        head.vchan = vchan;
         head.vcmax = max(head.vchan);
         head.vcmin = min(head.vchan);
     end  % end if i == 1

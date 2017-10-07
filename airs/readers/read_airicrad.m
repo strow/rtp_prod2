@@ -18,26 +18,14 @@ function [eq_x_tai, f, gdata, attr] = read_airicrad(fn);
 % Note: if the granule contains no good data, the output variables
 % are returned empty.
 %
-
-% Created: 15 January 2003, Scott Hannon - based on readl1b_center.m
-% Update: 11 March 2003, Scott Hannon - add check of field "state" so
-%    routine only returns FOVs with no known problems.  Also correct
-%    mis-assignment of calflag (previously was all wrong).
-% Update: 26 March 2003, Scott Hannon - also check latitude ("state" is
-%    not entirely reliable).
-% Update: 02 Nov 2005, S.Hannon - add default f in case L1B entry is bad
-% Update: 14 Jan 2010, S.Hannon - read granule_number and eq_x_tai; change
-%    output meantime to eq_x_tai, add findex to gdata
-% Update: 13 Oct 2010, S.Hannon - read rtime (previously estimated)
-% Update: 16 Nov 2010, S.Hannon - read CalGranSummary & NeN; call
-%    data_to_calnum_l1b; read nominal_freq
-% Update: 15 Oct 2011, S.Hannon - add path for data_to_calnum_l1b
+% L1C data is cleaned. Calnum based channel assessment as is done
+% in L1B is unnecessary here as it is done in the raw data. Data
+% that might have been rejected in L1B is filled with interpolated
+% values. Channels which have been filled (and the reasons for that
+% filling) can be tracked through L1CSynthReason (iudef(5,:)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
-% addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
 addpath(genpath('/home/sbuczko1/git/rtp_prod2/'));
-%addpath /home/strow
 
 % Granule dimensions
 nchan=2645;
@@ -63,11 +51,6 @@ ii=find( rlat > -90.01);  % Indices of "good" FOVs
 i0=intersect(i0,ii);
 n0=length(i0);
 
-% Read NeN
-% $$$ junk = hdfread(fn, 'NeN');
-% $$$ nen = reshape( double(junk), nchan,1);
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (n0 > 0)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,13 +73,11 @@ eq_x_tai = double(junk(1));
 meantai = 0.5*(start_Time + end_Time);
 clear start_Time end_Time
 
-
 % Read per scanline fields; expand to per FOV later
 %
 % satheight (1 x natrack)
 junk = cell2mat(hdfread(fn, 'satheight'));
 satheight = double(junk'); %'
-
 
 % Read in the channel freqs
 junk = cell2mat(hdfread(fn, 'nominal_freq'));
@@ -106,21 +87,10 @@ if (max(f) < -998)
    nominal_freq = f_default;
 end
 
-
-% Compute calnum
-%disp('computing calnum')
-% $$$ [calnum, cstr] = data_to_calnum_l1b(meantai, nominal_freq, nen, ...
-% $$$    calchansummary, raw_calflag);
-% $$$ %
-% $$$ clear raw_calflag calchansummary nen nominal_freq meantai
-
-
 % Declare temporary variables for expansion
 tmp_atrack = zeros(1,nobs);
 tmp_xtrack = zeros(1,nobs);
 tmp_zobs   = zeros(1,nobs);
-% $$$ tmp_calflag = zeros(nchan,nobs);
-
 
 % Loop over along-track and fill in temporary variables
 ix=1:nxtrack;
@@ -131,13 +101,6 @@ for ia=1:natrack
    tmp_atrack(iobs)=ia;
    tmp_xtrack(iobs)=ix;
    tmp_zobs(iobs)=satheight(ia)*1000;  % convert km to meters
-%%% faster?
-% $$$    tmp_calflag(:,iobs) = repmat(calnum(:,ia),1,nxtrack);
-%%% slower?
-%   for ii=1:nxtrack
-%      tmp_calflag(:,iobs(ii))=calnum(:,ia);
-%   end
-%%%
 end
 %
 clear ix ia iobs satheight
@@ -148,7 +111,6 @@ gdata.findex = granule_number*ones(1,n0);
 gdata.atrack = tmp_atrack(i0);
 gdata.xtrack = tmp_xtrack(i0);
 gdata.zobs   = tmp_zobs(i0);
-% $$$ gdata.calflag= tmp_calflag(:,i0);
 %
 clear tmp_atrack tmp_xtrack tmp_zobs
 
@@ -271,10 +233,6 @@ gdata.udef(9,:) = junk2(i0);
 %
 
 clear junk junk2 i0
-
-
-% Determine number of known imperfect channels for each FOV
-% $$$ gdata.robsqual = sum(gdata.calflag >= 64);
 
 % Assign attribute strings
 attr={{'profiles' 'iudef(1,:)' 'Dust flag:[1=true,0=false,-1=land,-2=cloud,-3=bad data] {dustflag}'},...
