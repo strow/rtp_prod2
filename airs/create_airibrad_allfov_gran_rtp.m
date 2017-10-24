@@ -24,7 +24,7 @@ airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis
-addpath /home/sbuczko1/git/rtp_prod2/airs
+addpath(genpath('/home/sbuczko1/git/rtp_prod2/airs'));
 addpath /home/sbuczko1/git/swutils
 addpath /home/sbuczko1/git/matlib/clouds/sarta  % driver_cloudy_sarta
 
@@ -53,6 +53,15 @@ grannum = C{5};
 % $$$ % get the granule number
 % $$$ granfile = C{9};
 % $$$ C = strsplit(granfile, '.');
+% $$$ grannum = C{5};
+
+% $$$ % v7j
+% $$$ % /asl/s1/strow/Data/v7j/AIRS.2016.09.12.233.L1B.AIRS_Rad.v6.4.0.153.X17235143836.hdf
+% $$$ C = strsplit(inpath, '/');
+% $$$ granfile = C{7};
+% $$$ C = strsplit(granfile, '.');
+% $$$ airs_doystr = '256';
+% $$$ airs_yearstr = C{2};
 % $$$ grannum = C{5};
 
 % Make output directory if needed

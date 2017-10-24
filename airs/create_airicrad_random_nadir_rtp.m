@@ -75,10 +75,11 @@ for i=1:length(files)
     fprintf(1, 'Done\n');
 
         
-    % filter out nadir FOVs (45&46  (+ neighbors))
-    fovs = [45 46];
+    % filter out nadir FOVs (43-48)
+    fovs = [43 44 45 46 47 48];
     nadir = ismember(p.xtrack,fovs);
-    limit = 0.011*44;  % preserves ~20k obs/day
+    limit = 0.011*44*0.33;  % preserves ~20k obs/day (0.33 added in
+                            % going from 2 fovs to 6)
     randoms = get_equal_area_sub_indices(p.rlat, limit);
     nrinds = find(nadir & randoms);
     crprof = rtp_sub_prof(p, nrinds);

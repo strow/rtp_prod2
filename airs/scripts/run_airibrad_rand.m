@@ -41,10 +41,9 @@ for i = 1:chunk
         break;
     end
 
-    %cfg.model = 'era';
-    cfg.model = 'nomodel';
-    outfile_head = '/asl/rtp/rtp_airibrad_v5';
-% $$$     outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
+    cfg.model = 'era';
+% $$$     outfile_head = '/asl/rtp/rtp_airicrad_v5';
+    outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
     create_airibrad_random_nadir_rtp(inpath, outfile_head, cfg);
     
 end  % ends loop over chunk

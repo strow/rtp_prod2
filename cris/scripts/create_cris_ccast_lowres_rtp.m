@@ -30,9 +30,6 @@ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
-addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
-addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
@@ -40,6 +37,9 @@ addpath /asl/packages/rtp_prod2/cris
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/emis
 addpath /asl/packages/rtp_prod2/grib
+% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath(genpath('/asl/matlib'));
 
 [sID, sTempPath] = genscratchpath();
 sID = getenv('SLURM_ARRAY_TASK_ID');
@@ -48,7 +48,7 @@ nguard = 2;  % number of guard channels
 
 % Load up rtp
 try
-    [head, hattr, prof, pattr, aux] = ccast2rtp(fnCrisInput, nguard);
+    [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard);
 catch
     fprintf(2, '>>> ERROR: ccast2rtp failed for %s\n', ...
             fnCrisInput);
@@ -139,17 +139,12 @@ fprintf(1, 'Done\n');
 prof.rcalc = p.rcalc;
 head.pfields = 7;
 
-px = uniform_clear_template_lowANDhires_HP(head,hattr,prof,pattr);
-clear prof;
-px = rmfield(px, 'clrflag');
-fprintf(1, 'Done\n');
-
 % Make directory if needed
 % cris lowres data will be stored in
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
-asType = {'clear'};
+asType = cfg.type;
 rtp_out_fn_head = fnCrisOutput;
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
@@ -162,22 +157,28 @@ for i = 1:length(asType)
         mkdir(sPath);
     end
 
-    switch(char(asType(i)))
-      case 'random'
-% $$$         obsfound = find(px.iudef(1,:) == 8);
-        obsfound = irand;
-      case 'clear'
-        obsfound = find(px.iudef(1,:) == 1 | px.iudef(1,:) == 9);
-      case 'dcc'
-        obsfound   = find(px.iudef(1,:) == 4);
-      case 'site'
-        obsfound  = find(px.iudef(1,:) == 2);
-    end
+    if strcmp('allfov', char(asType(i)))
+        obsfound = find(prof.rtime > 0);
+    else
+        prof = uniform_clear_template_lowANDhires_HP(head,hattr,prof,pattr);
+        prof = rmfield(prof, 'clrflag');
+        fprintf(1, 'Done\n');
 
+        switch(char(asType(i)))
+          case 'random'
+% $$$         obsfound = find(prof.iudef(1,:) == 8);
+            obsfound = irand;
+          case 'clear'
+            obsfound = find(prof.iudef(1,:) == 1 | prof.iudef(1,:) == 9);
+          case 'dcc'
+            obsfound   = find(prof.iudef(1,:) == 4);
+          case 'site'
+            obsfound  = find(prof.iudef(1,:) == 2);
+        end
+    end
     if obsfound ~= 0
         fprintf(1, '>> OUTPUT : Valid obs found :: %d', length(obsfound));
-        px_out = rtp_sub_prof(px,obsfound);
-% $$$         px_out = px_rand;
+        px_out = rtp_sub_prof(prof,obsfound);
         rtp_out_fn = [rtp_out_fn_head '_' char(asType(i)) '.rtp'];
         rtp_outname = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,  cris_doystr, rtp_out_fn);
         rtpwrite(rtp_outname,head,hattr,px_out,pattr);

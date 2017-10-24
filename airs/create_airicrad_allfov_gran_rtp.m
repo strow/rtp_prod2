@@ -24,6 +24,7 @@ airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airicrad_v5';
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis
+addpath /home/sbuczko1/git/rtp_prod2/airs/readers
 addpath /home/sbuczko1/git/rtp_prod2/airs
 addpath /home/sbuczko1/git/swutils
 addpath /home/sbuczko1/git/matlib/clouds/sarta  % driver_cloudy_sarta
@@ -98,7 +99,7 @@ nchan = size(prof.robs1,1);
 % $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
 % $$$                     % for chan 2378 and higher
 % following line loads array 'ichan' which gets swapped for chani below
-load /home/sbuczko1/git/rtp_prod2/airs/sarta_chans_for_l1c.mat
+load /home/sbuczko1/git/rtp_prod2/airs/util/sarta_chans_for_l1c.mat
 
 %vchan = aux.nominal_freq(:);
 vchan = freq;

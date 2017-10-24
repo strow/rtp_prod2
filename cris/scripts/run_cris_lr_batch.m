@@ -41,6 +41,7 @@ for i = 1:chunk
                                       fileindex, cris_ccast_file_list));
 
     cfg.model = 'era';
+    cfg.type = {'allfov'};
     
     % call the processing function
     try
