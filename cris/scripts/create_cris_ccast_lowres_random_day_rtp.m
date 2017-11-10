@@ -17,9 +17,7 @@ function create_cris_ccast_lowres_random_day_rtp(fnCrisInput, cfg)
 func_name = 'create_cris_ccast_lowres_random_day_rtp';
 
 addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
-% $$$ addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp (L1b
-% $$$                                                    % Q/A update not
-% $$$                                                    % pushed out to /asl/packages)
+addpath /asl/packages/ccast/source  % fixmyQC
 addpath /home/sbuczko1/git/matlib/clouds/sarta  %
                                                 % driver_cloud... (version
                                                 % in /asl/matlib
@@ -137,17 +135,27 @@ for i=1:numel(fnLst1)
 % $$$ 
 % $$$     p = rtp_sub_prof(p, irand);
 
-    % testing new get_equal_area_sub_indices selection code
-    % need to select for nadir obs (xtrack == {15,16}
+    % filter out desired FOVs/scan angles
     fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... ');
-    p = rtp_sub_prof(p,find(p.xtrack == 15 | p.xtrack == 16));
-    limit = 0.011*15;  % threshold for cutting down number of
-                       % returned obs
-    indl = get_equal_area_sub_indices(p.rlat, limit);
-    p = rtp_sub_prof(p, find(indl));
-    nkeep = nkeep + length(indl);
-    fprintf(1, '>>> Done\n');
-    
+    fors = [1:30];  % Indices for desired Fields of Regard (FOR)
+                    % ([15,16]: center/nadir track)
+    nadir = ismember(p.xtrack,fors);
+    % rtp has a 2GB limit so we have to scale number of kept FOVs
+    % to stay within that as an absolute limit. Further, we
+    % currently restrict obs count in random to ~20k to match
+    % historical AIRXBCAL processing
+    limit = 20000;  % number of obs to keep
+    nswath = 60;  % length of ccast granules
+    ngrans = 180;  % number of granules per day
+    nfovs = 9;  % number of FOVs per FOR
+    maxobs = nswath * length(fors) * nfovs * ngrans;
+    scale = limit/maxobs; % preserves ~20k obs/day 
+    randoms = get_equal_area_sub_indices(p.rlat, scale);
+    nrinds = find(nadir & randoms);
+    crprof = rtp_sub_prof(p, nrinds);
+    p=crprof;
+    clear crprof;
+
     % concatenate into a single daily rtp structure
     if ~bFirstGranRead % this is first good read. Take rtp structs
                        % as baseline for subsequent concatenation
@@ -211,7 +219,7 @@ prof0 = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
 % cris lowres data will be stored in
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
-asType = {'random'};
+asType = {'random_fs'};
 % $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 for i = 1:length(asType)

@@ -75,12 +75,20 @@ for i=1:length(files)
     fprintf(1, 'Done\n');
 
         
-    % filter out nadir FOVs (43-48)
-    fovs = [43 44 45 46 47 48];
+    % filter out desired FOVs/scan angles 
+    fovs = [43:48];  % [45 46] original, [43:48] current nadir,
+                     % [1:90]  full swath
     nadir = ismember(p.xtrack,fovs);
-    limit = 0.011*44*0.33;  % preserves ~20k obs/day (0.33 added in
-                            % going from 2 fovs to 6)
-    randoms = get_equal_area_sub_indices(p.rlat, limit);
+    % rtp has a 2GB limit so we have to scale number of kept FOVs
+    % to stay within that as an absolute limit. Further, we
+    % currently restrict obs count in random to ~20k to match
+    % historical AIRXBCAL processing
+    limit = 20000;  % number of obs to keep
+    maxobs = 135 * length(fovs) * 240;
+    scale = (limit/maxobs)*1.6; % preserves ~20k obs/day (without
+                                % 1.6 multiplier, only getting
+                                % ~12-13k counts ?? 
+    randoms = get_equal_area_sub_indices(p.rlat, scale);
     nrinds = find(nadir & randoms);
     crprof = rtp_sub_prof(p, nrinds);
     p=crprof;

@@ -42,7 +42,6 @@ for i = 1:chunk
     end
 
     cfg.model = 'era';
-% $$$     outfile_head = '/asl/rtp/rtp_airicrad_v5';
     outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airicrad_v6';
     create_airicrad_random_nadir_rtp(inpath, outfile_head, cfg);
     
