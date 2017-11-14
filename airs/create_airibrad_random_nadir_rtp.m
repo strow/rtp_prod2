@@ -1,60 +1,74 @@
-function create_airibrad_random_nadir_rtp(inpath, outfile_head, cfg)
+function [head, hattr, prof, pattr] = create_airibrad_random_nadir_rtp(inpath, cfg)
 %
 % NAME
 %   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
 %
 % SYNOPSIS
-%   create_airibrad_rtp(infile, outfile_head)
+%   create_airibrad_rtp(inpath, cfg)
 %
 % INPUTS
-%    infile :   path to input AIRIBRAD hdf file
-%    outfile_head  : path to output rtp file (minus extension)
+%    inpath :   path to input AIRIBRAD hdf file
+%    cfg    :   configuration struct (OPTIONAL)
 %
-% L. Strow, Jan. 14, 2015
+% REQUIRES
+%    swutils  :  githash
 %
 % DISCUSSION (TBD)
+% This version operates on a day of AIRIBRAD granules
+% and concatenates the subset of random obs into a single output file
+% >> inpath is the path to an AIRS day of data
+% /asl/data/airs/AIRIBRAD/<year>/<doy>
 func_name = 'create_airibrad_random_nadir_rtp';
 
+% establish configuration defaults
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+sarta_exec   = ['/asl/packages/sartaV108/BinV201/' ...
+                'sarta_apr08_m140_wcon_nte'];
+sartacld_exec = '';
+model = 'era'; 
+% read in configuration (if present) and modify defaults
+if nargin == 2   % config structure present
+    if isfield(cfg, 'klayers_exec')
+        klayers_exec = cfg.klayers_exec;
+    end
+    if isfield(cfg, 'sarta_exec')
+        sarta_exec = cfg.sarta_exec;
+    end
+    if isfield(cfg, 'sartacld_exec')
+        sartacld_exec = cfg.sartacld_exec;
+    end
+    if isfield(cfg, 'model')
+        model = cfg.model;
+    end
+end
 
+% Execute user-defined paths
 addpath('/home/sbuczko1/git/swutils');
-addpath('/home/sbuczko1/git/rtp_prod2/airs/readers');
+addpath('../readers');
+addpath('/asl/matlib/rtptools');   % for cat_rtp
+addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
+
 
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
-                         'd-MMM-y HH:mm:ss Z'));
+                              'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-% Execute user-defined paths
-set_process_dirs
-addpath(genpath(rtp_sw_dir));
-% $$$ addpath('/home/sergio/MATLABCODE/PLOTTER');  % for hha_lat_subsample_equal_area3
-addpath('/asl/matlib/rtptools');   % for cat_rtp
-% $$$ addpath(genpath('/home/sergio/MATLABCODE/matlib/'));  %
-                                                      % driver_sarta_cloud_rtp.m
-addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
+head=struct;hattr={};prof=struct;pattr={};  % initialize output
+                                            % vars empty so there
+                                            % is something to
+                                            % return even in event
+                                            % of failure
 
-% build output filename
-% assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
-C = strsplit(inpath, '/');
-sYear = C{6};
-sDoy = C{7};
-outfile_path = fullfile(outfile_head, sYear, 'random', [cfg.model '_airibrad_day' ...
-                    sDoy '_random.rtp']);
-
-% $$$ if exist(outfile_path) ~= 0
-% $$$     fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
-% $$$                 'n']);
-% $$$     return;
-% $$$ end
-
-% This version operates on a day of AIRIBRAD granules and
-% concatenates the subset of random obs into a single output file
-% >> inpath is the path to an AIRS day of data
-% /asl/data/airs/AIRIBRAD/<year>/<doy>
+% build list of hdf granule files for the day
 files = dir(fullfile(inpath, '*.hdf'));
+if isempty(files)
+    % kick off error report and exit back to calling function
+end
+fprintf(1, '>>> Found %d granule files to be read\n', ...
+        length(files));
+% cfg.instparams = [135, 90, 1, length(files)];
 
 for i=1:length(files)
     % Read the AIRIBRAD file
@@ -99,96 +113,82 @@ for i=1:length(files)
         head.vcmax = max(head.vchan);
         head.vcmin = min(head.vchan);
     end  % end if i == 1
-        
-        % find random, nadir subset
-        % uses sergio's hha_...3.m
-        % need head for input
-        [keep, nadir_ind] = hha_lat_subsample_equal_area3(head, prof0);
-        
-        if i ==1
-            prof = rtp_sub_prof(prof0, nadir_ind);
+
+        p = equal_area_nadir_select(prof0,cfg);  % select for
+                                                 % random/nadir obs
+        if ~exist('prof')
+            prof = p;
         else
-            prof1 = prof;
-            prof2 = rtp_sub_prof(prof0, nadir_ind);
             % concatenate new random rtp data into running random rtp structure
-            [head, prof] = cat_rtp(head, prof1, head, prof2);
+            [head, prof] = cat_rtp(head, prof, head, p);
         end
 end  % end for i=1:length(files)
+    clear p0 p;
 
-% Fix for zobs altitude units
-if isfield(prof,'zobs')
-   iz = prof.zobs < 20000 & prof.zobs > 20;
-   prof.zobs(iz) = prof.zobs(iz) * 1000;
-end
+    % Fix for zobs altitude units
+    if isfield(prof,'zobs')
+        iz = prof.zobs < 20000 & prof.zobs > 20;
+        prof.zobs(iz) = prof.zobs(iz) * 1000;
+    end
 
-if (~strcmp(cfg.model, 'nomodel'))
-% Add in model data
-fprintf(1, '>>> Add model: %s...', cfg.model)
-switch cfg.model
-  case 'ecmwf'
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
-  case 'era'
-    [prof,head,pattr]  = fill_era(prof,head,pattr);
-  case 'merra'
-    [prof,head,pattr]  = fill_merra(prof,head,pattr);
-end
-% check that we have same number of model entries as we do obs because
-% corrupt model files will leave us with an unbalanced rtp
-% structure which WILL fail downstream (ideally, this should be
-% checked for in the fill_* routines but, this is faster for now)
-[~,nobs] = size(prof.robs1);
-[~,mobs] = size(prof.gas_1);
-if mobs ~= nobs
-    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
-                'with nobs ***\n'])
-    return;
-end
+    if (~strcmp(cfg.model, 'nomodel'))
+        % Add in model data
+        fprintf(1, '>>> Add model: %s...', cfg.model)
+        switch cfg.model
+          case 'ecmwf'
+            [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+          case 'era'
+            [prof,head,pattr]  = fill_era(prof,head,pattr);
+          case 'merra'
+            [prof,head,pattr]  = fill_merra(prof,head,pattr);
+        end
+        % check that we have same number of model entries as we do obs because
+        % corrupt model files will leave us with an unbalanced rtp
+        % structure which WILL fail downstream (ideally, this should be
+        % checked for in the fill_* routines but, this is faster for now)
+        [~,nobs] = size(prof.robs1);
+        [~,mobs] = size(prof.gas_1);
+        if mobs ~= nobs
+            fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                        'with nobs ***\n'])
+            return;
+        end
 
-head.pfields = 5;
-fprintf(1, 'Done\n');
+        head.pfields = 5;
+        fprintf(1, 'Done\n');
 
-% Dan Zhou's one-year climatology for land surface emissivity and
-% standard routine for sea surface emissivity
-fprintf(1, '>>> Running rtp_add_emis...');
-try
-    [prof,pattr] = rtp_add_emis(prof,pattr);
-catch
-    fprintf(2, '>>> ERROR: rtp_add_emis failure for %s/%s\n', sYear, ...
-            sDoy);
-    return;
-end
-fprintf(1, 'Done\n');
+        % Dan Zhou's one-year climatology for land surface emissivity and
+        % standard routine for sea surface emissivity
+        fprintf(1, '>>> Running rtp_add_emis...');
+        try
+            [prof,pattr] = rtp_add_emis(prof,pattr);
+        catch
+            fprintf(2, '>>> ERROR: rtp_add_emis failure for %s/%s\n', sYear, ...
+                    sDoy);
+            return;
+        end
+        fprintf(1, 'Done\n');
 
-% call klayers/sarta cloudy
-run_sarta.cloud=+1;
-run_sarta.clear=+1;
-run_sarta.cumsum=-1;
-% driver_sarta_cloud_rtp ultimately looks for default sarta
-% executables in Sergio's directories. **DANGEROUS** These need to
-% be brought under separate control for traceability purposes.
+        % call klayers/sarta cloudy
+        run_sarta.cloud=+1;
+        run_sarta.clear=+1;
+        run_sarta.cumsum=-1;
+        % driver_sarta_cloud_rtp ultimately looks for default sarta
+        % executables in Sergio's directories. **DANGEROUS** These need to
+        % be brought under separate control for traceability purposes.
 % $$$ try
-    [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
+        [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 % $$$ catch
 % $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
 % $$$                 '%s/%s\n'], sYear, sDoy);
 % $$$     return;
 % $$$ end
-end  % end if (~strcmp(cfg.model, 'nomodel'))
+    end  % end if (~strcmp(cfg.model, 'nomodel'))
 
-% profile attribute changes for airibrad
-pa = set_attr('profiles', 'robs1', infile);
-pa = set_attr(pa, 'rtime', 'TAI:1958');
+        % profile attribute changes for airibrad
+        pattr = set_attr('profiles', 'robs1', infile);
+        pattr = set_attr(pattr, 'rtime', 'TAI:1958');
 
-% Now save the output random rtp file
-fprintf(1, '>>> writing output rtp files... ');
-try
-    rtpwrite(outfile_path, head, hattr, prof0, pa);
-catch
-    fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
-            sDoy);
-    return;
-end
+        fprintf(1, 'Done\n');
 
-fprintf(1, 'Done\n');
-
-            
+        

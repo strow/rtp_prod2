@@ -137,7 +137,7 @@ for i=1:numel(fnLst1)
 
     % filter out desired FOVs/scan angles
     fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... ');
-    fors = [1:30];  % Indices for desired Fields of Regard (FOR)
+    fors = [15 16];  % Indices for desired Fields of Regard (FOR)
                     % ([15,16]: center/nadir track)
     nadir = ismember(p.xtrack,fors);
     % rtp has a 2GB limit so we have to scale number of kept FOVs
@@ -149,7 +149,7 @@ for i=1:numel(fnLst1)
     ngrans = 180;  % number of granules per day
     nfovs = 9;  % number of FOVs per FOR
     maxobs = nswath * length(fors) * nfovs * ngrans;
-    scale = limit/maxobs; % preserves ~20k obs/day 
+    scale = (limit/maxobs)*1.6; % preserves ~20k obs/day 
     randoms = get_equal_area_sub_indices(p.rlat, scale);
     nrinds = find(nadir & randoms);
     crprof = rtp_sub_prof(p, nrinds);
@@ -219,9 +219,9 @@ prof0 = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
 % cris lowres data will be stored in
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
-asType = {'random_fs'};
-% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
-cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
+asType = {'random'};
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
+% $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 for i = 1:length(asType)
     % check for existence of output path and create it if necessary. This may become a source
     % for filesystem collisions once we are running under slurm.

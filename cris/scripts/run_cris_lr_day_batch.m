@@ -40,9 +40,10 @@ for i = 1:chunk
     [status, indir] = system(sprintf('sed -n "%dp" %s | tr -d "\n"', ...
                                       fileindex, '/home/sbuczko1/cris-days-to-process'));
 
+    cfg.model = 'era';
     % call the processing function
     try
-        create_cris_ccast_lowres_day_rtp(indir);
+        create_cris_ccast_lowres_day_rtp(indir, cfg);
     catch
         fprintf(2, '>>> %s ERROR :: Processing failed for day %s\n', ...
                 char(datetime('now', 'Format', 'HHmmss')), indir);

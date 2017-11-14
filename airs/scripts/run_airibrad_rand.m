@@ -43,8 +43,32 @@ for i = 1:chunk
 
     cfg.model = 'era';
     outfile_head = '/asl/rtp/rtp_airibrad_v5';
+
+% build output filename
+% assumes path is like: /asl/data/airs/AIRIBRAD/<year>/<doy>
+C = strsplit(inpath, '/');
+sYear = C{6};
+sDoy = C{7};
+outfile_path = fullfile(outfile_head, sYear, 'random', [cfg.model '_airibrad_day' ...
+                    sDoy '_random.rtp']);
+
+% $$$ if exist(outfile_path) ~= 0
+% $$$     fprintf(1, ['>>> Output file exists from previous run. Skipping\' ...
+% $$$                 'n']);
+% $$$     return;
+% $$$ end
 % $$$     outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
     create_airibrad_random_nadir_rtp(inpath, outfile_head, cfg);
+% Now save the output random rtp file
+fprintf(1, '>>> writing output rtp files... ');
+try
+    rtpwrite(outfile_path, head, hattr, prof0, pa);
+catch
+    fprintf(2, '>>> ERROR: rtpwrite failure for %s/%s\n', sYear, ...
+            sDoy);
+    return;
+end
+
     
 end  % ends loop over chunk
 %% ****end function run_cat_rtp_daily****
