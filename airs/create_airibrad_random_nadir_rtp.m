@@ -1,14 +1,21 @@
 function [head, hattr, prof, pattr] = create_airibrad_random_nadir_rtp(inpath, cfg)
-%
-% NAME
-%   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
+%   create_airibrad_random_nadir_rtp -- wrapper to process AIRIBRAD to RTP
 %
 % SYNOPSIS
-%   create_airibrad_rtp(inpath, cfg)
+%   [head,hattr,prof,pattr] = create_airibrad_random_nadir_rtp(inpath, cfg)
 %
 % INPUTS
 %    inpath :   path to input AIRIBRAD hdf file
 %    cfg    :   configuration struct (OPTIONAL)
+%
+% OUTPUTS
+%    head   :   rtp header struct
+%    hattr  :   rtp header attribute cell array
+%    prof   :   rtp profile struct
+%    pattr  :   rtp profile attributes cell array
+%
+%    *In the event of failure, the rtp structs will be returned
+%    empty*
 %
 % REQUIRES
 %    swutils  :  githash
