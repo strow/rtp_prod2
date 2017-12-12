@@ -1,5 +1,7 @@
 function run_cris_batch()
 
+addpath ..    % look one level up for create_* functions
+    
 cris_ccast_file_list = '~/cris-hires-files-to-process';
 
 % grab the slurm array index for this process
@@ -9,7 +11,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 %slurmindex = slurmindex + 19999
 
 % build config struct
-cfg.model = 'ecmwf';
+cfg.model = 'era';
 cfg.sarta_exec = '/asl/bin/crisg4_oct16';
 cfg.tag = 'csarta';
 
