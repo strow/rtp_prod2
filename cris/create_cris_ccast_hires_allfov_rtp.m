@@ -123,19 +123,61 @@ fprintf(1, 'Done\n');
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis_single...');
-[prof0,pattr] = rtp_add_emis_single(prof,pattr);
+[prof,pattr] = rtp_add_emis_single(prof,pattr);
 fprintf(1, 'Done\n');
 
-% run driver_sarta_cloud to handle klayers and sarta runs
-run_sarta.clear=+1;
-run_sarta.cloud=+1;
-run_sarta.cumsum=-1;
-run_sarta.klayers_code = klayers_exec;
-run_sarta.sartaclear_code = sarta_exec;
-run_sarta.sartacloud_code = sartacld_exec;
+% run klayers
+fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
+fprintf(1, '>>> Writing klayers input temp file %s ...', fn_rtp1);
+rtpwrite(fn_rtp1,head,hattr,prof,pattr)
+fprintf(1, 'Done\n')
+fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
+run_klayers=[klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+             '/klayers_' sID '_stdout']
+fprintf(1, '>>> Running klayers: %s ...', run_klayers);
+unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+      '/klayers_' sID '_stdout'])
+fprintf(1, 'Done\n');
+fprintf(1, '>>> Reading klayers output... ');
+% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
+fprintf(1, 'Done\n');
 
-prof = driver_sarta_cloud_rtp(head, hattr, prof0, pattr, ...
-                               run_sarta);
+% Run sarta
+% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
+% below for clear,site,etc?) make call to external shell script to
+% run 'N' copies of sarta backgrounded
+fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
+run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+             sTempPath '/sarta_' sID '_stdout.txt'];
+fprintf(1, '>>> Running sarta: %s ...', run_sarta);
+unix(run_sarta);
+fprintf(1, 'Done\n');
+
+% Read in new rcalcs and insert into origin prof field
+% $$$ stFileInfo = dir(fn_rtp3);
+% $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+% $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
+fprintf(1, '>>> Reading sarta output... ');
+[h,ha,p,pa] = rtpread(fn_rtp3);
+fprintf(1, 'Done\n');
+
+% Go get output from klayers, which is what we want except for rcalc
+% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
+% Insert rcalc for CrIS derived from IASI SARTA
+prof.rclr = p.rcalc;
+head.pfields = 7;
+
+% $$$ 
+% $$$ % run driver_sarta_cloud to handle klayers and sarta runs
+% $$$ run_sarta.clear=+1;
+% $$$ run_sarta.cloud=+1;
+% $$$ run_sarta.cumsum=-1;
+% $$$ run_sarta.klayers_code = klayers_exec;
+% $$$ run_sarta.sartaclear_code = sarta_exec;
+% $$$ run_sarta.sartacloud_code = sartacld_exec;
+% $$$ 
+% $$$ prof = driver_sarta_cloud_rtp(head, hattr, prof0, pattr, ...
+% $$$                                run_sarta);
 
 end  % end function
 

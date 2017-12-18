@@ -255,7 +255,7 @@ end  % end run sarta
 % Go get output from klayers, which is what we want except for rcalc
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-prof.rcalc = real(rad_cris); 
+prof.rclr = real(rad_cris); 
 
 % output rtp splitting from airxbcal processing
 % Subset into four types and save separately
@@ -275,7 +275,8 @@ prof_rand  = rtp_sub_prof(prof,irand);
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
+% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires_test1';
 % $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hires';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source

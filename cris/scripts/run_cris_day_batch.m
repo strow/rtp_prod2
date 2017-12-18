@@ -6,7 +6,7 @@ addpath(genpath(rtp_sw_dir));
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
 % build config struct
-cfg.model = 'ecmwf';
+cfg.model = 'era';
 
 % File ~/cris-files-process.txt is a list of filepaths to the input
 % files or this processing. For the initial runs, this was

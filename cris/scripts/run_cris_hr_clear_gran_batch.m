@@ -1,14 +1,12 @@
-function run_cris_hires_allfov_batch()
+function run_cris_hr_clear_gran_batch()
 
-addpath ..    % look one level up for create_* functions
-    
+addpath ..;  % look one level up for create_* functions
+
 cris_ccast_file_list = '~/cris-hires-files-to-process-test3';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
-% offset slurmindex to bypass MaxArraySize boundary
-%slurmindex = slurmindex + 19999
 
 % build config struct
 cfg.model = 'era';
@@ -38,9 +36,9 @@ for i = 1:chunk
     end
 
     % call the processing function
-    [head, hattr, prof, pattr] = create_cris_ccast_hires_allfov_rtp(infile, ...
-                                                      cfg);
-    % use fnCrisOutput to generate year and doy strings
+    [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_gran_rtp(infile, cfg);
+
+        % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
     [gpath, gname, ext] = fileparts(infile);
@@ -51,7 +49,7 @@ for i = 1:chunk
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
     %
-    asType = {'allfov'};
+    asType = {'clear'};
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
@@ -72,6 +70,4 @@ for i = 1:chunk
         fprintf(1, 'Done\n');
     end
 
-
-
-end
+end    

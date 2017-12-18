@@ -40,7 +40,6 @@ end
 
 sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
                'sarta_iasi_may09_wcon_nte'];
-USE_IASI_SARTA = true;
 if isfield(cfg, 'sarta_exec')
     sarta_exec = cfg.sarta_exec;
     USE_IASI_SARTA = false;  % this really needs to be a TEST of
@@ -54,7 +53,7 @@ if isfield(cfg, 'nguard')
 end
 
 nsarta = 4;  % number of sarta guard channels
-if isfield(cfg, nsarta)
+if isfield(cfg, 'nsarta')
     nsarta = cfg.nsarta;
 end
 % check for validity of guard channel specifications
@@ -254,7 +253,7 @@ end  % end run sarta
 % Go get output from klayers, which is what we want except for rcalc
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-prof.rcalc = real(rad_cris); 
+prof.rclr = real(rad_cris); 
 
 % output rtp splitting from airxbcal processing
 % Subset into four types and save separately
@@ -274,25 +273,27 @@ prof_rand  = rtp_sub_prof(prof,irand);
 %
 % $$$ asType = {'clear', 'site', 'dcc', 'random'};
 asType = {'clear'};
-cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
+% $$$ cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires';
+cris_out_dir = '/asl/rtp/rtp_cris_ccast_hires_test1';
 % $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_hires';
 for i = 1:length(asType)
 % check for existence of output path and create it if necessary. This may become a source
 % for filesystem collisions once we are running under slurm.
-    sPath = fullfile(cris_out_dir,[char(asType(i)) '_daily'],cris_yearstr,cris_doystr,cfg.tag);
+    sPath = fullfile(cris_out_dir,char(asType(i)),cris_yearstr,cris_doystr);
     if exist(sPath) == 0
         mkdir(sPath);
     end
 end
 % $$$
-options = [cfg.tag '_g' num2str(nguard) 's' num2str(nsarta)];
-rtp_out_fn_head = ['cris_hr_' cfg.model '_' options '_' dstr '_' tstr];
+% $$$ options = [cfg.tag '_g' num2str(nguard) 's' num2str(nsarta)];
+options = [cfg.tag '_' asType{1}];
+rtp_out_fn_head = ['cris_' cfg.model '_' options '_' dstr];
 % Now save the four types of cris files
 fprintf(1, '>>> writing output rtp files... ');
 % if no profiles are captured in a subset, do not output a file
 if iclear ~= 0
-    rtp_out_fn = [rtp_out_fn_head, '_clear.rtp'];
-    rtp_outname = fullfile(cris_out_dir,[char(asType(1)) '_daily'],cris_yearstr,cris_doystr,cfg.tag, rtp_out_fn);
+    rtp_out_fn = [rtp_out_fn_head, '.rtp'];
+    rtp_outname = fullfile(cris_out_dir,char(asType(1)),cris_yearstr,cris_doystr, rtp_out_fn);
     rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
 end
 % $$$ 
