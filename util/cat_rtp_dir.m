@@ -1,12 +1,17 @@
-function [h,ha,p,pa] = cat_rtp_dir(fdir);
+function [h,ha,p,pa] = cat_rtp_dir(fdir, regexp);
 %
 % Concatenate all rtp files in a directory.
 % Assumes they all have identical fields, and attributes, but not size
 % Also assumes that prof.rlat exists.  Can switch to a better var if needed
 
 % Get file names
-a = dir(fullfile(fdir,'*.rtp'));
+if nargin == 2
+    a = dir(fullfile(fdir, regexp));
+else
+    a = dir(fullfile(fdir,'*.rtp'));
+end
 nfiles = length(a);
+fprintf(1, '>> Found %d files to concatenate\n', nfiles);
 
 % Need number of obs per file for indexing
 for i=1:nfiles

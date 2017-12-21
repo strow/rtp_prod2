@@ -42,6 +42,8 @@ addpath(genpath('/asl/matlib'));
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 addpath /asl/packages/rtp_prod2/cris;  % uniform_clear_template_...
+% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp,
+% $$$                                               % cris_[iv]chan
 addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
 addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
 addpath /asl/packages/rtp_prod2/emis;  % add_emis

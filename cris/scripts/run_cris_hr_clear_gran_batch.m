@@ -2,18 +2,18 @@ function run_cris_hr_clear_gran_batch()
 
 addpath ..;  % look one level up for create_* functions
 
-cris_ccast_file_list = '~/cris-hires-files-to-process-test3';
+cris_ccast_file_list = '~/cris-hires-files-to-process-test1';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
 
 % build config struct
-cfg.model = 'era';
+cfg.model = 'ecmwf';
 cfg.sarta_exec = '/asl/bin/crisg4_oct16';
 cfg.rta = 'csarta';
-cfg.outputdir = '/asl/rtp/rtp_cris_ccast_hires_test3';
-cfg.inst = 'cris';
+cfg.outputdir = '/asl/rtp/rtp_cris_ccast_hires_test1';
+cfg.inst = 'cris_satlat';
 
 chunk = 1;
 for i = 1:chunk
