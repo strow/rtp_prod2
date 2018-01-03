@@ -25,7 +25,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing srun of run_cris_batch"
-$MATLAB $MATOPT -r "disp('>>Starting script');set_process_dirs;disp('>>> set_process_dirs'); addpath(genpath(rtp_sw_dir));disp('>>>Addpath'); disp('>>>Running run_cris_batch');run_cris_hr_clear_gran_batch; exit"
+$MATLAB $MATOPT -r "disp('>>Starting script'); addpath('/asl/packages/swutils');cfg=ini2struct('$1');run_cris_hr_clear_gran_batch(cfg); exit"
     
 echo "Finished with run_cris_batch"
 

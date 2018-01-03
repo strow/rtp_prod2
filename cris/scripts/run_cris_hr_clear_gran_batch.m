@@ -1,21 +1,11 @@
-function run_cris_hr_clear_gran_batch()
+function run_cris_hr_clear_gran_batch(cfg)
 
 addpath ..;  % look one level up for create_* functions
-
-cris_ccast_file_list = '~/cris-hires-files-to-process-test1';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
-
-% build config struct
-cfg.model = 'ecmwf';
-cfg.sarta_exec = '/asl/bin/crisg4_oct16';
-cfg.rta = 'csarta';
-cfg.outputdir = '/asl/rtp/rtp_cris_ccast_hires_test1';
-cfg.inst = 'cris_satlat';
-
-chunk = 1;
+chunk = cfg.chunk;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     fprintf(1, '>>> chunk %d  dayindex %d\n', i, dayindex);
@@ -29,7 +19,7 @@ for i = 1:chunk
     % cris-files-process.txt, then, contains lines like:
     %    /asl/data/cris/ccast/sdr60_hr/2015/048/SDR_d20150217_t1126169.mat
     [status, infile] = system(sprintf('sed -n "%dp" %s | tr -d "\n"', ...
-                                      dayindex, cris_ccast_file_list));
+                                      dayindex, cfg.file_list));
 
     if strcmp(infile, '')
         break;

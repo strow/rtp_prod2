@@ -1,7 +1,8 @@
 function run_cris_hires_allfov_batch(cfg)
 
-addpath ..    % look one level up for create_* functions
-    
+addpath ..;    % look one level up for create_* functions
+addpath ../util;
+
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 

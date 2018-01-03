@@ -42,12 +42,11 @@ addpath(genpath('/asl/matlib'));
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 addpath /asl/packages/rtp_prod2/cris;  % uniform_clear_template_...
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp,
-% $$$                                               % cris_[iv]chan
 addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
 addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
 addpath /asl/packages/rtp_prod2/emis;  % add_emis
 addpath /asl/packages/rtp_prod2/util;  % rtpread/write
+addpath ../util
 
 [sID, sTempPath] = genscratchpath();
 
@@ -72,6 +71,8 @@ end
 % Need this later
 ichan_ccast = head.ichan;
 
+% build sub-satellite lat point
+[prof, pattr] = build_satlat(prof, pattr);
 
 % Add profile data
 switch cfg.model
