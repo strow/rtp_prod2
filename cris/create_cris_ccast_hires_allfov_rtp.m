@@ -10,11 +10,14 @@ addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
-addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
-addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp
-addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
+% $$$ addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp
+addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp,
+                                                    % cris_[iv]chan
+% $$$ addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
+addpath /home/sbuczko1/git/rtp_prod2/grib;  % fill_era/ecmwf
 addpath /asl/packages/rtp_prod2/emis;  % add_emis
 addpath /asl/packages/rtp_prod2/util;  % rtpread/write
 addpath /home/sbuczko1/git/matlib/clouds/sarta  %
@@ -24,13 +27,17 @@ addpath /home/sbuczko1/git/matlib/clouds/sarta  %
 
 [sID, sTempPath] = genscratchpath();
 
+cfg.sID = sID;
+cfg.sTempPath = sTempPath;
+
 % read in configuration options from 'cfg'
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 % $$$ sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
 % $$$                'sarta_iasi_may09_wcon_nte'];
 sarta_exec = '/asl/bin/crisg4_oct16';
-sartacld_exec = ['/home/sbuczko1/git/sarta/bin/' ...
-                 'sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3X']; 
+sartacld_exec = ['/asl/bin/' ...
+                 'crisg4_hires_dec17_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3'];
+
 nguard = 2;  % number of guard channels
 nsarta = 4;  % number of sarta guard channels
 model = 'era';
@@ -103,7 +110,7 @@ ichan_ccast = head.ichan;
 fprintf(1, '>>> Add model: %s...', model)
 switch model
   case 'ecmwf'
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr,cfg);
   case 'era'
     [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'merra'
@@ -141,46 +148,50 @@ fprintf(1, '>>> Running klayers: %s ...', run_klayers);
 unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
       '/klayers_' sID '_stdout'])
 fprintf(1, 'Done\n');
-fprintf(1, '>>> Reading klayers output... ');
-% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-fprintf(1, 'Done\n');
 
 % Run sarta
-% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% below for clear,site,etc?) make call to external shell script to
-% run 'N' copies of sarta backgrounded
-fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
-run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-             sTempPath '/sarta_' sID '_stdout.txt'];
-fprintf(1, '>>> Running sarta: %s ...', run_sarta);
-unix(run_sarta);
-fprintf(1, 'Done\n');
-
-% Read in new rcalcs and insert into origin prof field
+if strcmp('csarta', cfg.rta)
+    % *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
+    % below for clear,site,etc?) make call to external shell script to
+    % run 'N' copies of sarta backgrounded
+    fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
+    run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+                 sTempPath '/sarta_' sID '_stdout.txt'];
+    fprintf(1, '>>> Running sarta: %s ...', run_sarta);
+    unix(run_sarta);
+    fprintf(1, 'Done\n');
+    
+    % Read in new rcalcs and insert into origin prof field
 % $$$ stFileInfo = dir(fn_rtp3);
 % $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
 % $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
-fprintf(1, '>>> Reading sarta output... ');
-[h,ha,p,pa] = rtpread(fn_rtp3);
-fprintf(1, 'Done\n');
-
-% Go get output from klayers, which is what we want except for rcalc
+    fprintf(1, '>>> Reading sarta output... ');
+    [h,ha,p,pa] = rtpread(fn_rtp3);
+    fprintf(1, 'Done\n');
+    
+    % Go get output from klayers, which is what we want except for rcalc
 % $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
 % Insert rcalc for CrIS derived from IASI SARTA
-prof.rclr = p.rcalc;
-head.pfields = 7;
-
+    prof.rclr = p.rcalc;
+    head.pfields = 7;
+    
 % $$$ 
 % $$$ % run driver_sarta_cloud to handle klayers and sarta runs
-% $$$ run_sarta.clear=+1;
-% $$$ run_sarta.cloud=+1;
-% $$$ run_sarta.cumsum=-1;
-% $$$ run_sarta.klayers_code = klayers_exec;
-% $$$ run_sarta.sartaclear_code = sarta_exec;
-% $$$ run_sarta.sartacloud_code = sartacld_exec;
-% $$$ 
-% $$$ prof = driver_sarta_cloud_rtp(head, hattr, prof0, pattr, ...
-% $$$                                run_sarta);
+    sarta_cfg.clear=+1;
+    sarta_cfg.cloud=+1;
+    sarta_cfg.cumsum=-1;
+    sarta_cfg.klayers_code = klayers_exec;
+    sarta_cfg.sartaclear_code = sarta_exec;
+    sarta_cfg.sartacloud_code = sartacld_exec;
+    
+    prof = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
+                                  sarta_cfg);
+else if strcmp('isarta', cfg.rta)
+        [head, hattr, prof, pattr] = rtpread(fn_rtp2);
+        [head, hattr, prof, pattr] = run_sarta_iasi(head, hattr, ...
+                                                    prof, pattr, ...
+                                                    cfg);
+end
 
 end  % end function
 

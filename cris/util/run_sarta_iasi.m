@@ -1,6 +1,15 @@
-function [head, hattr, prof, pattr] = run_sarta_iasi(head, hattr, prof, pattr, opts)
+function [head, hattr, prof, pattr] = run_sarta_iasi(head, hattr, prof, pattr, cfg)
 funcname = 'run_sarta_iasi';
 fprintf(1, '>> Running %s \n', funcname);
+
+sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
+               'sarta_iasi_may09_wcon_nte'];
+if isfield(cfg, 'sarta_exec')
+    sarta_exec = cfg.sarta_exec;
+end
+
+sTempPath = cfg.sTempPath;
+sID = cfg.sID;
 
 % Now run IASI SARTA 
 % Remove CrIS channel dependent fields before doing IASI calc
@@ -13,8 +22,8 @@ if (isfield(prof,'robs1'))
   prof = rmfield(prof,'robs1');
   head.pfields = head.pfields - 4;
 end
-if (isfield(prof,'rcalc'))
-  prof = rmfield(prof,'rcalc');
+if (isfield(prof,'rclr'))
+  prof = rmfield(prof,'rclr');
   head.pfields = head.pfields - 2;
 end
 if (isfield(prof,'calflag'))
@@ -85,9 +94,10 @@ ireal = find(ichan_ccast <= 2211);
 
 % $$$ rad_cris(ireal,:) = tmp_rad_cris;
 rad_cris = tmp_rad_cris;
-% Go get output from klayers, which is what we want except for rcalc
+% Go get output from klayers, which is what we want except for rclr
 [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-% Insert rcalc for CrIS derived from IASI SARTA
-prof.rcalc = real(rad_cris); 
+prof = rmfield(prof, 'rcalc');
+% Insert rclr for CrIS derived from IASI SARTA
+prof.rclr = real(rad_cris); 
 
 end  % end function

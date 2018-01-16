@@ -14,6 +14,6 @@ for i=1:length(prof.rlat)
     sat_lat = nanmean(prof.rlat(k));
     prof.udef(UDEFINDEX,i) = sat_lat;
 end
-pattr{end+1} = {'profiles' sprintf('udef(%d,:)', UDEFINDEX) 'sub-satellite latitude'}'
+pattr{end+1} = {'profiles' sprintf('udef(%d,:)', UDEFINDEX) 'sub-satellite latitude'}';
 
 end

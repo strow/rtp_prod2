@@ -34,11 +34,12 @@ for i = 1:chunk
                                                       cfg);
     % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
-    % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+    % /asl/data/cris/ccast/SDR_j01_s45/2018/005/CrIS_SDR_j01_s45_d20180105_t0006010_g002_v20a.mat
+    % for jpss-1 testing
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    cris_yearstr = C{7};
-    cris_doystr = C{8};
+    cris_yearstr = C{8};
+    cris_doystr = C{9};
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
@@ -58,7 +59,7 @@ for i = 1:chunk
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{2}, C{3});
+                        C{5}, C{6});
         rtp_outname = fullfile(sPath, fname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');

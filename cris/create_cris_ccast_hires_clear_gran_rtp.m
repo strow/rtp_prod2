@@ -35,15 +35,17 @@ if nguard > nsarta
                 '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
     return
 end
-
+    
 
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
 addpath /asl/packages/rtp_prod2/cris;  % uniform_clear_template_...
-addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
-addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
+% addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
+addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
+% $$$ addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
+addpath /home/sbuczko1/git/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis;  % add_emis
 addpath /asl/packages/rtp_prod2/util;  % rtpread/write
 addpath ../util
@@ -77,7 +79,7 @@ ichan_ccast = head.ichan;
 % Add profile data
 switch cfg.model
   case 'ecmwf'
-    [prof,head,pattr]=fill_ecmwf(prof,head,pattr);
+    [prof,head,pattr]=fill_ecmwf(prof,head,pattr,cfg);
   case 'era'
     [prof,head,pattr]=fill_era(prof,head,pattr);
   case 'merra'
@@ -121,6 +123,22 @@ rtpwrite(fn_rtp1,head,hattr,prof,pattr);
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
 unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 
+% scale gas concentrations, if requested in config
+if isfield(cfg, 'scaleCO2') | isfield(cfg, 'scaleCH4')
+    % read in klayers output
+    [hh,hha,pp,ppa] = rtpread(fn_rtp2);
+    delete fn_rtp2
+    if isfield(cfg, 'scaleCO2')
+        pp.gas_2 = pp.gas_2 * cfg.scaleCO2;
+        pattr{end+1} = {'profiles' 'scaleCO2' sprintf('%f', cfg.scaleCO2)};
+    end
+    if isfield(cfg, 'scaleCH4')
+        pp.gas_6 = pp.gas_6 * cfg.scaleCH4;
+        pattr{end+1} = {'profiles' 'scaleCH4' sprintf('%f', cfg.scaleCH4)};        
+    end
+    rtpwrite(fn_rtp2,hh,hha,pp,ppa)
+end
+    
 % run sarta
 
 % if using IASI sarta

@@ -4,11 +4,11 @@
 %
 % Modify to include era?
 
-function [prof, head, pattr] = fill_ecmwf(prof, head, pattr);
+function [prof, head, pattr] = fill_ecmwf(prof, head, pattr, cfg);
 
 % Check args in and out to see if they conform to the new API and
 % aren't split between old and new styles
-if nargin ~= nargout
+if (nargin < 4) & (nargin ~= nargout)
     error(['>>> ERROR: mismatch between fill_ecmwf inputs and ' ...
            'outputs.\n\tUse either [p,h]=fill_ecmwf(p,h) or ' ...
            '[p,h,pa]=fill_ecmwf(p,h,pa) (preferred)\n\tTerminating'], '\n');
@@ -22,7 +22,13 @@ fhdr = '/asl/data/ecmwf_nc/';
 
 ename = '';  % This should be placed outside a rtp file loop
 
-mtime = tai2dnum(prof.rtime);
+offset = 0;
+if (nargin == 4) & isfield(cfg, 'ecmwf_offset')
+    offset = cfg.ecmwf_offset;  % offset time for CrIS2
+                                % cal testing (ECMWF lag)
+end
+mtime = tai2dnum(prof.rtime) - offset;  
+                            
 
 nobs = length(mtime);  % for missing ecmwf file check
 goodObs = [];
@@ -76,7 +82,7 @@ if length(goodObs) < nobs
                                          % ecmwf files
 
     % rebuild u_enames
-    mtime = tai2dnum(prof.rtime);
+    mtime = tai2dnum(prof.rtime) - offset; % offset time from config
     enames = get_ecmwf_enames(mtime);
     [u_enames, ia, ic] = unique(enames);
     n = length(u_enames);
