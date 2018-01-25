@@ -1,4 +1,4 @@
-function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_gran_rtp(fnCrisInput, cfg)
+function [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_clear_gran_rtp(fnCrisInput, cfg)
 % PROCESS_CRIS_HIRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
@@ -49,16 +49,52 @@ addpath /home/sbuczko1/git/rtp_prod2/grib
 addpath /asl/packages/rtp_prod2/emis;  % add_emis
 addpath /asl/packages/rtp_prod2/util;  % rtpread/write
 addpath ../util
+addpath /home/sbuczko1/git/matlab2012/cris/readers  % sdr read
+                                                    % functions
+addpath /home/sbuczko1/git/ccast/test;  % read_SCRIF
 
 [sID, sTempPath] = genscratchpath();
 
 % Load up rtp
-[head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard, nsarta);
-%%** second parameter sets up the use of 4 CrIS guard
-%%channels. Looking at head.ichan and head.vchan shows some
-%%similarity to the cris channel description in
-%%https://hyperearth.wordpress.com/2013/07/09/cris-rtp-formats/, at
-%%least for the first set of guard channels
+% Load up rtp
+[prof, pattr] = readsdr_rtp(fnCrisInput);
+
+% load up profile attributes
+[~, ~, attr] = read_SCRIF(fnCrisInput,1);
+
+if length(attr.Ascending_Descending_Indicator) > 1
+    fprintf(2, '** Multiple asc/desc indicators found **\n');
+    return
+end
+prof.iudef(4,:) = ones(1,length(prof.rtime),'int32') * int32(attr.Ascending_Descending_Indicator);
+
+% remove partial scanlines (atrack 1&5) to keep from killing clear
+% filter routine. Ideally, these should be matched up with partial
+% tracks from previous and succeeding granules. Just tossing them
+% for now.
+ind51 = find(prof.atrack ~= 1 & prof.atrack ~= 5);
+prof2 = rtp_sub_prof(prof, ind51);
+prof = prof2;
+clear prof2
+
+%-------------------
+% set header values
+%-------------------
+head = struct;
+load '/home/sbuczko1/git/rtp_prod2/cris/CrIS_ancillary'
+head.nchan = nchan;
+head.ichan = ichan;
+head.vchan = vchan;
+% $$$ head.ichan = cris_ichan(nguard, nsarta, nLW, nMW, nSW);
+% $$$ head.vchan = cris_vchan(nguard, userLW, userMW, userSW);
+head.pfields = 4; % 4 = IR obs
+
+%-----------------------
+% set header attributes
+%-----------------------
+hattr = {{'header', 'instid', 'CrIS'}, ...
+         {'header', 'reader', 'readsdr_rtp'}, ...
+        };
 
 % check that [iv]chan are column vectors
 temp = size(head.ichan);
