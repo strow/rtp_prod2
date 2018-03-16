@@ -8,6 +8,8 @@ if isfield(cfg, 'sarta_exec')
     sarta_exec = cfg.sarta_exec;
 end
 
+ichan_ccast = head.ichan;
+
 sTempPath = cfg.sTempPath;
 sID = cfg.sID;
 
@@ -75,7 +77,7 @@ clear rad_pt1 rad_pt2
 % Convert IASI radiances to CrIS
 opt.hapod = 0;  % Want sinc from iasi2cris
 opt.resmode = 'hires2'; % CrIS mode after Dec. 4, 2014
-opt.nguard = nguard; % adding 2 guard channels
+opt.nguard = cfg.nguard; % adding 2 guard channels
 
 % Convert Iasi to CrIS
 [tmp_rad_cris, f_cris] = iasi2cris(rad_iasi,fiasi,opt);
@@ -95,8 +97,8 @@ ireal = find(ichan_ccast <= 2211);
 % $$$ rad_cris(ireal,:) = tmp_rad_cris;
 rad_cris = tmp_rad_cris;
 % Go get output from klayers, which is what we want except for rclr
-[head, hattr, prof, pattr] = rtpread(fn_rtp2);
-prof = rmfield(prof, 'rcalc');
+[head, hattr, prof, pattr] = rtpread(cfg.fn_rtp2);
+% $$$ prof = rmfield(prof, 'rclr');
 % Insert rclr for CrIS derived from IASI SARTA
 prof.rclr = real(rad_cris); 
 
