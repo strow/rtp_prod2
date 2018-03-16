@@ -19,17 +19,24 @@ nobs = nfovs*nfors*nscans;
 % build user grid structures (These are packaged in Howard's ccast
 % product but not in UW cris. Creating them here let's us use
 % Howard's routines later)
-if nargin < 2 | (nargin == 2 & opt.resmode == 'lowres')
+if nargin < 2 | (nargin == 2 & strcmp(opt.resmode,'lowres'))
     userLW = struct('v1',650,'v2',1095,'opd',0.800,'vr',15,'dv', ...
                     0.6250,'band','LW');
     userMW = struct('v1',1210,'v2',1750,'opd',0.400,'vr',20, ...
                     'dv',1.2500,'band','MW');
     userSW = struct('v1',2155,'v2',2550,'opd',0.200,'vr', ...
                     22,'dv',2.500,'band','SW');
+elseif nargin ==2 & strcmp(opt.resmode,'hires')
+    userLW = struct('v1',650,'v2',1095,'opd',0.800,'vr',15,'dv', ...
+                    0.6250,'band','LW');
+    userMW = struct('v1',1210,'v2',1750,'opd',0.800,'vr',20, ...
+                    'dv',0.6250,'band','MW');
+    userSW = struct('v1',2155,'v2',2550,'opd',0.800,'vr', ...
+                    20,'dv',0.6250,'band','SW');
 else
-    % code not currently configured for cris hi-res: fail gently
-    fprintf(1, ['** Code not currently configured for requested hi ' ...
-                'resolution mode. Exiting\n'])
+    % Something's wrong: fail gently
+    fprintf(1, ['** Problem setting parameters for resolution mode ' ...
+                'Exiting\n'])
     head = NaN; hattr = NaN; prof = NaN; pattr = NaN;
     return
 end
@@ -42,11 +49,12 @@ prof.rlon = single(reshape(s.lon, 1, nobs));
 
 % Obs times are TAI93 times (like AIRS) but need to be TAI58 for
 % consistency wth other downstream processing
-temp = reshape(airs2tai(s.obs_time_tai), 1, nfors*nscans);
+temp = reshape(airs2tai(s.obs_time_tai93), 1, nfors*nscans);
 prof.rtime = reshape(ones(9,1)*temp, 1, nobs);
 clear temp;
 
-prof.satzen = reshape(s.sat_zen, 1, nobs);
+% $$$ prof.satzen = reshape(s.sat_zen, 1, nobs);
+prof.satzen = rectify_satzen(s, nfile);
 prof.satazi = reshape(s.sat_azi, 1, nobs);
 prof.solzen = reshape(s.sol_zen, 1, nobs);
 prof.solazi = reshape(s.sol_azi, 1, nobs);

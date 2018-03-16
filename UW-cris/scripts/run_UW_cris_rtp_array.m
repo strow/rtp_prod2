@@ -6,14 +6,17 @@ function run_UW_cris_rtp_array()
 % and source from
 % /home/strow/Work/Cris/Nasa/L1b/beta3
 
-infilepath = '/home/strow/Work/Cris/Nasa/L1b/beta3';
+infilepath = '/asl/s1/strow/L1b_J1/v2.1b4_a2_mod_20180131/2018/021';
 
-outfilepath = ['/home/sbuczko1/testoutput/rtp_cris_UW_lowres/clear/' ...
-               '2016'];
+outfilepath = ['/asl/rtp/rtp_cris_UW_hires/clear/' ...
+               '2018/021'];
+if exist(outfilepath) == 0
+    mkdir(outfilepath);
+end
 
 files = dir(fullfile(infilepath, '*.nc'));
 
-fileindex = str2num(getenv('SLURM_ARRAY_TASK_ID')) + 1;
+fileindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
 thisfile = files(fileindex).name;
 
@@ -26,15 +29,17 @@ fnCrisInput = fullfile(infilepath, thisfile);
 C = strsplit(thisfile, '.');
 % make output filename like:
 % uwcris_20160120T2312_g233_clear.rtp
-sName = ['uwcris_' C{4} '_' C{6} '_clear.rtp'];
+sName = ['uwcris_ecmwf_' C{4} '_' C{6} '_clear.rtp'];
 fnCrisOutput = fullfile(outfilepath, sName);
 
 % process netcdf file to rtp
 try
-    create_uwcris_lowres_rtp(fnCrisInput, fnCrisOutput);
+    [h,ha,p,pa] = create_uwcris_lowres_rtp(fnCrisInput);
 catch
     fprintf(2, '>>> Error converting granule: %s  :: skipping\n', ...
             files(i).name);
 end
+
+rtpwrite(fnCrisOutput, h,ha,p,pa);
 
 fprintf(1, '> Done\n');
