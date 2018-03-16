@@ -11,7 +11,7 @@ addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
 addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
-airs_daily_file_list = '~/airicrad_days_to_process.txt';
+airs_daily_file_list = '~/rtp_gen_files/airicrad_days_to_process.txt';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -42,7 +42,7 @@ for i = 1:chunk
     end
 
     cfg.model = 'era';
-    outfile_head = '/home/sbuczko1/WorkingFiles/rtp_airicrad_v6';
+    outfile_head = '/asl/rtp/rtp_airicrad_v6';
     create_airicrad_random_nadir_rtp(inpath, outfile_head, cfg);
     
 end  % ends loop over chunk

@@ -44,7 +44,7 @@ if exist(outfile_base) == 0
     status = mkdir(outfile_base);
 end
 outfile_path = fullfile(outfile_base, ...
-                        sprintf('%s_airicrad_day%s_random.rtp', ...
+                        sprintf('%s_airicrad_day%s_random_fs.rtp', ...
                                 cfg.model, sDoy));
 
 % $$$ if exist(outfile_path) ~= 0
@@ -76,7 +76,7 @@ for i=1:length(files)
 
         
     % filter out desired FOVs/scan angles 
-    fovs = [43:48];  % [45 46] original, [43:48] current nadir,
+    fovs = [1:90];  % [45 46] original, [43:48] current nadir,
                      % [1:90]  full swath
     nadir = ismember(p.xtrack,fovs);
     % rtp has a 2GB limit so we have to scale number of kept FOVs
