@@ -2,6 +2,7 @@ function run_cris_lr_random_day_batch()
 set_process_dirs;
 addpath(genpath(rtp_sw_dir));
 addpath('/asl/packages/rtp_prod2/util');
+addpath /home/sbuczko1/git/rtp_prod2/cris;
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));   % 0-19999
@@ -38,7 +39,7 @@ for i = 1:chunk
     % cris-files-process.txt, then, contains lines like:
     %    /asl/data/cris/ccast/sdr60_hr/2015/048/SDR_d20150217_t1126169.mat
     [status, indir] = system(sprintf('sed -n "%dp" %s | tr -d "\n"', ...
-                                      fileindex, '/home/sbuczko1/cris-days-to-process'));
+                                      fileindex, '/home/sbuczko1/rtp_gen_files/cris-days-to-process'));
 
     % call the processing function
     cfg.model = 'era';

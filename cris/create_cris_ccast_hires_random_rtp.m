@@ -1,8 +1,8 @@
-function [head, hattr, prof, pattr] = create_cris_ccast_hires_allfov_rtp(fnCrisInput, cfg)
+function [head, hattr, prof, pattr] = create_cris_ccast_hires_random_rtp(fnCrisInput, cfg)
 % PROCESS_CRIS_HIRES process one granule of CrIS data
 %
 % Process a single CrIS hires .mat granule file.
-funcname = 'create_cris_ccast_hires_allfov_rtp';
+funcname = 'create_cris_ccast_hires_random_rtp';
 
 fprintf(1, '>> Running %s for input: %s\n', funcname, fnCrisInput);
 
@@ -63,7 +63,7 @@ if nargin == 2
                     '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
         return
     end
-    asType = {'allfov'};
+    asType = {'random'};
     if isfield(cfg, 'SaveType')
         asType = cfg.SaveType;
     end
@@ -78,6 +78,9 @@ end  % end if nargin == 2
 
 % Load up rtp
 [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard, nsarta);
+if length(prof.rtime) == 0
+    return
+end
 
 % check ichan index order (to avoid problems with rtpwrite)
 temp = size(head.ichan);
@@ -88,6 +91,32 @@ temp = size(head.vchan);
 if temp(2) > 1
     head.vchan = head.vchan';
 end
+
+% filter out desired FOVs/scan angles
+fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... ');
+% $$$ fors = [15 16];  % Indices for desired Fields of Regard (FOR)
+fors = [1:30];
+
+nadir = ismember(prof.xtrack,fors);
+
+% rtp has a 2GB limit so we have to scale number of kept FOVs
+% to stay within that as an absolute limit. Further, we
+% currently restrict obs count in random to ~20k to match
+% historical AIRXBCAL processing
+limit = 95000;  % number of obs to keep
+nswath = 45;  % length of ccast granules
+ngrans = 240;  % number of granules per day
+nfovs = 9;  % number of FOVs per FOR
+maxobs = nswath * length(fors) * nfovs * ngrans;
+scale = (limit/maxobs)*1.6; % preserves ~95k obs/day 
+randoms = get_equal_area_sub_indices(prof.rlat, scale);
+nrinds = find(nadir & randoms);
+if length(nrinds) == 0
+    return
+end
+crprof = rtp_sub_prof(prof, nrinds);
+prof=crprof;
+clear crprof;
 
 % build sub satellite lat point
 [prof, pattr] = build_satlat(prof,pattr);
@@ -102,6 +131,9 @@ end
 % $$$ prof_sub = prof;
 % $$$ prof = rtp_sub_prof(prof_sub, iTest);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Need this later
+ichan_ccast = head.ichan;
 
 % Add profile data
 fprintf(1, '>>> Add model: %s...', model)
@@ -185,7 +217,6 @@ if strcmp('csarta', cfg.rta)
                                   sarta_cfg);
 else if strcmp('isarta', cfg.rta)
         [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-        cfg.fn_rtp2 = fn_rtp2;
         [head, hattr, prof, pattr] = run_sarta_iasi(head, hattr, ...
                                                     prof, pattr, ...
                                                     cfg);

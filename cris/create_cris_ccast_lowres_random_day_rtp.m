@@ -137,8 +137,9 @@ for i=1:numel(fnLst1)
 
     % filter out desired FOVs/scan angles
     fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... ');
-    fors = [15 16];  % Indices for desired Fields of Regard (FOR)
-                    % ([15,16]: center/nadir track)
+    fors = [1:30];
+% $$$     fors = [15 16];  % Indices for desired Fields of Regard (FOR)
+% $$$                     % ([15,16]: center/nadir track)
     nadir = ismember(p.xtrack,fors);
     % rtp has a 2GB limit so we have to scale number of kept FOVs
     % to stay within that as an absolute limit. Further, we
@@ -219,7 +220,7 @@ prof0 = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
 % cris lowres data will be stored in
 % /asl/data/rtp_cris_ccast_lowres/{clear,dcc,site,random}/<year>/<doy>
 %
-asType = {'random'};
+asType = {'random_fs'};
 cris_out_dir = '/asl/rtp/rtp_cris_ccast_lowres';
 % $$$ cris_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres';
 for i = 1:length(asType)
