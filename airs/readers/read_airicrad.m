@@ -182,7 +182,7 @@ gdata.iudef(2,:) = junk2(i0);
 %
 junk = permute(hdfread(fn, 'L1cProc'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
-gdata.iudef(3,:,:) = junk2(i0);
+gdata.iudef(3,:,:) = junk2(:,i0);
 %
 junk = cell2mat(hdfread(fn, 'scan_node_type'));
 junk2 = reshape( (ones(90,1)*double(junk))', 1,nobs);
@@ -190,7 +190,7 @@ gdata.iudef(4,:) = junk2(i0);
 
 junk = permute(hdfread(fn, 'L1cSynthReason'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
-gdata.iudef(5,:,:) = junk2(i0);
+gdata.iudef(5,:,:) = junk2(:,i0);
 %
 junk = hdfread(fn, 'SceneInhomogeneous');
 junk2 = reshape( double(junk'), 1,nobs);
@@ -198,7 +198,7 @@ gdata.iudef(6,:) = junk2(i0);
 %
 junk = permute(hdfread(fn, 'AB_Weight'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
-gdata.iudef(7,:,:) = junk2(i0);
+gdata.iudef(7,:,:) = junk2(:,i0);
 %
 
 % udefs (maximum of 20?)
@@ -217,7 +217,7 @@ gdata.udef(5,:) = junk2(i0);
 %
 junk = permute(hdfread(fn, 'NeN'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
-gdata.udef(6,:,:) = junk2(i0);
+gdata.udef(6,:,:) = junk2(:,i0);
 %
 junk = hdfread(fn, 'Inhomo850');
 junk2 = reshape( double(junk'), 1,nobs);
