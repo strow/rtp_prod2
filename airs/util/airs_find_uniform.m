@@ -1,5 +1,5 @@
-function [dbtun, mbt] = airs_uniform(head, prof, idtest);
-% AIRS_UNIFORM FOV spatial uniformity check
+function [dbtun, mbt] = airs_find_uniform(head, prof);
+% AIRS_FIND_UNIFORM FOV spatial uniformity check
 % *** build 3x3 FOR/FOV like structure by grouping AIRs scanlines
 % *** in groups of 3 atracks
 %
@@ -11,22 +11,26 @@ function [dbtun, mbt] = airs_uniform(head, prof, idtest);
 %    head    - [structure] RTP header with required fields: (ichan, vchan)
 %    prof    - [structure] RTP profiles with required fields: (robs1,
 %                 rtime, ifov, atrack, xtrack, findex)
-%    idtest  - [1 x ntest] ID of test channels
 %
 % Output:
 %    dbtun   - [1 x nobs] max delta BT {K}; -9999 if no data
 %    mbt     - [1 x nobs] mean BTobs {K} used in dbtun tests
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sFuncName = 'airs_uniform';
+sFuncName = 'airs_find_uniform';
+
+% Test channels (wn) (chosen as closest to corresponding channels in cris uniform clear
+%           1       2
+ftest = [819.312;961.060];
+ntest = length(ftest);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Find indices of idtest in head.ichan
+[indtest, deltas] = matchWN2Ind(ftest, head.vchan);
 
 % Check input %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if (nargin ~= 3)
+if (nargin ~= 2)
    error(sprintf('>>> %s: unexpected number of input arguments',sFuncName))
-end
-d = size(idtest);
-if (length(d) ~=2 | min(d) ~= 1)
-   error(sprintf('>>> %s: unexpected dimensions for argument idtest',sFuncName))
 end
 
 % Required fields %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -45,15 +49,6 @@ for ii=1:length(preq)
     end 
 end
 
-% Determine indices of idtest in head.ichan
-[idtestx,indtest,~] = intersect(head.ichan,idtest);
-ntest = length(idtest);
-if (length(idtestx) ~= ntest)
-   error('did not find all idtest in head.ichan')
-end
-clear idtestx
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % AIRS observations come as a scanline of single FOVs which can addressed directly
 % by values of prof.xtrack and prof.atrack. Gymnastics similar to CrIS will still be 
@@ -64,7 +59,6 @@ clear idtestx
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Compute BT of test channels
-ftest = head.vchan(indtest);
 r = prof.robs1(indtest,:);
 ibad = find(r < 1E-6);
 r(ibad)=1E-6;
@@ -83,15 +77,7 @@ clear r
 f100a = round(200*prof.findex + prof.atrack); % exact integer
 uf100a = unique(f100a);
 nscan = length(uf100a);
-tscan = zeros(1,nscan);
-for ii=1:nscan
-   jj = find(f100a == uf100a(ii));
-   tscan(ii) = mean(prof.rtime(jj));
-end
 nobs = length(prof.findex);
-
-% Adjacent AIRS scanlines are around 2.667 seconds apart; round up to 3
-dtamax = 3;
 
 % Compute dbtun
 dbtun = -9999*ones(1,nobs);
@@ -99,6 +85,14 @@ dbtun = -9999*ones(1,nobs);
 ix = 2:89;
 ixm1 = ix - 1;
 ixp1 = ix + 1;
+% REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% above, we define 2 test channels and then average the radiances 
+% in those channel in the array mbt which is used later for the actual
+% uniformity test. At the point of that test, the dbt array defined here
+% becomes an 8x88 array of BT diffs between scanline interior FOVs and 
+% all neighbors. The following array definition never has relevance. Is
+% this the way it should be done or do we need to do tests by channel and 
+% average afterwards?
 dbt = zeros(ntest,length(ix));
 
 FOVsPerScan = 90;  % 90 FOVs/AIRS scanline  (CrIS has 270)
@@ -113,37 +107,35 @@ for ii=2:nscan-1
    if (length(indscan) ~= FOVsPerScan)
       error(sprintf('>>> %s: unexpected length for indscan', sFuncName))
    end
-   dtscan = tscan(ii) - tscan;
-   iprev = find(dtscan > 0 & dtscan < dtamax);
-   inext = find(dtscan < 0 & dtscan > -dtamax);
+
+   iprev = ii-1;
+   inext = ii+1;
 
    % Grab previous row
-   if (length(iprev) == 1)
-      indprev = find(f100a == uf100a(iprev));
-      if (length(indprev) ~= FOVsPerScan)
-	 error(sprintf('>>> %s: unexpected length for indprev', sFuncName))
-      end
+   indprev = find(f100a == uf100a(iprev));
+   if (length(indprev) ~= FOVsPerScan)
+      error(sprintf('>>> %s: unexpected length for indprev', sFuncName))
    end
    % Grab next row
-   if (length(inext) == 1)
-      indnext = find(f100a == uf100a(inext));
-      if (length(indnext) ~= FOVsPerScan)
-	 error(sprintf('>>> %s: unexpected length for indnext', sFuncName))
-      end
+   indnext = find(f100a == uf100a(inext));
+   if (length(indnext) ~= FOVsPerScan)
+      error(sprintf('>>> %s: unexpected length for indnext', sFuncName))
    end
-      btp = mbt(indnext);
-      btc = mbt(indscan);
-      btn = mbt(indprev);
-      dbt(1,:) = abs(btc(ix) - btp(ixm1));
-      dbt(2,:) = abs(btc(ix) - btp(ix));
-      dbt(3,:) = abs(btc(ix) - btp(ixp1));
-      dbt(4,:) = abs(btc(ix) - btc(ixm1));
-      dbt(5,:) = abs(btc(ix) - btc(ixp1));
-      dbt(6,:) = abs(btc(ix) - btn(ixm1));
-      dbt(7,:) = abs(btc(ix) - btn(ix));
-      dbt(8,:) = abs(btc(ix) - btn(ixp1));
-      inddbt = indscan(ix);
-      dbtun(inddbt) = max(dbt);
+
+   btp = mbt(indprev);
+   btc = mbt(indscan);
+   btn = mbt(indnext);
+   % build BT diffs between scanline interior FOVs and all neighbors
+   dbt(1,:) = abs(btc(ix) - btp(ixm1));
+   dbt(2,:) = abs(btc(ix) - btp(ix));
+   dbt(3,:) = abs(btc(ix) - btp(ixp1));
+   dbt(4,:) = abs(btc(ix) - btc(ixm1));
+   dbt(5,:) = abs(btc(ix) - btc(ixp1));
+   dbt(6,:) = abs(btc(ix) - btn(ixm1));
+   dbt(7,:) = abs(btc(ix) - btn(ix));
+   dbt(8,:) = abs(btc(ix) - btn(ixp1));
+   inddbt = indscan(ix);
+   dbtun(inddbt) = max(dbt);
 end
 
 %%% end of routine %%%

@@ -1,4 +1,4 @@
-function [idtest, deltas] = matchWN2Ind(ftest, vchan)
+function [indtest, deltas] = matchWN2Ind(ftest, vchan)
 % MATCHWN2IND compare wavenumbers provided in array ftest against those stored
 % in head.vchan to find nearest head.[iv]chan elements
 % corresponding to ftest
@@ -10,17 +10,17 @@ function [idtest, deltas] = matchWN2Ind(ftest, vchan)
 %   vchan   : head.vchan type array of spectral channel wavenumbers
 %
 % OUTPUT:
-%   idtest  : array of size(ftest) containing array indices into
+%   indtest  : array of size(ftest) containing array indices into
 %             vchan corresponding to values nearest ftest entries
 %   deltas  : delta between ftest and vchan entries (for
 %             diagnotics)
 %
 %/////////////////////////////////////////////////
 
-idtest = zeros(size(ftest));
+indtest = zeros(size(ftest));
 deltas = NaN(size(ftest));
 
 for i=1:length(ftest)
     testvals = ones(size(vchan))*ftest(i);
-    [deltas(i), idtest(i)] = min(abs(vchan - testvals));
+    [deltas(i), indtest(i)] = min(abs(vchan - testvals));
 end
