@@ -133,7 +133,7 @@ if ~exist(savPath)
     mkdir(savPath)
 end
 
-  savFil  = ['iasi1_era_d' syr smo sdy '_' subset '.rtp'];
+  savFil  = ['iasi1_era_d' syr smo sdy '_' subset '_fs.rtp'];
   savF    = fullfile(savPath, savFil);
 
   fprintf(1, '>>> Writing to output file: %s\n', savF);
