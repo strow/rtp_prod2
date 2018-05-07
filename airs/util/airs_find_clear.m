@@ -36,9 +36,26 @@ if (nargin < 2 | nargin > 3)
    error(sprintf('>>> %s: unexpected number of input arguments',sFuncName))
 end
 
+% REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% needed until renaming rcalc -> rclr is completed
+% (safe to leave in after but, will be unnecessary)
+% Mostly this is just needed to allow testing with existing allfov rtp data
+% and, in normal use of straight granule reads, this would be handled by the 
+% calling function after running sarta.
+if (isfield(prof, 'sarta_rclearcalc') & isfield(prof, 'rcalc'))
+    prof.rclr = prof.sarta_rclearcalc;
+    prof.rcld = prof.rcalc;
+    prof = rmfield(prof, 'sarta_rclearcalc');
+    prof = rmfield(prof, 'rcalc');
+elseif (isfield(prof, 'rcalc') & ~isfield(prof, 'sarta_rclearcalc'))
+    prof.rclr = prof.rcalc;
+    prof = rmfield(prof, 'rcalc');
+end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Required fields %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 hreq = {'ichan', 'vchan'}; 
-preq = {'robs1', 'rtime'}; 
+preq = {'robs1', 'rclr', 'rtime'}; 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 for ii=1:length(hreq) 
     if (~isfield(head,hreq{ii})) 

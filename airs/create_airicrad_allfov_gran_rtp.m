@@ -109,14 +109,14 @@ if isfield(prof,'zobs')
 end
 
 % Add in model data
-% $$$ fprintf(1, '>>> Running fill_era... ');
-% $$$ [prof,head,pattr]  = fill_era(prof,head,pattr);
-% $$$ head.pfields = 5;
-% $$$ fprintf(1, 'Done\n');
-fprintf(1, '>>> Running fill_ecmwf... ');
-[prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+fprintf(1, '>>> Running fill_era... ');
+[prof,head,pattr]  = fill_era(prof,head,pattr);
 head.pfields = 5;
 fprintf(1, 'Done\n');
+% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
+% $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+% $$$ head.pfields = 5;
+% $$$ fprintf(1, 'Done\n');
 % $$$ fprintf(1, '>>> Running fill_merra... ');
 % $$$ [prof,head,pattr]  = fill_merra(prof,head,pattr);
 % $$$ head.pfields = 5;
@@ -188,7 +188,7 @@ pattr = set_attr(pattr, 'rtime', 'TAI:1958');
 % don't fill up the scratch drive.
 % $$$ delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-rtp_out_fn_head = ['allfov_ecmwf_airicrad_day_' airs_yearstr airs_doystr '_' grannum ...
+rtp_out_fn_head = ['allfov_era_airicrad_day_' airs_yearstr airs_doystr '_' grannum ...
                    '.rtp'];
 fprintf(1, '>>> writing output rtp files... %s/%s\n',sPath,rtp_out_fn_head);
 rtp_out_fn = fullfile(sPath, rtp_out_fn_head);
