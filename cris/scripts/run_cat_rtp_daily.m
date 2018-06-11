@@ -1,4 +1,4 @@
-function  run_cat_rtp_daily()
+function  run_cat_rtp_daily(cfg)
 % CREATE_CAT_RTP_DAILY 
 %
 % read in a directory of rtp files (most likely constituting a day
@@ -8,10 +8,8 @@ function  run_cat_rtp_daily()
 % does the final rtpwrite
 
 addpath('/asl/packages/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('/asl/packages/rtp_prod2/airs');  % sub_airxbcal
 
-% 
-cris_daily_file_list = '~/cris-days-to-process';
+cris_daily_file_list = cfg.driver_file;
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -21,7 +19,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 1;
+chunk = cfg.chunk;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
@@ -47,17 +45,17 @@ for i = 1:chunk
     % /asl/data/rtp_cris_ccast_lowres/clear_daily/<year>/rtp_d<date>_clear.rtp)
     % /home/WorkingFiles/rtp_cris_ccast_lowres/random/YYYY/DOY/cris_lr_era_d20150831_t2323522_random.rtp
     C = strsplit(indir, '/');
-    sYear = C{7};  % changed to fit local diectory structure
-    sDoy = C{8};
-    outpath = fullfile('/home/sbuczko1/WorkingFiles/rtp_cris_ccast_lowres/clear', ...
-                       sYear);
+    sYear = C{6};  % changed to fit local diectory structure
+    sDoy = C{7};
+    outpath = fullfile(cfg.outpath, cfg.type, sYear);
 
     % read in filenames in indir to build output filename
-    mfiles = dir([indir '/era_d*_clear.rtp']);
+    mfiles = dir(fullfile(indir, sprintf('%s_*.rtp', cfg.filebase)));
+
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, ['cris_lr_era_' C{2} '_clear.rtp']);
-% $$$     outfile = fullfile(outpath, [strjoin(C([1:6 8]), '_'), '.rtp']);
+    outfile = fullfile(outpath, sprintf('%s_%s.rtp', cfg.filebase, C{5}));
+
 
     fprintf(1, '>>> Output to: %s\n', outfile);
 
@@ -68,9 +66,10 @@ for i = 1:chunk
         [h,ha,p,pa] = cat_rtp_dir(indir);
 
         % write out concatenated rtp file
-        lmax = 72000;    % to keep output file below HDF4 limit
+        lmax = 65000;    % to keep output file below HDF4 limit
         if length(p.rtime) > lmax
-            p = sub_airxbcal(p, lmax); 
+            rand_ind = randperm(length(p.rtime), lmax);
+            p = rtp_sub_prof(p, rand_ind);
         end  % end if length
             
         try
