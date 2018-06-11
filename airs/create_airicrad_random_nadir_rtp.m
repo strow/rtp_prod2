@@ -39,7 +39,7 @@ addpath(genpath('/home/sbuczko1/git/matlib/'));  % driver_sarta_cloud_rtp.m
 C = strsplit(inpath, '/');
 sYear = C{6};
 sDoy = C{7};
-outfile_base = fullfile(outfile_head, sYear, 'random');
+outfile_base = fullfile(outfile_head, sYear, 'random_fs');
 if exist(outfile_base) == 0
     status = mkdir(outfile_base);
 end
@@ -169,7 +169,7 @@ fprintf(1, 'Done\n');
 % call klayers/sarta cloudy
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
-run_sarta.cumsum=-1;
+run_sarta.cumsum=9999;
 % driver_sarta_cloud_rtp ultimately looks for default sarta
 % executables in Sergio's directories. **DANGEROUS** These need to
 % be brought under separate control for traceability purposes.

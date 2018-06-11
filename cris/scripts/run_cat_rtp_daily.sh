@@ -32,7 +32,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing srun of run_cat_rtp_daily"
-$MATLAB $MATOPT -r "addpath('/asl/packages/rtp_prod2/cris/scripts'); run_cat_rtp_daily(); exit"
+$MATLAB $MATOPT -r "addpath('/asl/packages/rtp_prod2/cris/scripts'); disp('>>Starting script');addpath('/asl/packages/swutils');cfg=ini2struct('$1'); run_cat_rtp_daily(cfg); exit"
     
 echo "Finished with srun of run_cat_rtp_daily"
 

@@ -1,4 +1,4 @@
-function create_airicrad_allfov_gran_rtp(inpath)
+function [head, hattr, prof, pattr] = create_airicrad_cloudy_allfov_gran_rtp(inpath)
 %
 % NAME
 %   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
@@ -13,7 +13,7 @@ function create_airicrad_allfov_gran_rtp(inpath)
 % L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
-func_name = 'create_airicrad_allfov_gran_rtp';
+func_name = 'create_airicrad_cloudy_allfov_gran_rtp';
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
@@ -36,41 +36,10 @@ trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-% /asl/data/airs/L1C/2018/005/AIRS.2018.01.05.001.L1C.AIRS_Rad.v6.1.2.0.G18005103537.hdf
-C = strsplit(inpath, '/');
-airs_doystr = C{7};
-airs_yearstr = C{6};
-% get the granule number
-granfile = C{8};
-C = strsplit(granfile, '.');
-grannum = C{5};
-
-% Make output directory if needed
-asType = {'allfov'};
-for i = 1:length(asType)
-    sPath = fullfile(airibrad_out_dir,char(asType(i)),airs_yearstr,airs_doystr);
-    if exist(sPath) == 0
-        mkdir(sPath);
-    end
-end
-
 % Read the AIRICRAD file
 fprintf(1, '>>> Reading input file: %s   ', inpath);
 [eq_x_tai, freq, prof, pattr] = read_airicrad(inpath);
 fprintf(1, 'Done\n');
-
-% subset if nobs is greater than threshold lmax (to avoid hdf file size
-% limitations and hdfvs() failures during rtp write/read
-% later). Keeps dcc, site and random obs intact and reduces number
-% of clear obs to meet threshold limit
-lmax = 72000;
-fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
-if length(prof.rtime) > lmax
-    fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
-    prof = sub_airxbcal(prof, lmax);
-    fprintf(1, 'Done ***\n');
-    fprintf(1, '>>> *** %d subset obs ***\n', length(prof.rtime));
-end
 
 % Header 
 head = struct;

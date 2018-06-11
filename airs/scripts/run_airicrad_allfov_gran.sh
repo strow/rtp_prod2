@@ -9,7 +9,7 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=short
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
@@ -19,7 +19,7 @@
 #SBATCH --mem=18000
 
 # Previous runs put run time at ~6 minutes for a granule
-#SBATCH --time=01:50:00
+#SBATCH --time=00:50:00
 
 #SBATCH --mail-user=sbuczko1@umbc.edu
 #SBATCH --mail-type=END

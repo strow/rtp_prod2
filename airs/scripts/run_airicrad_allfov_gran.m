@@ -11,7 +11,7 @@ addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
 addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
-airs_daily_file_list = '~/airicrad_grans_to_process';
+airs_daily_file_list = '~/rtp_gen_files/airicrad_grans_to_process';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -21,7 +21,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 4;
+chunk = 1;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
