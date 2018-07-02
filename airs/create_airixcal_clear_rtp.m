@@ -39,7 +39,7 @@ fprintf(1, 'Done\n');
 % klayers/sarta/final output). They are also a mix of
 % clear/site/dcc/random obs. Select clear obs and Trim the dataset
 % here to avoid problems later (can probably make this one rtp_sub_prof)
-maxobs = 6000;
+maxobs = 60000;
 iclear = find(bitget(prof.iudef(1,:),1)); % clear obs
 prof = rtp_sub_prof(prof, iclear);  
 saveinds = randperm(length(prof.rtime), maxobs);
