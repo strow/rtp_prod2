@@ -4,6 +4,9 @@ addpath ..;  % look one level up for create_* functions
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+if ~exist('slurmindex')
+    slurmindex = 0;
+end
 
 chunk = cfg.chunk;
 for i = 1:chunk
@@ -32,11 +35,15 @@ for i = 1:chunk
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
     [gpath, gname, ext] = fileparts(infile);
-% $$$     C = strsplit(gpath, '/');
-% $$$     cris_yearstr = C{7};
-% $$$     cris_doystr = C{8};
-    cris_yearstr = '2018';
-    cris_doystr = '008';
+    C = strsplit(gpath, '/');
+    tstamp = C{end};
+    dt = datetime(tstamp, 'InputFormat', 'yyyyMMdd');
+    iYear = year(dt);
+    iDay = day(dt, 'dayofmonth');
+    iDoy = day(dt, 'dayofyear');
+    cris_yearstr = sprintf('%4d', iYear);;
+    cris_doystr = sprintf('%03d', iDoy);
+
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
