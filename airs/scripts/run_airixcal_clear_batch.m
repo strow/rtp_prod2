@@ -58,7 +58,7 @@ for i = 1:chunk
     iclear = find(bitget(prof.iudef(1,:),1));
 
     asType = {'clear' 'iclear'};
-    if length((asType{1,2})) < 0
+    if length(iclear) < 0
         fprintf(2, '>> AIRS year %4d  day %03d has no %s obs\n', iYear, ...
                 iDoy, asType{1,1});
         break
@@ -74,7 +74,7 @@ for i = 1:chunk
 
     fprintf(1, '>>> writing output rtp files... ');
 
-    prof_subset = rtp_sub_prof(prof,(asType{1,2}));
+    prof_subset = rtp_sub_prof(prof,iclear);
 
     % if nobs is greater than threshold lmax, subset to
     % avoid rtp file size limitations (2GB) 
