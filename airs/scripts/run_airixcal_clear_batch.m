@@ -72,29 +72,26 @@ for i = 1:chunk
 
     rtp_out_fn_head = sprintf('era_airixcal_day%03d', iDoy);
 
-    % Now save the four types of airixcal files
-    
     fprintf(1, '>>> writing output rtp files... ');
 
-    prof_(asType{1,1}) = rtp_sub_prof(prof,(asType{1,2}));
+    prof_subset = rtp_sub_prof(prof,(asType{1,2}));
 
     % if nobs is greater than threshold lmax, subset to
     % avoid rtp file size limitations (2GB) 
     lmax = 6000;
-    nobs = length(prof_(asType{1,1}).rtime);
+    nobs = length(prof_subset.rtime);
     fprintf(1, '>>> *** %d pre-subset obs ***\n', nobs);
     if nobs > lmax
         fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
         saveinds = randperm(nobs, lmax);
-        prof_(asType{1,1}) = rtp_sub_prof(prof_(asType{1,1}), saveinds);
+        prof_subset = rtp_sub_prof(prof_subset, saveinds);
         fprintf(1, 'Done ***\n');
     end
 
     rtp_out_fn = sprintf('%s_%s.rtp', rtp_out_fn_head, asType{1,1});;
     rtp_outname = fullfile(airixcal_out_dir,num2str(iYear), asType{1,1}, rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_(asType{1,1}), ...
-             pattr);
-    clear prof_(asType{1,1})
+    rtpwrite(rtp_outname,head,hattr,prof_subset,pattr);
+    clear prof_subset
 
 end  % for i=1:chunk
 
