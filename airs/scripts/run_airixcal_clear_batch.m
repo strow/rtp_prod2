@@ -7,7 +7,7 @@ airixcal_out_dir = '/asl/rtp/rtp_airixcal_v11';
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-if ~exist(slurmindex)
+if ~exist('slurmindex')
     slurmindex = 0;
 end
 
