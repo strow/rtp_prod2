@@ -4,9 +4,6 @@ addpath ..;  % look one level up for create_* functions
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-if ~exist('slurmindex')
-    slurmindex = 0;
-end
 
 chunk = cfg.chunk;
 for i = 1:chunk
@@ -30,7 +27,11 @@ for i = 1:chunk
 
     % call the processing function
     [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_clear_gran_rtp(infile, cfg);
-
+    if length(prof) == 0
+        fprintf(2, '>> No clear obs found. Exiting.\n');
+        continue
+    end
+    
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing

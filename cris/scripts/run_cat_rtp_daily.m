@@ -13,7 +13,6 @@ cris_daily_file_list = cfg.driver_file;
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-% $$$ slurmindex = 0;
 
 % for each slurm array index, process 30 days from the to-process
 % list (because each day takes less time to process than it takes

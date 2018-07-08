@@ -51,7 +51,7 @@ addpath /asl/packages/rtp_prod2/util;  % rtpread/write
 addpath ../util
 addpath /home/sbuczko1/git/matlab2012/cris/readers  % sdr read
                                                     % functions
-addpath /home/sbuczko1/git/ccast/test;  % read_SCRIF
+addpath /home/sbuczko1/git/ccast/motmsc/utils;  % read_SCRIF
 
 [sID, sTempPath] = genscratchpath();
 
@@ -60,7 +60,7 @@ addpath /home/sbuczko1/git/ccast/test;  % read_SCRIF
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-[~, ~, attr] = read_SCRIF(fnCrisInput,1);
+[~, ~, attr] = read_SCRIF(fnCrisInput);
 
 if length(attr.Ascending_Descending_Indicator) > 1
     fprintf(2, '** Multiple asc/desc indicators found **\n');
@@ -150,6 +150,11 @@ px = uniform_clear_template_lowANDhires_HP(head,hattr,prof,pattr); %% super (if 
 % output rtp splitting from airxbcal processing
 % Subset into four types and save separately
 iclear = find(px.iudef(1,:) == 1);
+if length(iclear) == 0
+    prof = [];
+    return
+end
+
 prof = rtp_sub_prof(px,iclear);
 clear px;
 
