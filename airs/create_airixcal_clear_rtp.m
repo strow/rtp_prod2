@@ -155,7 +155,7 @@ stFileInfo = dir(fn_rtp3);
 fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
 [h,ha,p,pa] = rtpread(fn_rtp3);
-prof.rcalc = p.rcalc;
+prof.rclr = p.rcalc;
 head.pfields = 7;
 hattr{end+1} = {'header' 'sarta' sarta_exec};
 
