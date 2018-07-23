@@ -58,7 +58,7 @@ FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-fprintf(FH,'#SBATCH --partition=production\n');
+fprintf(FH,'#SBATCH --partition=prod\n');
 fprintf(FH,'#SBATCH --qos=medium_prod\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
 fprintf(FH,'#SBATCH --time=07:30:00\n');
