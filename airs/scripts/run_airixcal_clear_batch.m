@@ -78,7 +78,7 @@ for i = 1:chunk
 
     % if nobs is greater than threshold lmax, subset to
     % avoid rtp file size limitations (2GB) 
-    lmax = 60000;
+    lmax = 20000;
     nobs = length(prof_subset.rtime);
     fprintf(1, '>>> *** %d pre-subset obs ***\n', nobs);
     if nobs > lmax

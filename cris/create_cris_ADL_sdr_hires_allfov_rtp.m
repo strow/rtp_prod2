@@ -10,7 +10,7 @@ addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath /asl/packages/ccast/motmsc/utils  % read_SCRIF
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
 % $$$ addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp
@@ -84,7 +84,7 @@ end  % end if nargin == 2
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-[~, ~, attr] = read_SCRIF(fnCrisInput,1);
+[~, ~, attr] = read_SCRIF(fnCrisInput);
 
 if length(attr.Ascending_Descending_Indicator) > 1
     fprintf(2, '** Multiple asc/desc indicators found **\n');

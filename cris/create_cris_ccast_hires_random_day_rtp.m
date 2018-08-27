@@ -6,11 +6,11 @@ funcname = 'create_cris_ccast_hires_random_day_rtp';
 
 fprintf(1, '>> Running %s for input: %s\n', funcname, fnCrisInput);
 
-addpath ./util
-addpath ../emis;  % add_emis
-addpath ../util;  % rtpread/write
-addpath ../grib;  % fill_era/ecmwf
-% $$$ addpath(genpath('/asl/matlib'));
+addpath /home/sbuczko1/git/rtp_prod2/cris/util
+addpath /home/sbuczko1/git/rtp_prod2/emis;  % add_emis
+addpath /home/sbuczko1/git/rtp_prod2/util;  % rtpread/write
+addpath /home/sbuczko1/git/rtp_prod2/grib;  % fill_era/ecmwf
+addpath /asl/matlib/rtptools  % cat_rtp.m
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
 addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
@@ -21,11 +21,14 @@ addpath /home/sbuczko1/git/matlib/clouds/sarta  %
                                                 % has typos)
 
 [sID, sTempPath] = genscratchpath();
+fprintf(1, '>>> Job PROCID = %s\nTEMP Directory = %s\n',sID, ...
+        sTempPath);
 
 cfg.sID = sID;
 cfg.sTempPath = sTempPath;
 
 % read in configuration options from 'cfg'
+fprintf(1, '>>> Configuring default and runtime options\n');
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec = '/asl/bin/crisg4_oct16';
 sartacld_exec = ['/asl/bin/' ...
@@ -35,6 +38,7 @@ nguard = 2;  % number of guard channels
 nsarta = 4;  % number of sarta guard channels
 asType = {'random'};
 outputdir = '/asl/rtp/rtp_cris_ccast_hires';
+gran_stride=1;
 if nargin == 2
     if isfield(cfg, 'klayers_exec')
         klayers_exec = cfg.klayers_exec;
@@ -66,33 +70,38 @@ if nargin == 2
     if isfield(cfg, 'model')
         model = cfg.model;
     end
+    if isfield(cfg, 'gran_stride')
+        gran_stride = cfg.gran_stride;
+    end
 end  % end if nargin == 2
 
 
 % generate a list of the mat files in the the day pointed to by
 % fnCrisInput
-fnLst1 = dir(fullfile(fnCrisInput, 'SDR_d*_t*.mat')); 
+fprintf(1, '>>> Generating list of input granule files.\n');
+fnLst1 = dir(fullfile(fnCrisInput, '*.mat')); 
 numgrans = numel(fnLst1);
-if numgrans ~= 0
-    fprintf(1,'>>> %s Found %d granule files to process\n', ...
-            char(datetime('now', 'Format', 'HHmmss')), numel(fnLst1));
-else
-    fprintf(2, ['>>>> %s ERROR: No granules files found for day %s. ' ...
-                'Exiting.\n'], char(datetime('now', 'Format', 'HHmmss')), fnCrisInput);
+if numgrans == 0
+    fprintf(2, ['>>>> ERROR: No granules found for day %s. ' ...
+                'Exiting.\n'], fnCrisInput);
     return;
 end
 
+% char(datetime('now', 'Format', 'HHmmss'))  makes time string of
+% current time
+
+fprintf(1,'>>> Found %d granule files to process\n', numgrans);
 bFirstGranRead = false;
-stride=1;
-for i=1:stride:numel(fnLst1)
+for i=1:gran_stride:numel(fnLst1)
     % try reading the granule files and concatenate piles for
     % each granule read
-    fprintf(1, '>>> Reading granule #%d/%d\n', i, numel(fnLst1));
+    fpath = fullfile(fnCrisInput,fnLst1(i).name);
+    fprintf(1, '>>> Reading granule #%d/%d: %s\n', i, numgrans, fpath);
     try
-        [h,ha,p,pa] = ccast2rtp(fullfile(fnCrisInput,fnLst1(i).name), nguard);
+        [h,ha,p,pa] = ccast2rtp(fpath, nguard);
     catch
-        fprintf(2, ['>>>> %s ERROR: ccast2rtp failure. Trying ' ...
-                    'next granule\n'], char(datetime('now', 'Format', 'HHmmss')));
+        fprintf(2, ['>>>> ERROR: ccast2rtp failure reading %s.\n\t\tTrying ' ...
+                    'next granule\n'], fpath);
         continue;
     end
     if length(p.rtime) == 0
@@ -119,7 +128,7 @@ for i=1:stride:numel(fnLst1)
     % to stay within that as an absolute limit. Further, we
     % currently restrict obs count in random to ~20k to match
     % historical AIRXBCAL processing
-    limit = 65000;  % number of obs to keep
+    limit = 20000;  % number of obs to keep
     nswath = 45;  % length of ccast granules
     ngrans = 240;  % number of granules per day
     nfovs = 9;  % number of FOVs per FOR

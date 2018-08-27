@@ -9,7 +9,7 @@
 # partition = dev/batch
 #SBATCH --partition=prod
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=medium_prod
+#SBATCH --qos=normal
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem=12000
@@ -19,7 +19,6 @@
 #SBATCH --requeue
 
 #SBATCH --mail-user=sbuczko1@umbc.edu
-#SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-type=REQUEUE
 #SBATCH --mail-type=TIME_LIMIT_50

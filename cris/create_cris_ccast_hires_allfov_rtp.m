@@ -14,8 +14,9 @@ addpath /asl/packages/ccast/source
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
 % $$$ addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp
-addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp,
-                                                    % cris_[iv]chan
+% $$$ addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp,
+% $$$                                                     % cris_[iv]chan
+addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
 % $$$ addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
 addpath /home/sbuczko1/git/rtp_prod2/grib;  % fill_era/ecmwf
 addpath /asl/packages/rtp_prod2/emis;  % add_emis

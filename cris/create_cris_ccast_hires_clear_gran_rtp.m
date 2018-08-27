@@ -21,10 +21,14 @@ end
 nguard = 2;  % number of guard channels
 if isfield(cfg, 'nguard')
     nguard = cfg.nguard;
+else
+    cfg.nguard = nguard;
 end
 nsarta = 4;  % number of sarta guard channels
 if isfield(cfg, 'nsarta')
     nsarta = cfg.nsarta;
+else
+    cfg.nsarta = nsarta;
 end
 % check for validity of guard channel specifications
 if nguard > nsarta
