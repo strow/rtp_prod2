@@ -1,68 +1,61 @@
-function create_airxbcal_allfov_rtp(airs_doy, airs_year)
+function [head, hattr, prof, pattr] = create_airxbcal_allfov_rtp(inpath, ...
+                                                  cfg)
 %
 % NAME
-%   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
+%   create_airxbcal_allfov_rtp -- wrapper to process AIRXBCAL to RTP
 %
 % SYNOPSIS
-%   create_airxbcal_rtp(doy, year, opt)
+%   create_airxbcal_allfov_rtp(inpath, cfg)
 %
 % INPUTS
-%   day   - integer day of year
-%   year  - integer year
-%   opt   - OPTIONAL struct containing misc information
-% L. Strow, Jan. 14, 2015
+%   inpath  :  path to AIRXBCAL daily data file
+%   cfg     :  configuration structure
 %
 % REQUIRES:
 %      /asl/packages/rtp_prod2/airs, util, grib, emis
 %      /asl/packages/swutil
 func_name = 'create_airxbcal_allfov_rtp';
 
-klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+%*************************************************
+% Execute user-defined paths *********************
+REPOBASEPATH = '/home/sbuczko1/git/';
+% $$$ REPOBASEPATH = '/asl/packages/';
 
+PKG = 'rtp_prod2';
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
+
+PKG = 'swutils'
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+%*************************************************
+
+%*************************************************
+% Build configuration ****************************
+klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3
+%*************************************************
+
+%*************************************************
+% Build traceability info ************************
 trace.klayers = klayers_exec;
-trace.sarta = sarta_exec;
+trace.sartaclr = sartaclr_exec;
+trace.sartacld = sartacld_exec;
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                          'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
+%*************************************************
 
-% $$$ airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
-airxbcal_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airxbcal_v5';
-
-% Location of AIRXBCAL year directories
-dn = '/asl/data/airs/AIRXBCAL';
-% Strings needed for file names
-airs_doystr  = sprintf('%03d',airs_doy);
-airs_yearstr = sprintf('%4d',airs_year);
-
-indir = fullfile(dn, airs_yearstr, airs_doystr);
-fn = dir(fullfile(indir, '*.hdf'));
-if (length(fn) > 1)
-    fprintf(1, ['>>> *** More than one input ARIXBCAL hdf file present. Terminating ' ...
-                'processing ***\n']);
-    return;
-elseif (length(fn) == 0)
-    fprintf(1, ['>>> *** No input AIRXBCAL hdf file available. Terminating ' ...
-                'processing ***\n']);
-    return;
-end
-
-fnfull = fullfile(indir,fn.name);
-
-% Read the AIRXBCAL file
+%*************************************************
+% Read the AIRXBCAL file *************************
 fprintf(1, '>>> Reading input file: %s   ', fnfull);
 [prof, pattr, aux] = read_airxbcal(fnfull);
 fprintf(1, 'Done\n');
-
-% subset by 20 during debugging
-bDEBUG=0;
-if bDEBUG
-    fprintf(2, '>>> SUBSETTING FOR DEBUG\n');
-    % subset data 95% for faster debugging/testing runs
-    prof = rtp_sub_prof(prof,1:20:length(prof.rlat));
-end
+%*************************************************
 
 % subset if nobs is greater than threshold lmax (to avoid hdf file size
 % limitations and hdfvs() failures during rtp write/read
@@ -77,23 +70,17 @@ if length(prof.rtime) > lmax
     fprintf(1, '>>> *** %d subset obs ***\n', length(prof.rtime));
 end
 
+%*************************************************
+% Build out rtp structs **************************
+nchan = size(prof.robs1,1);
+chani = (1:nchan)';
+vchan = aux.nominal_freq(:);
+
 % Header 
 head = struct;
 head.pfields = 4;  % robs1, no calcs in file
 head.ptype = 0;    
 head.ngas = 0;
-
-% Assign header attribute strings
-hattr={ {'header' 'pltfid' 'Aqua'}, ...
-        {'header' 'instid' 'AIRS'}, ...
-        {'header' 'githash' trace.githash}, ...
-        {'header' 'rundate' trace.RunDate} };
-
-nchan = size(prof.robs1,1);
-chani = (1:nchan)';
-vchan = aux.nominal_freq(:);
-
-% Assign header variables
 head.instid = 800; % AIRS 
 head.pltfid = -9999;
 head.nchan = length(chani);
@@ -102,13 +89,26 @@ head.vchan = vchan(chani);
 head.vcmax = max(head.vchan);
 head.vcmin = min(head.vchan);
 
+% Assign header attribute strings
+hattr={ {'header' 'pltfid' 'Aqua'}, ...
+        {'header' 'instid' 'AIRS'}, ...
+        {'header' 'githash' trace.githash}, ...
+        {'header' 'rundate' trace.RunDate} };
+
+%*************************************************
+
+%*************************************************
+% rtp data massaging *****************************
 % Fix for zobs altitude units
 if isfield(prof,'zobs')
-   iz = prof.zobs < 20000 & prof.zobs > 20;
-   prof.zobs(iz) = prof.zobs(iz) * 1000;
+    prof = fix_zobs(prof);
 end
+%*************************************************
 
-% Add in Scott's calflag
+%*************************************************
+% Add in Scott's calflag *************************
+% **** Requires running accessory script to get cal info from airibrad
+% **** files for this day 
 fprintf(1, '>>> Matching calflags... ');
 [status, tmatchedcalflag] = mkmatchedcalflag(airs_year, airs_doy, ...
                                             prof);
@@ -135,14 +135,34 @@ for iobsidx = [1:1000:nobs]
 end
 clear aux matchedcalflag;  % reclaiming some memory
 fprintf(1, 'Done\n');
+%*************************************************
 
-% Add in model data
-fprintf(1, '>>> Running fill_era... ');
-[prof,head,pattr]  = fill_era(prof,head,pattr);
-% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
-% $$$ [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
-head.pfields = 5;
+%*************************************************
+% Add in model data ******************************
+fprintf(1, '>>> Add model: %s...', cfg.model)
+switch cfg.model
+  case 'ecmwf'
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
+  case 'era'
+    [prof,head,pattr]  = fill_era(prof,head,pattr);
+  case 'merra'
+    [prof,head,pattr]  = fill_merra(prof,head,pattr);
+end
+% check that we have same number of model entries as we do obs because
+% corrupt model files will leave us with an unbalanced rtp
+% structure which WILL fail downstream (ideally, this should be
+% checked for in the fill_* routines but, this is faster for now)
+[~,nobs] = size(prof.robs1);
+[~,mobs] = size(prof.gas_1);
+if mobs ~= nobs
+    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                'with nobs ***\n'])
+    return;
+end
+clear nobs mobs
+head.pfields = 5;  % robs, model
 fprintf(1, 'Done\n');
+%*************************************************
 
 % Don't use Sergio's SST fix for now
 % [head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
@@ -150,21 +170,26 @@ fprintf(1, 'Done\n');
 % Don't need topography for AIRS, built-in
 % [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
 
+%*************************************************
+% Add surface emissivity *************************
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_ad_emis...');
 [prof,pattr] = rtp_add_emis(prof,pattr);
 fprintf(1, 'Done\n');
+%*************************************************
 
-% Save the rtp file
+%*************************************************
+% Save the rtp file ******************************
 fprintf(1, '>>> Saving first rtp file... ');
 [sID, sTempPath] = genscratchpath();
-
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
+%*************************************************
 
-% run klayers
+%*************************************************
+% run klayers ************************************
 fprintf(1, '>>> running klayers... ');
 fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
 klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
@@ -172,22 +197,19 @@ klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
 unix(klayers_run);
 hattr{end+1} = {'header' 'klayers' klayers_exec};
 fprintf(1, 'Done\n');
+%*************************************************
 
-% Run sarta
-% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% below for clear,site,etc?) make call to external shell script to
-% run 'N' copies of sarta backgrounded
+%*************************************************
+% Run sarta **************************************
 fprintf(1, '>>> Running sarta... ');
 fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
 sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                ' > ' sTempPath '/sartaout.txt'];
 unix(sarta_run);
-
-% $$$ tic;
-% $$$ psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
-% $$$ toc;
 fprintf(1, 'Done\n');
+%*************************************************
 
+%*************************************************
 % Read in new rcalcs and insert into origin prof field
 stFileInfo = dir(fn_rtp3);
 fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
@@ -200,27 +222,7 @@ hattr{end+1} = {'header' 'sarta' sarta_exec};
 % temporary files are no longer needed. delete them to make sure we
 % don't fill up the scratch drive.
 delete(fn_rtp1, fn_rtp2, fn_rtp3);
-
-% Subset into four types and save separately
-%** allfov so no subsetting (except for size limits in rtp output)
-
-% Make directory if needed
-asType = {'allfov'};
-for i = 1:length(asType)
-    sPath = fullfile(airxbcal_out_dir,airs_yearstr,char(asType(i)));
-    if exist(sPath) == 0
-        mkdir(sPath);
-    end
-end
-
-rtp_out_fn_head = ['era_airxbcal_day' airs_doystr];
-% $$$ rtp_out_fn_head = ['new_era_airxbcal_day' airs_doystr];
-% Now save the four types of airxbcal files
-fprintf(1, '>>> writing output rtp files... ');
-
-rtp_out_fn = [rtp_out_fn_head, '_allfov.rtp'];
-rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
-rtpwrite(rtp_outname,head,hattr,prof_clear,pattr);
+%*************************************************
 
 fprintf(1, 'Done\n');
 

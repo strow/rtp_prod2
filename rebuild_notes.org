@@ -1,0 +1,38 @@
+* General structural philosophy
+  - all base 'create' functions take in either a path to a granule or
+    a path to a day of granules and output rtp structures
+  - all general accessory functions (e.g. surface model, emis) need to
+    be the same independent of instrument (thinking of emis and
+    emis_single). This seems to be done because of disparity in
+    datatype (int/float). Such disparity should be solved by
+    transforming the data NOT by writing a second function (unless it
+    is truly and exceptionally necessary)
+  - along the same lines, datatypes within rtp structures need to be
+    the same across instruments. As much as possible, rtp structures
+    should be as common and interchangeable as is possible)
+  - installation of rtp_prod2 needs to not require installation of
+    Howard's entire ccast repo and/or every file sergio has ever
+    written. However, it would still be very nice to not have to spend
+    too much time tracking Howard's and Sergio's code changes
+    manually. (git modules?)
+
+* General template of action (by granule)
+  - set up addpaths
+  - set up configuration defaults
+  - override config defaults with input config settings
+  - read in granule
+  - build out any accessory rtp structure (h,h,pa)
+  - add in model (ecmwf/era/merra)
+  - add surface emissivity model
+  - save rtp structures to temporary file 
+  - run klayers
+  - run sarta
+  - re-read pre-klayers rtp structs (want to store rtp files in levels)
+  - stuff calcs into rtp structs
+  - return to caller
+
+* quibbles and technical details
+  - what is a good way to specify addpaths to various external packages?
+    - needs to flexible such that it can be easily redirected on a new
+      system or to make quick changes on the hpc between production
+      and dev sandbox

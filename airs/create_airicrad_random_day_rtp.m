@@ -1,20 +1,17 @@
-function [head, hattr, prof, pattr] = ...
-    create_airicrad_allfov_gran_rtp(inpath, cfg)
+function [head, hattr, prof, pattr] = create_airicrad_random_day_rtp(inpath, cfg)
 %
 % NAME
-%   create_airicrad_allfov_gran_rtp -- wrapper to process AIRICRAD to RTP
+%   create_airicrad_random_day_rtp -- wrapper to process AIRICRAD to RTP
 %
 % SYNOPSIS
-%   create_airicrad_allfov_gran_rtp(infile, outfile_head)
+%   create_airicrad_random_day_rtp(infile, outfile_head)
 %
 % INPUTS
 %    infile :   path to input AIRICRAD hdf file
-%    outfile_head  : path to output rtp file (minus extension)
-%
-% L. Strow, Jan. 14, 2015
+%    cfg    :   configuration struct
 %
 % DISCUSSION (TBD)
-func_name = 'create_airicrad_allfov_gran_rtp';
+func_name = 'create_airicrad_random_day_rtp';
 
 %*************************************************
 % Execute user-defined paths *********************
@@ -31,9 +28,9 @@ PKG = 'swutils'
 addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
 
 PKG = 'matlib';
-addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
-
-%*************************************************
+% $$$ addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
+addpath('/asl/matlib/rtptools');   % for cat_rtp
+                                   %*************************************************
 
 %*************************************************
 % Build configuration ****************************
@@ -49,61 +46,86 @@ trace.sartaclr = sartaclr_exec;
 trace.sartacld = sartacld_exec;
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
-                         'd-MMM-y HH:mm:ss Z'));
+                              'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 %*************************************************
 
-%*************************************************
-% Read the AIRICRAD file *************************
-fprintf(1, '>>> Reading input file: %s   ', inpath);
-[eq_x_tai, freq, prof, pattr] = read_airicrad(inpath);
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% Build out rtp structs **************************
-nchan = size(prof.robs1,1);
-% $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
-% $$$                     % for chan 2378 and higher
-% following line loads array 'ichan' which gets swapped for chani below
 load /home/sbuczko1/git/rtp_prod2/airs/util/sarta_chans_for_l1c.mat
 
-%vchan = aux.nominal_freq(:);
-vchan = freq;
+% This version operates on a day of AIRICRAD granules and
+% concatenates the subset of random obs into a single output file
+% >> inpath is the path to an AIRS day of data
+% /asl/data/airs/AIRICRAD/<year>/<doy>
+files = dir(fullfile(inpath, '*.hdf'));
 
-% Header 
-head = struct;
-head.pfields = 4;  % robs1, no calcs in file
-head.ptype = 0;    % levels
-head.ngas = 0;
-head.instid = 800; % AIRS 
-head.pltfid = -9999;
-head.nchan = length(ichan); % was chani
-head.ichan = ichan;  % was chani
-head.vchan = vchan; % was vchan(chani)
-head.vcmax = max(head.vchan);
-head.vcmin = min(head.vchan);
+for i=1:length(files)
+    % Read the AIRICRAD file
+    infile = fullfile(inpath, files(i).name);
+    fprintf(1, '>>> Reading input file: %s   ', infile);
+    try
+        [eq_x_tai, freq, p, pattr] = read_airicrad(infile);
+    catch
+        fprintf(2, ['>>> ERROR: failure in read_airicrad for granule %s. ' ...
+                    'Skipping.\n'], infile);
+        continue;
+    end
+    fprintf(1, 'Done. \n')
+    
+    if i == 1 % only need to build the head structure once but, we do
+              % need freq data read in from first data file
+              % Header 
+        head = struct;
+        head.pfields = 4;  % robs1, no calcs in file
+        head.ptype = 0;    
+        head.ngas = 0;
+        
+        % Assign header attribute strings
+        hattr={ {'header' 'pltfid' 'Aqua'}, ...
+                {'header' 'instid' 'AIRS'}, ...
+                {'header' 'githash' trace.githash}, ...
+                {'header' 'rundate' trace.RunDate}, ...
+                {'header' 'klayers_exec' klayers_exec}, ...
+                {'header' 'sartaclr_exec' sartaclr_exec} };
+        
+        nchan = size(p.robs1,1);
+        %vchan = aux.nominal_freq(:);
+        vchan = freq;
+        
+        % Assign header variables
+        head.instid = 800; % AIRS 
+        head.pltfid = -9999;
+        head.nchan = length(ichan);
+        head.ichan = ichan;
+        head.vchan = vchan;
+        head.vcmax = max(head.vchan);
+        head.vcmin = min(head.vchan);
+        fprintf(1, '>> Header struct built\n');
 
-% hattr
-hattr={ {'header' 'pltfid' 'Aqua'}, ...
-        {'header' 'instid' 'AIRS'}
-        {'header' 'githash' trace.githash}, ...
-        {'header' 'rundate' trace.RunDate} };
+            
+        % profile attribute changes for airicrad
+        pa = set_attr('profiles', 'robs1', infile);
+        pa = set_attr(pa, 'rtime', 'TAI:1958');
 
-% profile attribute changes for airicrad
-pattr = set_attr(pattr, 'robs1', inpath);
-pattr = set_attr(pattr, 'rtime', 'TAI:1958');
+    end  % end if i == 1
 
-%*************************************************
+        p = equal_area_nadir_select(prof0,cfg);  % select for
+                                                 % random/nadir obs
+        if ~exist('prof')
+            prof = p;
+        else
+            % concatenate new random rtp data into running random rtp structure
+            [head, prof] = cat_rtp(head, prof, head, p);
+        end
+	      
+end  % end for i=1:length(files)
 
-%*************************************************
+	      %*************************************************
 % rtp data massaging *****************************
 % Fix for zobs altitude units
 if isfield(prof,'zobs')
     prof = fix_zobs(prof);
 end
-%*************************************************
 
 %*************************************************
 % Add in model data ******************************
@@ -127,8 +149,8 @@ if mobs ~= nobs
                 'with nobs ***\n'])
     return;
 end
-clear nobs mobs
-head.pfields = 5;  % robs, model
+
+head.pfields = 5;
 fprintf(1, 'Done\n');
 %*************************************************
 
@@ -137,20 +159,20 @@ fprintf(1, 'Done\n');
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis...');
-[prof,pattr] = rtp_add_emis(prof,pattr);
+try
+    [prof,pattr] = rtp_add_emis(prof,pattr);
+catch
+    fprintf(2, '>>> ERROR: rtp_add_emis failure for %s/%s\n', sYear, ...
+            sDoy);
+    return;
+end
 fprintf(1, 'Done\n');
 %*************************************************
 
-%*************************************************
-% Save the rtp file ******************************
-fprintf(1, '>>> Saving first rtp file... ');
-[sID, sTempPath] = genscratchpath();
-fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
-rtpwrite(fn_rtp1,head,hattr,prof,pattr)
-fprintf(1, 'Done\n');
-%*************************************************
 
-% call klayers/sarta cloudy
+%*************************************************
+% call klayers/sarta cloudy **********************
+fprintf(1, '>>> Running driver_sarta_cloud for both klayers and sarta\n');
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
 run_sarta.cumsum=9999;
@@ -163,11 +185,9 @@ run_sarta.cumsum=9999;
 % NEED ERROR CHECKING
 
 %*************************************************
-
-%*************************************************
 % Make head reflect calcs
 head.pfields = 7;  % robs, model, calcs
 
 fprintf(1, 'Done\n');
 
-
+            

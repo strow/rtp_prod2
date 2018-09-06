@@ -21,17 +21,44 @@ function [head, hattr, prof, pattr] = create_airs2cc_rtp(inpath, cfg)
 % DISCUSSION (TBD)
 func_name = 'create_airs2cc_rtp';
 
-addpath ~/git/swutils
-addpath ~/git/rtp_prod2/util
-addpath ~/git/rtp_prod2/airs/readers
-addpath ~/git/rtp_prod2/grib
-addpath ~/git/rtp_prod2/emis
+%*************************************************
+% Execute user-defined paths *********************
+REPOBASEPATH = '/home/sbuczko1/git/';
+% $$$ REPOBASEPATH = '/asl/packages/';
 
-% set some defaults
+PKG = 'rtp_prod2';
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
+
+PKG = 'swutils'
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+%*************************************************
+
+%*************************************************
+% Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = ['/asl/packages/sartaV108/BinV201/' ...
-                'sarta_apr08_m140_wcon_nte'];
+sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+sartacld_exec   = ['/asl/packages/sartaV108/BinV201/' ...
+ ...
+                   'sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3']
 model = 'era';
+%*************************************************
+
+%*************************************************
+% Build traceability info ************************
+trace.klayers = klayers_exec;
+trace.sartaclr = sartaclr_exec;
+trace.sartacld = sartacld_exec;
+trace.githash = githash(func_name);
+trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
+                         'd-MMM-y HH:mm:ss Z'));
+fprintf(1, '>>> Run executed %s with git hash %s\n', ...
+        trace.RunDate, trace.githash);
+[sID, sTempPath] = genscratchpath();
+%*************************************************
+
 
 if nargin == 2 % cfg structure present to overide defaults
     if isfield(cfg, 'klayers_exec')
@@ -45,26 +72,33 @@ if nargin == 2 % cfg structure present to overide defaults
     end
 end
 
-addpath('/home/sbuczko1/git/swutils');
-[sID, sTempPath] = genscratchpath();
-trace.githash = githash(func_name);
-trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
-                         'd-MMM-y HH:mm:ss Z'));
-fprintf(1, '>>> Run executed %s with git hash %s\n', ...
-        trace.RunDate, trace.githash);
 
 
-% Read the AIRS2CCF file
+%*************************************************
+% Read the AIRS2CCF file *************************
 fprintf(1, '>>> Reading input file: %s   ', inpath);
-
 [eq_x_tai, freq, prof, pattr] = v6_readl2cc(inpath);
-
 fprintf(1, 'Done\n');
+%*************************************************
 
+%*************************************************
+% Build out rtp structs **************************
+nchan = size(prof.robs1,1);
+chani = (1:nchan)';
+vchan = freq;
+
+% Header
 head = struct;
 head.pfields = 4;  % robs1, no calcs in file
 head.ptype = 0;    
 head.ngas = 0;
+head.instid = 800; % AIRS 
+head.pltfid = -9999;
+head.nchan = length(chani);
+head.ichan = chani;
+head.vchan = vchan(chani);
+head.vcmax = max(head.vchan);
+head.vcmin = min(head.vchan);
 
 % Assign header attribute strings
 hattr={ {'header' 'pltfid' 'Aqua'}, ...
@@ -74,35 +108,24 @@ hattr={ {'header' 'pltfid' 'Aqua'}, ...
         {'header' 'klayers_exec' klayers_exec}, ...
         {'header' 'sarta_exec' sarta_exec} };
 
-nchan = size(prof.robs1,1);
-chani = (1:nchan)';
-vchan = freq;
-
-% Assign header variables
-head.instid = 800; % AIRS 
-head.pltfid = -9999;
-head.nchan = length(chani);
-head.ichan = chani;
-head.vchan = vchan(chani);
-head.vcmax = max(head.vchan);
-head.vcmin = min(head.vchan);
-
 % Assign profile attribute strings
 % $$$ pattr={ {'' '' ''} };
-
 % profile attribute changes for airibrad
 % $$$ pattr = set_attr('profiles', 'robs1', infile);
 % $$$ pattr = set_attr(pattr, 'rtime', 'TAI:1958');
 
+%*************************************************
+% rtp data massaging *****************************
 % Fix for zobs altitude units
 if isfield(prof,'zobs')
-   iz = prof.zobs < 20000 & prof.zobs > 20;
-   prof.zobs(iz) = prof.zobs(iz) * 1000;
+    prof = fix_zobs(prof);
 end
+%*************************************************
 
-% Add in model data
-fprintf(1, '>>> Add model: %s...', model)
-switch model
+%*************************************************
+% Add in model data ******************************
+fprintf(1, '>>> Add model: %s...', cfg.model)
+switch cfg.model
   case 'ecmwf'
     [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
   case 'era'
@@ -110,9 +133,24 @@ switch model
   case 'merra'
     [prof,head,pattr]  = fill_merra(prof,head,pattr);
 end
-head.pfields = 5;
+% check that we have same number of model entries as we do obs because
+% corrupt model files will leave us with an unbalanced rtp
+% structure which WILL fail downstream (ideally, this should be
+% checked for in the fill_* routines but, this is faster for now)
+[~,nobs] = size(prof.robs1);
+[~,mobs] = size(prof.gas_1);
+if mobs ~= nobs
+    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                'with nobs ***\n'])
+    return;
+end
+clear nobs mobs
+head.pfields = 5;  % robs, model
 fprintf(1, 'Done\n');
+%*************************************************
 
+%*************************************************
+% Add surface emissivity *************************
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis...');
@@ -124,8 +162,10 @@ catch
     return;
 end
 fprintf(1, 'Done\n');
+%*************************************************
 
-% run klayers
+%*************************************************
+% run klayers ************************************
 fprintf(1, '>>> running klayers... ');
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1, head, hattr, prof, pattr);
@@ -135,14 +175,15 @@ klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
 unix(klayers_run);
 fprintf(1, 'Done\n');
 
-% Run sarta
+%*************************************************
+% Run sarta **************************************
 fprintf(1, '>>> Running sarta... ');
 fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
 sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                ' > ' sTempPath '/sartaout.txt'];
 unix(sarta_run);
-hattr{end+1} = {'header' 'sarta' sarta_exec};
 fprintf(1, 'Done\n');
+%*************************************************
 
 % read in post-sarta results
 [h,ha,p,pa] = rtpread(fn_rtp3);

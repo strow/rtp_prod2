@@ -1,4 +1,4 @@
-function create_airxbcal_rtp(airs_doy, airs_year, cfg)
+function [head, hattr, prof, pattr] = create_airxbcal_rtp(inpath, cfg)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -32,16 +32,6 @@ trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-airxbcal_out_dir = '/asl/rtp/rtp_airxbcal_v5';
-% $$$ airxbcal_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airxbcal_v5';
-
-% Location of AIRXBCAL year directories
-dn = '/asl/data/airs/AIRXBCAL';
-% Strings needed for file names
-airs_doystr  = sprintf('%03d',airs_doy);
-airs_yearstr = sprintf('%4d',airs_year);
-
-indir = fullfile(dn, airs_yearstr, airs_doystr);
 fn = dir(fullfile(indir, '*.hdf'));
 if (length(fn) > 1)
     fprintf(1, ['>>> *** More than one input ARIXBCAL hdf file present. Terminating ' ...

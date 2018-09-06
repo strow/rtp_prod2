@@ -1,114 +1,75 @@
-function create_airibrad_allfov_gran_rtp(inpath, cfg)
+function [head, hattr, prof, pattr] = create_airibrad_allfov_gran_rtp(inpath, cfg)
 %
 % NAME
-%   create_airibrad_rtp -- wrapper to process AIRIBRAD to RTP
+%   create_airibrad_allfov_gran_rtp -- wrapper to process AIRIBRAD to RTP
 %
 % SYNOPSIS
-%   create_airibrad_rtp(infile, outfile_head)
+%   create_airibrad_allfov_gran_rtp(inpath, cfg)
 %
 % INPUTS
-%    infile :   path to input AIRIBRAD hdf file
-%    outfile_head  : path to output rtp file (minus extension)
+%    inpath :   path to input AIRIBRAD hdf file
+%    cfg    :   configuration structure
 %
-% L. Strow, Jan. 14, 2015
 %
 % DISCUSSION (TBD)
 func_name = 'create_airibrad_allfov_gran_rtp';
 
+%*************************************************
+% Execute user-defined paths *********************
+REPOBASEPATH = '/home/sbuczko1/git/';
+% $$$ REPOBASEPATH = '/asl/packages/';
+
+PKG = 'rtp_prod2';
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
+
+PKG = 'swutils'
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+
+PKG = 'matlib';
+addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
+
+%*************************************************
+
+%*************************************************
+% Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3
+%*************************************************
 
-% Execute user-defined paths
-dn = '/asl/data/airs/AIRIBRAD';  % input granules path
-airibrad_out_dir = '/home/sbuczko1/WorkingFiles/rtp_airibrad_v5';
-addpath /asl/packages/rtp_prod2/util
-addpath /asl/packages/rtp_prod2/grib
-addpath /asl/packages/rtp_prod2/emis
-addpath(genpath('/home/sbuczko1/git/rtp_prod2/airs'));
-addpath /home/sbuczko1/git/swutils
-addpath /home/sbuczko1/git/matlib/clouds/sarta  % driver_cloudy_sarta
-
+%*************************************************
+% Build traceability info ************************
 trace.klayers = klayers_exec;
-trace.sarta = sarta_exec;
+trace.sartaclr = sartaclr_exec;
+trace.sartacld = sartacld_exec;
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                          'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
+%*************************************************
 
-% split the inpath string to pull the granule file name out 
-% v5 /asl/data/airs/AIRIBRAD/2016/018/AIRS.2016.01.18.027.L1B.AIRS_Rad.v5.0.23.0.G16018115634.hdf
-C = strsplit(inpath, '/');
-airs_doystr = C{7};
-airs_yearstr = C{6};
-% get the granule number
-granfile = C{8};
-C = strsplit(granfile, '.');
-grannum = C{5};
-
-% $$$ % v6 /asl/data/airs/AIRIBRAD/2014/085/v6/AIRS.2014.03.26.220.L1B.AIRS_Rad.v6.0.12.0.AIRSCAL.T14086180759.hdf
-% $$$ C = strsplit(inpath, '/');
-% $$$ airs_doystr = C{7};
-% $$$ airs_yearstr = C{6};
-% $$$ % get the granule number
-% $$$ granfile = C{9};
-% $$$ C = strsplit(granfile, '.');
-% $$$ grannum = C{5};
-
-% $$$ % v7j
-% $$$ % /asl/s1/strow/Data/v7j/AIRS.2016.09.12.233.L1B.AIRS_Rad.v6.4.0.153.X17235143836.hdf
-% $$$ C = strsplit(inpath, '/');
-% $$$ granfile = C{7};
-% $$$ C = strsplit(granfile, '.');
-% $$$ airs_doystr = '256';
-% $$$ airs_yearstr = C{2};
-% $$$ grannum = C{5};
-
-% Make output directory if needed
-asType = {'allfov'};
-for i = 1:length(asType)
-    sPath = fullfile(airibrad_out_dir,char(asType(i)),airs_yearstr,airs_doystr);
-    if exist(sPath) == 0
-        mkdir(sPath);
-    end
-end
-
-% Read the AIRIBRAD file
+%*************************************************
+% Read the AIRIBRAD file *************************
 fprintf(1, '>>> Reading input file: %s   ', inpath);
 [eq_x_tai, freq, prof, pattr] = read_airibrad(inpath);
 fprintf(1, 'Done\n');
 
-% subset if nobs is greater than threshold lmax (to avoid hdf file size
-% limitations and hdfvs() failures during rtp write/read
-% later). Keeps dcc, site and random obs intact and reduces number
-% of clear obs to meet threshold limit
-lmax = 72000;
-fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
-if length(prof.rtime) > lmax
-    fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
-    prof = sub_airxbcal(prof, lmax);
-    fprintf(1, 'Done ***\n');
-    fprintf(1, '>>> *** %d subset obs ***\n', length(prof.rtime));
-end
-
-% Header 
-head = struct;
-head.pfields = 4;  % robs1, no calcs in file
-head.ptype = 0;    
-head.ngas = 0;
-
-% Assign header attribute strings
-hattr={ {'header' 'pltfid' 'Aqua'}, ...
-        {'header' 'instid' 'AIRS'}
-        {'header' 'githash' trace.githash}, ...
-        {'header' 'rundate' trace.RunDate} };
-
+%*************************************************
+% Build out rtp structs **************************
 nchan = size(prof.robs1,1);
 chani = (1:nchan)';
 %vchan = aux.nominal_freq(:);
 vchan = freq;
 
-% Assign header variables
+% Header 
+head = struct;
+head.pfields = 4;  % robs1, no calcs in file
+head.ptype = 0;    % levels
+head.ngas = 0;
 head.instid = 800; % AIRS 
 head.pltfid = -9999;
 head.nchan = length(chani);
@@ -117,40 +78,75 @@ head.vchan = vchan(chani);
 head.vcmax = max(head.vchan);
 head.vcmin = min(head.vchan);
 
+% Hattr
+hattr={ {'header' 'pltfid' 'Aqua'}, ...
+        {'header' 'instid' 'AIRS'}
+        {'header' 'githash' trace.githash}, ...
+        {'header' 'rundate' trace.RunDate} };
+
+% profile attribute changes for airibrad
+pa = set_attr('profiles', 'robs1', inpath);
+pa = set_attr(pa, 'rtime', 'TAI:1958');
+
+%*************************************************
+
+%*************************************************
+% rtp data massaging *****************************
 % Fix for zobs altitude units
 if isfield(prof,'zobs')
-    iz = prof.zobs < 20000 & prof.zobs > 20;
-    prof.zobs(iz) = prof.zobs(iz) * 1000;
+    prof = fix_zobs(prof);
 end
+%*************************************************
 
-% Add in model data
+%*************************************************
+% Add in model data ******************************
 fprintf(1, '>>> Add model: %s...', cfg.model)
 switch cfg.model
   case 'ecmwf'
-    which fill_ecmwf
     [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
   case 'era'
     [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'merra'
     [prof,head,pattr]  = fill_merra(prof,head,pattr);
 end
-head.pfields = 5;
+% check that we have same number of model entries as we do obs because
+% corrupt model files will leave us with an unbalanced rtp
+% structure which WILL fail downstream (ideally, this should be
+% checked for in the fill_* routines but, this is faster for now)
+[~,nobs] = size(prof.robs1);
+[~,mobs] = size(prof.gas_1);
+if mobs ~= nobs
+    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                'with nobs ***\n'])
+    return;
+end
+clear nobs mobs
+head.pfields = 5;  % robs, model
 fprintf(1, 'Done\n');
+%*************************************************
 
+%*************************************************
+% Add surface emissivity *************************
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis...');
 [prof,pattr] = rtp_add_emis(prof,pattr);
 fprintf(1, 'Done\n');
+%*************************************************
 
-% Save the rtp file
+%*************************************************
+% Save the rtp file ******************************
 fprintf(1, '>>> Saving first rtp file... ');
 [sID, sTempPath] = genscratchpath();
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
+%*************************************************
 
-% call klayers/sarta cloudy
+%*************************************************
+% klayers/sarta **********************************
+fprintf(1, ['>>> Running driver_sarta_cloud for both klayers and ' ...
+            'sarta\n']);
 run_sarta.cloud=+1;
 run_sarta.clear=+1;
 run_sarta.cumsum=9999;
@@ -158,56 +154,13 @@ run_sarta.cumsum=9999;
 % executables in Sergio's directories. **DANGEROUS** These need to
 % be brought under separate control for traceability purposes.
 % $$$ try
-    [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
-% $$$ catch
-% $$$     fprintf(2, ['>>> ERROR: failure in driver_sarta_cloud_rtp for ' ...
-% $$$                 '%s/%s\n'], sYear, sDoy);
-% $$$     return;
-% $$$ end
+[prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 
-% $$$ % run klayers
-% $$$ fprintf(1, '>>> running klayers... ');
-% $$$ fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
-% $$$ klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
-% $$$                sTempPath '/kout.txt'];
-% $$$ unix(klayers_run);
-% $$$ fprintf(1, 'Done\n');
-% $$$ 
-% $$$ % Run sarta
-% $$$ % *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% $$$ % below for clear,site,etc?) make call to external shell script to
-% $$$ % run 'N' copies of sarta backgrounded
-% $$$ fprintf(1, '>>> Running sarta... ');
-% $$$ fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-% $$$ % $$$ run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-% $$$ % $$$              sTempPath '/sarta_' sID '_stdout.txt'];
-% $$$ % $$$ fprintf(1, '>>> Running sarta: %s ...', run_sarta);
-% $$$ % $$$ unix(run_sarta);
-% $$$ psarta_run(fn_rtp2, fn_rtp3, sarta_exec);
-% $$$ fprintf(1, 'Done\n');
+% NEED ERROR CHECKING
 
-% $$$ % Read in new rcalcs and insert into origin prof field
-% $$$ stFileInfo = dir(fn_rtp3);
-% $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-% $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
-% $$$ [h,ha,p,pa] = rtpread(fn_rtp3);
-% $$$ prof.rcalc = p.rcalc;
-head.pfields = 7;
-
-% profile attribute changes for airibrad
-pa = set_attr('profiles', 'robs1', inpath);
-pa = set_attr(pa, 'rtime', 'TAI:1958');
-
-%keyboard
-% temporary files are no longer needed. delete them to make sure we
-% don't fill up the scratch drive.
-% $$$ delete(fn_rtp1, fn_rtp2, fn_rtp3);
-
-rtp_out_fn_head = sprintf('allfov_%s_airibrad_day_%s%s_%s.rtp', ...
-                          cfg.model, airs_yearstr, airs_doystr, grannum);
-fprintf(1, '>>> writing output rtp files... ');
-rtp_out_fn = fullfile(sPath, rtp_out_fn_head);
-rtpwrite(rtp_out_fn, head, hattr, prof0, pa);
+%*************************************************
+% Make head reflect calcs
+head.pfields = 7;  % robs, model, calcs
 
 fprintf(1, 'Done\n');
 

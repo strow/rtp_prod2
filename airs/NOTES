@@ -1,0 +1,37 @@
+* Hot scene processing
+  - add the following (or similar) after reading in a granule to subset out hot scenes:
+
+        % find hot scenes and subset out
+        btthresh = 335;  % 335K BT min for inclusion
+        idtest_lw = 756:759;
+        idtest_sw = 2197:2224;
+        ib = hot_scene_check(head, prof0, btthresh, idtest_lw, ...
+                             idtest_sw);
+        fprintf(1, '>>> Found %d hot scenes in %s\n', length(ib), infile);
+        if (length(ib) > 0)
+            p = rtp_sub_prof(prof0, ib);
+        else
+            continue;
+        end
+
+* nadir, nearest-neighbor
+  - add the following (or similar) after reading in a granule to subset out the nadir track scenes + nearest-neighbor scenes and subset down to just the channel necessary
+
+  chanID = 764; % match to CrIS chanID 404
+  % only need one chan, so just pull that out now to save space
+  
+    p.robs1 = p.robs1(chanID,:);
+    p.calflag = p.calflag(chanID,:);
+    
+    % filter out nadir FOVs (45&46  (+ neighbors))
+    fovs = [45 46];
+    nadir = ismember(p.xtrack,fovs);
+    limit = 0.011*44;  % preserves ~20k obs/day
+    randoms = get_equal_area_sub_indices(p.rlat, limit);
+    nrinds = find(nadir & randoms);
+    crprof = rtp_sub_prof(p, nrinds);
+    crprof.robs1 = [crprof.robs1(1,:)' p.robs1(1,nrinds-1)' ...
+                    p.robs1(1,nrinds+1)']';
+    crprof.calflag = [crprof.calflag(1,:)' p.calflag(1,nrinds-1)' ...
+                      p.calflag(1,nrinds+1)']';
+    p=crprof;
