@@ -1,0 +1,83 @@
+* Process by granule
+  - set up user-defined paths
+  - build configuration defaults
+  - compare input configuration (if any) against defaults
+    - if input config is different, it has precedence and will
+      override and overwrite the default
+  - Build traceability info
+    - this is to capture configuration specifics and runtime data for posterity
+  - read in the granule found at the input inpath
+    - Fail if file is not found
+    - Report any other failures in read (bad files, no data, etc) to caller and exit
+  - Build out rtp structs not supplied or, not fully supplied by the read function
+    - typically for AIRS this means build out head and hattr
+  - Add in model data as specified in input config or default
+  - Add surface emissivity  (Dan Zhou one-year climatology)
+  - Save current rtp structures to temp directory
+    - these are accessed for klayers and will be read back in later to
+      be the basis for the final output rtp structs after
+      klayers/sarta are run
+  - Run klayers (see note 1)
+  - Run sarta (see note 1)
+  - re-read rtp structures saved above
+  - put calc fields from post-sarta rtp structs into pre-klayers rtp
+    structs (see note 2)
+  - ship pre-klayers rtp structs (with sarta calcs) back to calling function
+
+** Note 1
+   if running clear obs only, this is usually done as two discrete
+   steps of calling klayers and then, sarta clear. For mixed calcs
+   (random, dcc, site, allfov), this is usually run through
+   driver_sarta_cloud and klayers, sarta_clear and, sarta_cloudy get
+   run as a block. 
+
+** Note 2
+   when running cloudy sarta, cloud fields are randomly generated. Is
+   it losing too much to re-read the starting rtp structs and storing
+   the cloudy sarta calcs without also saving those cloud fields?
+
+
+* Process by day
+  - set up user-defined paths
+  - build configuration defaults
+  - compare input configuration (if any) against defaults
+    - if input config is different, it has precedence and will
+      override and overwrite the default
+  - Build traceability info
+    - this is to capture configuration specifics and runtime data for posterity
+  - get directory listing of granules at inpath for day
+    - loop over granules in day
+      - read in the granule found for the current loop index
+        - Fail if file is not found
+        - Report any other failures in read (bad files, no data, etc) to caller and exit
+	- if first granule successfully read:
+          - Build out rtp structs not supplied or, not fully supplied by the read function
+          - typically for AIRS this means build out head and hattr
+	- otherwise concatenate granule rtp structs to running daily structs
+    - next granule
+  - Add in model data as specified in input config or default
+  - Add surface emissivity  (Dan Zhou one-year climatology)
+  - Save current rtp structures to temp directory
+     - these are accessed for klayers and will be read back in later to
+  	be the basis for the final output rtp structs after
+  	klayers/sarta are run
+  - Run klayers (see note 1)
+  - Run sarta (see note 1)
+  - re-read rtp structures saved above
+  - put calc fields from post-sarta rtp structs into pre-klayers rtp
+     structs (see note 2)
+  - ship pre-klayers rtp structs (with sarta calcs) back to calling function
+
+** Note 1
+   if running clear obs only, this is usually done as two discrete
+   steps of calling klayers and then, sarta clear. For mixed calcs
+   (random, dcc, site, allfov), this is usually run through
+   driver_sarta_cloud and klayers, sarta_clear and, sarta_cloudy get
+   run as a block. 
+
+** Note 2
+   when running cloudy sarta, cloud fields are randomly generated. Is
+   it losing too much to re-read the starting rtp structs and storing
+   the cloudy sarta calcs without also saving those cloud fields?
+
+
