@@ -105,8 +105,10 @@ for i=1:gran_stride:numel(fnLst1)
         continue;
     end
     if length(p.rtime) == 0
+        fprintf(2, 'WARNING >> No obs found in granule %s\n', fpath);
         return
     end
+    fprintf(1, '>>> Read %d obs from granule\n', length(p.rtime));
 
     % check ichan index order (to avoid problems with rtpwrite)
     temp = size(h.ichan);
@@ -140,6 +142,7 @@ for i=1:gran_stride:numel(fnLst1)
         return
     end
     p = rtp_sub_prof(p, nrinds);
+    fprintf(1, '>>> Found %d obs after random selection\n', length(p.rtime));
 
     % build sub satellite lat point
     [p, pa] = build_satlat(p,pa);

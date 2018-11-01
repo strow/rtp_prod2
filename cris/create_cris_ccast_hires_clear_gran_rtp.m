@@ -3,11 +3,43 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_gran_rtp(fnC
 %
 % Process a single CrIS .mat granule file.
 
+% Execute user-defined paths *********************
+REPOBASEPATH = '/home/sbuczko1/git/';
+% $$$ REPOBASEPATH = '/asl/packages/';
+
+PKG = 'rtp_prod2';
+% era/ecmwf/merra, emissivity, etc
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
+addpath(genpath(sprintf('%s/%s/cris', REPOBASEPATH, PKG)));
+
+PKG = 'swutils'
+% genscratchpath
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
+
+PKG = 'ccast'
+% ccast2rtp, cris_[iv]chan
+addpath(sprintf('%s/%s/motmsc/rtp_sarta', REPOBASEPATH, PKG));
+% fixmyQC
+addpath(sprintf('%s/%s/source', REPOBASEPATH, PKG));
+
+PKG = 'matlib';
+% cat_rtp
+addpath('/asl/matlib/rtptools'); 
+addpath('/asl/packages/time');
+
+% $$$ % Need these two paths to use iasi2cris.m in iasi_decon
+% $$$ addpath /asl/packages/iasi_decon   % seq_match?
+% $$$ addpath /asl/packages/ccast/source  % fixmyQC?
+
+% ************************************************
+
 fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
         fnCrisInput);
 
-
-% read in configuration options from 'cfg'
+% ************************************************
+% read in configuration options from 'cfg' *******
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 if isfield(cfg, 'klayers_exec')
     klayers_exec = cfg.klayers_exec;
@@ -36,25 +68,14 @@ if nguard > nsarta
                 '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
     return
 end
-    
+% ************************************************
 
-addpath(genpath('/asl/matlib'));
-% Need these two paths to use iasi2cris.m in iasi_decon
-addpath /asl/packages/iasi_decon
-addpath /asl/packages/ccast/source
-addpath /asl/packages/rtp_prod2/cris;  % uniform_clear_template_...
-% addpath /asl/packages/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
-addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
-% $$$ addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
-addpath /home/sbuczko1/git/rtp_prod2/grib
-addpath /asl/packages/rtp_prod2/emis;  % add_emis
-addpath /asl/packages/rtp_prod2/util;  % rtpread/write
-addpath ../util
-
+% Pick up system/slurm info **********************
 [sID, sTempPath] = genscratchpath();
 
 cfg.sID = sID;
 cfg.sTempPath = sTempPath;
+% ************************************************
 
 % Load up rtp
 [head, hattr, prof, pattr] = ccast2rtp(fnCrisInput, nguard, nsarta);

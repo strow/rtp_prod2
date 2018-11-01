@@ -1,4 +1,4 @@
-function run_cris_hr_clear_gran_batch(cfg)
+function run_cris_hr_clear_day_batch(cfg)
 
 addpath ..;  % look one level up for create_* functions
 
@@ -26,7 +26,7 @@ for i = 1:chunk
     end
 
     % call the processing function
-    [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_gran_rtp(infile, cfg);
+    [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(infile, cfg);
 
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
@@ -55,8 +55,8 @@ for i = 1:chunk
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
 % $$$         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
 % $$$                         C{2}, C{3});
-        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{5}, C{6});  % changed for cris2 cal testing
+        fname = sprintf('%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+                        C{5});  % changed for cris2 cal testing
         rtp_outname = fullfile(sPath, fname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');

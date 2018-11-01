@@ -8,12 +8,15 @@ cfg=ini2struct(cfg_file);
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-if ~isempty('slurmindex')
-    slurmindex = 0;
-    if isfield(cfg, 'slurmindex')
-        slurmindex = cfg.slurmindex;
-    end
-end
+fprintf(1, '>> Native slurmindex = %d\n', slurmindex);
+% $$$ if ~isempty('slurmindex')
+% $$$     slurmindex = 0;
+% $$$     if isfield(cfg, 'slurmindex')
+% $$$         slurmindex = cfg.slurmindex;
+% $$$         fprintf(1, '>>> Overriding slurmindex with config -> %d\n', ...
+% $$$                 slurmindex);
+% $$$     end
+% $$$ end
 
 chunk = 1
 if isfield(cfg, 'chunk')
@@ -38,6 +41,8 @@ for i = 1:chunk
         break;
     end
 
+    fprintf(1, '>>> Processing day %s\n', infile);
+    
     % call the processing function
     [head, hattr, prof, pattr] = create_cris_ccast_hires_random_day_rtp(infile, ...
                                                       cfg);
