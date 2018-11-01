@@ -69,45 +69,5 @@ iclear_sea    = find(iflagsc == 1 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
 iclear_notsea = find(iflagsc == 1 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
 iclear = union(iclear_sea, iclear_notsea);
 
-% $$$ % Determine all indices to keep
-% $$$ iclrflag = zeros(1,nobs);
-% $$$ iclrflag(iclear) = 1;
-
-% $$$ % for the moment, just return the whole profile struct with no
-% $$$ % extra tagging
-% $$$ pout = prof;
-
-% $$$ ireason = iclrflag;
-% $$$ 
-% $$$ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% $$$ % Store clear flags and ancllary data in iudef and/or udef arrays within pout
-% $$$ 
-% $$$    % Cut ireason to 4 bits
-% $$$    icut = find(ireason > 32);
-% $$$    ireason(icut) = ireason(icut) - 32;
-% $$$    icut = find(ireason > 16);
-% $$$    ireason(icut) = ireason(icut) - 16;
-% $$$ 
-% $$$    pout.clrflag = iclrflag;  
-% $$$    if (~isfield(pout,'udef'))
-% $$$       pout.udef = zeros(20,nkeep);
-% $$$    end
-% $$$    pout.udef(13,:) = dbtun(iclear);
-% $$$    pout.udef(14,:) = bto1232(iclear);
-% $$$    pout.udef(15,:) = btc1232(iclear);
-% $$$    if (~isfield(pout,'iudef'))
-% $$$       pout.iudef = zeros(10,nkeep);
-% $$$    end
-% $$$    pout.iudef(1,:) = ireason;
-% $$$    pout.iudef(2,:) = isite;
-% $$$ 
-% $$$    junk = set_attr(pattr, 'udef(13,:)', 'spatial uniformity test dBT {dbtun}');
-% $$$    pattr = set_attr(junk, 'udef(14,:)', 'BTobs 1232 wn {bto1232}');
-% $$$    junk = set_attr(pattr, 'udef(15,:)', 'BTcal 1232 wn {btc1232}');
-% $$$    pattr = set_attr(junk, 'iudef(1,:)', ...
-% $$$       'selection reason: 1=clear, 2=site, 4=DCC, 8=random {reason}');
-% $$$    junk = set_attr(pattr, 'iudef(2,:)', 'fixed site number {sitenum}');
-% $$$    pattr = junk;
-
 
 %%% end of program %%%

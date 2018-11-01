@@ -19,24 +19,28 @@ REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
 PKG = 'rtp_prod2';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
 addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
 
 PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
 
 PKG = 'matlib';
-% $$$ addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
+addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG));  %
+                                                            %driver_cloudy_sarta;
+
 addpath('/asl/matlib/rtptools');   % for cat_rtp
-                                   %*************************************************
+addpath('/asl/matlib/aslutil');    % for int2bits
+
+%*************************************************
 
 %*************************************************
 % Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
-sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3
+sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
 %*************************************************
 
 %*************************************************
@@ -64,7 +68,7 @@ for i=1:length(files)
     infile = fullfile(inpath, files(i).name);
     fprintf(1, '>>> Reading input file: %s   ', infile);
     try
-        [eq_x_tai, freq, p, pattr] = read_airicrad(infile);
+        [eq_x_tai, freq, prof0, pattr] = read_airicrad(infile);
     catch
         fprintf(2, ['>>> ERROR: failure in read_airicrad for granule %s. ' ...
                     'Skipping.\n'], infile);
@@ -88,7 +92,7 @@ for i=1:length(files)
                 {'header' 'klayers_exec' klayers_exec}, ...
                 {'header' 'sartaclr_exec' sartaclr_exec} };
         
-        nchan = size(p.robs1,1);
+        nchan = size(prof0.robs1,1);
         %vchan = aux.nominal_freq(:);
         vchan = freq;
         
@@ -111,16 +115,19 @@ for i=1:length(files)
 
         p = equal_area_nadir_select(prof0,cfg);  % select for
                                                  % random/nadir obs
-        if ~exist('prof')
+        fprintf(1, '>>>> SAVING %d random obs from granule\n', ...
+                length(p.rlat));
+
+        if i == 1
             prof = p;
         else
             % concatenate new random rtp data into running random rtp structure
             [head, prof] = cat_rtp(head, prof, head, p);
         end
-	      
 end  % end for i=1:length(files)
+clear prof0 p;
 
-	      %*************************************************
+%*************************************************
 % rtp data massaging *****************************
 % Fix for zobs altitude units
 if isfield(prof,'zobs')
@@ -169,6 +176,13 @@ end
 fprintf(1, 'Done\n');
 %*************************************************
 
+%*************************************************
+% Save the rtp file ******************************
+fprintf(1, '>>> Saving first rtp file... ');
+[sID, sTempPath] = genscratchpath();
+fn_rtp1 = fullfile(sTempPath, ['airs_random' sID '_1.rtp']);
+rtpwrite(fn_rtp1,head,hattr,prof,pattr)
+fprintf(1, 'Done\n');
 
 %*************************************************
 % call klayers/sarta cloudy **********************
@@ -184,9 +198,15 @@ run_sarta.cumsum=9999;
 
 % NEED ERROR CHECKING
 
+% pull calcs out of prof0 and stuff into pre-klayers prof
+[~,~,prof,~] = rtpread(fn_rtp1);
+prof.rclr = prof0.rclr;
+prof.rcld = prof0.rcld;
+
 %*************************************************
 % Make head reflect calcs
 head.pfields = 7;  % robs, model, calcs
+
 
 fprintf(1, 'Done\n');
 

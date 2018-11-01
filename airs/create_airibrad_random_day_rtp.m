@@ -33,26 +33,26 @@ REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
 PKG = 'rtp_prod2';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
 addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
 
 PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
 
 PKG = 'matlib';
-addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
+addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG));  % driver_cloudy_sarta
 
 addpath('/asl/matlib/rtptools');   % for cat_rtp
-
+addpath('/asl/matlib/aslutil');    % for int2bits
 %*************************************************
 
 %*************************************************
 % Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
-sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3
+sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
 %*************************************************
 
 model = 'era'; 
@@ -118,7 +118,6 @@ for i=1:length(files)
     if i == 1 % only need to build the head structure once but, we do
               % need freq data read in from first data file
               % Header 
-        head = struct;
         head.pfields = 4;  % robs1, no calcs in file
         head.ptype = 0;    
         head.ngas = 0;
@@ -129,7 +128,8 @@ for i=1:length(files)
                 {'header' 'githash' trace.githash}, ...
                 {'header' 'rundate' trace.RunDate}, ...
                 {'header' 'klayers_exec' klayers_exec}, ...
-                {'header' 'sarta_exec' sarta_exec} };
+                {'header' 'sartaclr_exec' sartaclr_exec}, ...
+                {'header' 'sarta_cld_exec' sartacld_exec} };
 
         nchan = size(prof0.robs1,1);
         chani = (1:nchan)';
@@ -153,14 +153,17 @@ for i=1:length(files)
 
         p = equal_area_nadir_select(prof0,cfg);  % select for
                                                  % random/nadir obs
-        if ~exist('prof')
+        fprintf(1, '>>>> SAVING %d random obs from granule\n', ...
+                length(p.rlat));
+        
+        if i == 1
             prof = p;
         else
             % concatenate new random rtp data into running random rtp structure
             [head, prof] = cat_rtp(head, prof, head, p);
         end
 end  % end for i=1:length(files)
-clear p0 p;
+clear prof0 p;
 
 %*********************************************
 
@@ -214,6 +217,13 @@ fprintf(1, 'Done\n');
 %*************************************************
 
 %*************************************************
+% Save the rtp file ******************************
+fprintf(1, '>>> Saving first rtp file... ');
+[sID, sTempPath] = genscratchpath();
+fn_rtp1 = fullfile(sTempPath, ['airs_random' sID '_1.rtp']);
+rtpwrite(fn_rtp1,head,hattr,prof,pattr)
+fprintf(1, 'Done\n');
+%*************************************************
 % call klayers/sarta cloudy **********************
 fprintf(1, '>>> Running driver_sarta_cloud for both klayers and sarta\n');
 run_sarta.cloud=+1;
@@ -226,6 +236,11 @@ run_sarta.cumsum=9999;
 [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 
 % NEED ERROR CHECKING
+
+% pull calcs out of prof0 and stuff into pre-klayers prof
+[~,~,prof,~] = rtpread(fn_rtp1);
+prof.rclr = prof0.rclr;
+prof.rcld = prof0.rcld;
 
 %*************************************************
 % Make head reflect calcs

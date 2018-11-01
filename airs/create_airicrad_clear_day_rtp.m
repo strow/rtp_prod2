@@ -21,18 +21,20 @@ REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
 PKG = 'rtp_prod2';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
 addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
 
 PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
+addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
 
 PKG = 'matlib';
 % $$$ addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
-addpath('/asl/matlib/rtptools');   % for cat_rtp
-                                   %*************************************************
+addpath(sprintf('%s/%s/aslutil', REPOBASEPATH, PKG));
+addpath(sprintf('%s/%s/rtptools', REPOBASEPATH, PKG));   % for cat_rtp
+
+%*************************************************
 
 %*************************************************
 % Build configuration ****************************
@@ -44,7 +46,6 @@ sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
 % Build traceability info ************************
 trace.klayers = klayers_exec;
 trace.sartaclr = sartaclr_exec;
-trace.sartacld = sartacld_exec;
 trace.githash = githash(func_name);
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                               'd-MMM-y HH:mm:ss Z'));
@@ -238,8 +239,8 @@ fprintf(1, '>>> running airs_find_clear')
 nobs = length(prof.rtime);
 [iflagsc, bto1232, btc1232] = airs_find_clear(head, prof, 1:nobs);
     
-iclear_sea    = find(iflagsc == 1 & abs(dbtun_ag) < 0.5 & prof.landfrac <= 0.01);
-iclear_notsea = find(iflagsc == 1 & abs(dbtun_ag) < 1.0 & prof.landfrac >  0.01);
+iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.5 & prof.landfrac <= 0.01);
+iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & prof.landfrac >  0.01);
 iclear = union(iclear_sea, iclear_notsea);
 nclear = length(iclear);
 fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
