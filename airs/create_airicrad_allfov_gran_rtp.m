@@ -21,7 +21,7 @@ func_name = 'create_airicrad_allfov_gran_rtp';
 REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
-PKG = 'rtp_prod2';
+PKG = 'rtp_prod2_PROD';
 addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
 addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
 addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
@@ -67,7 +67,7 @@ nchan = size(prof.robs1,1);
 % $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
 % $$$                     % for chan 2378 and higher
 % following line loads array 'ichan' which gets swapped for chani below
-load /home/sbuczko1/git/rtp_prod2/airs/util/sarta_chans_for_l1c.mat
+load /home/sbuczko1/git/rtp_prod2_PROD/airs/util/sarta_chans_for_l1c.mat
 
 %vchan = aux.nominal_freq(:);
 vchan = freq;

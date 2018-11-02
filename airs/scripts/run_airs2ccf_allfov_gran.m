@@ -7,8 +7,8 @@ function  run_airs2ccf_allfov_gran()
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2/airs');  % create_airs2cc_rtp
-addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite
+addpath('~/git/rtp_prod2_PROD/airs');  % create_airs2cc_rtp
+addpath('~/git/rtp_prod2_PROD/util');  % rtpread,rtpwrite
 
 
 % 

@@ -32,7 +32,7 @@ function [calnum, cstr] = data_to_calnum_l1b(tai, freq, nen, ...
 %  Update: 20 Apr 2011, Paul Schou - added support for L2 data, 2378 x 45
 %  Update: 14 Jun 2011, S.Hannon - bug fix for NEdT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-addpath /home/sbuczko1/git/rtp_prod2/util
+addpath /home/sbuczko1/git/rtp_prod2_PROD/util
 % Spectral calibration filename and TAI time when A/B weight changes
 caldir = '/asl/matlab/airs/utils';
 caldir = '/asl/matlab2012/airs/utils';

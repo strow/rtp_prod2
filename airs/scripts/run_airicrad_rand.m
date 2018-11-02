@@ -7,8 +7,8 @@ function  run_airicrad_rand()
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
+addpath('~/git/rtp_prod2_PROD/util');  % rtpread,rtpwrite,cat_rtp_dir
+addpath('~/git/rtp_prod2_PROD/airs');  % sub_airxbcal
 
 % 
 airs_daily_file_list = '~/rtp_gen_files/airicrad_days_to_process.txt';

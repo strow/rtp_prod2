@@ -11,7 +11,7 @@ function [head, hattr, prof, pattr] = create_airibrad_allfov_gran_rtp(inpath, cf
 %    cfg    :   configuration structure
 %
 % REQUIRES:
-%   rtp_prod2/{util,grib,emis}
+%   rtp_prod2_PROD/{util,grib,emis}
 %   matlib
 %
 % DISCUSSION (TBD)

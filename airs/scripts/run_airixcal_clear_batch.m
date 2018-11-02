@@ -1,6 +1,6 @@
 function run_airixcal_clear_batch()
 
-addpath('/home/sbuczko1/git/rtp_prod2/airs/');
+addpath('/home/sbuczko1/git/rtp_prod2_PROD/airs/');
 % 
 airs_daily_file_list = '/home/sbuczko1/rtp_gen_files/airixcal-days-to-process';
 airixcal_out_dir = '/asl/rtp/rtp_airixcal_v11';

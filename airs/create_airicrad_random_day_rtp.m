@@ -18,7 +18,7 @@ func_name = 'create_airicrad_random_day_rtp';
 REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
-PKG = 'rtp_prod2';
+PKG = 'rtp_prod2_PROD';
 addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
 addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
 addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
@@ -55,7 +55,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 %*************************************************
 
-load /home/sbuczko1/git/rtp_prod2/airs/util/sarta_chans_for_l1c.mat
+load /home/sbuczko1/git/rtp_prod2_PROD/airs/util/sarta_chans_for_l1c.mat
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of random obs into a single output file

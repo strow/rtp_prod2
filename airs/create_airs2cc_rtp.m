@@ -26,7 +26,7 @@ func_name = 'create_airs2cc_rtp';
 REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
-PKG = 'rtp_prod2';
+PKG = 'rtp_prod2_PROD';
 addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
 addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
 addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);

@@ -36,7 +36,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_test_driver_sarta_cloud"
-$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2/airs/scripts'); run_test_driver_sarta_cloud; exit"
+$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2_PROD/airs/scripts'); run_test_driver_sarta_cloud; exit"
     
 echo "Finished with run_test_driver_sarta_cloud"
 

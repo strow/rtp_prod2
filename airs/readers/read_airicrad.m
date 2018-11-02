@@ -25,7 +25,7 @@ function [eq_x_tai, f, gdata, attr] = read_airicrad(fn);
 % filling) can be tracked through L1CSynthReason (iudef(5,:)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath(genpath('/home/sbuczko1/git/rtp_prod2/'));
+addpath(genpath('/home/sbuczko1/git/rtp_prod2_PROD/'));
 
 % Granule dimensions
 nchan=2645;

@@ -35,7 +35,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_airs2ccf_rand"
-$MATLAB $MATOPT -r "addpath('~/git/rtp_prod2/airs/scripts'); run_airs2ccf_allfov_gran(); exit"
+$MATLAB $MATOPT -r "addpath('~/git/rtp_prod2_PROD/airs/scripts'); run_airs2ccf_allfov_gran(); exit"
     
 echo "Finished with run_airs2ccf_rand"
 

@@ -8,8 +8,8 @@ function  run_airibrad_allfov_gran(modelindex)
 % does the final rtpwrite
 
 % REQUIRES:
-%     rtp_prod2/util  % rtpread,rtpwrite,cat_rtp_dir
-%     rtp_prod2/airs  % sub_airxbcal
+%     rtp_prod2_PROD/util  % rtpread,rtpwrite,cat_rtp_dir
+%     rtp_prod2_PROD/airs  % sub_airxbcal
 
 % 
 airs_daily_file_list = '~/airibrad_grans_to_process';

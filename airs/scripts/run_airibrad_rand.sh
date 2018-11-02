@@ -36,7 +36,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_airibrad_rand"
-$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2/airs/scripts'); run_airibrad_rand; exit"
+$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2_PROD/airs/scripts'); run_airibrad_rand; exit"
     
 echo "Finished with run_airibrad_rand"
 

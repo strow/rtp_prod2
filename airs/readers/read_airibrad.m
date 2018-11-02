@@ -36,7 +36,7 @@ function [eq_x_tai, f, gdata, attr] = read_airibrad(fn);
 
 %addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
 % addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
-addpath(genpath('/home/sbuczko1/git/rtp_prod2/'));
+addpath(genpath('/home/sbuczko1/git/rtp_prod2_PROD/'));
 %addpath /home/strow
 
 % Granule dimensions
