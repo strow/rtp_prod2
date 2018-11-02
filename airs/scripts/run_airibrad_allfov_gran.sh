@@ -4,7 +4,7 @@
 #
 # 
 
-# sbatch options
+# sbatch default options (can override with CL switches)
 #SBATCH --job-name=RUN_AIRIBRAD_ALLFOV
 # partition = dev/batch
 #SBATCH --partition=batch
@@ -35,7 +35,9 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_airibrad_rand"
-$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2/airs/scripts'); run_airibrad_allfov_gran($1); exit"
+$MATLAB $MATOPT -r "airs_rtpaddpaths;\
+                    run_airibrad_allfov_gran($1);\
+                    exit"
     
 echo "Finished with run_airibrad_rand"
 

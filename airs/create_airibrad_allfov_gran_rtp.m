@@ -10,28 +10,12 @@ function [head, hattr, prof, pattr] = create_airibrad_allfov_gran_rtp(inpath, cf
 %    inpath :   path to input AIRIBRAD hdf file
 %    cfg    :   configuration structure
 %
+% REQUIRES:
+%   rtp_prod2/{util,grib,emis}
+%   matlib
 %
 % DISCUSSION (TBD)
 func_name = 'create_airibrad_allfov_gran_rtp';
-
-%*************************************************
-% Execute user-defined paths *********************
-REPOBASEPATH = '/home/sbuczko1/git/';
-% $$$ REPOBASEPATH = '/asl/packages/';
-
-PKG = 'rtp_prod2';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
-addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
-
-PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
-
-PKG = 'matlib';
-addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
-
-%*************************************************
 
 %*************************************************
 % Build configuration ****************************

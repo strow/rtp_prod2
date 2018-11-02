@@ -7,8 +7,9 @@ function  run_airibrad_allfov_gran(modelindex)
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
+% REQUIRES:
+%     rtp_prod2/util  % rtpread,rtpwrite,cat_rtp_dir
+%     rtp_prod2/airs  % sub_airxbcal
 
 % 
 airs_daily_file_list = '~/airibrad_grans_to_process';
