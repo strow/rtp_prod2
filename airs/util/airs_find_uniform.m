@@ -82,7 +82,7 @@ nobs = length(prof.findex);
 % Compute dbtun
 dbtun = -9999*ones(1,nobs);
 
-ix = 2:3:89;
+ix = 2:1:89;
 ixm1 = ix - 1;
 ixp1 = ix + 1;
 % REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +101,7 @@ FOVsPerScan = 90;  % 90 FOVs/AIRS scanline  (CrIS has 270)
 % of obs for the uniformity test and AIRS scanlines are a single line
 % of obs, we start on scanline two. Similarly, we lose the last line.
 
-for ii=2:3:nscan-1
+for ii=2:1:nscan-1
 
    indscan = find(f100a == uf100a(ii));
    if (length(indscan) ~= FOVsPerScan)

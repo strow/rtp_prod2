@@ -12,29 +12,13 @@ function [head, hattr, prof, pattr] = create_airicrad_clear_day_rtp(inpath, cfg)
 %
 % L. Strow, Jan. 14, 2015
 %
+% REQUIRES:
+%   rtp_prod2/{util,grib,emis}
+%   matlib/{aslutil, rtptools}
+%   swutils
+%
 % DISCUSSION (TBD)
 func_name = 'create_airicrad_clear_day_rtp';
-
-%*************************************************
-% Execute user-defined paths *********************
-REPOBASEPATH = '/home/sbuczko1/git/';
-% $$$ REPOBASEPATH = '/asl/packages/';
-
-PKG = 'rtp_prod2_PROD';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
-addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
-
-PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
-
-PKG = 'matlib';
-% $$$ addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
-addpath(sprintf('%s/%s/aslutil', REPOBASEPATH, PKG));
-addpath(sprintf('%s/%s/rtptools', REPOBASEPATH, PKG));   % for cat_rtp
-
-%*************************************************
 
 %*************************************************
 % Build configuration ****************************
@@ -54,7 +38,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 %*************************************************
 
 
-load /home/sbuczko1/git/rtp_prod2_PROD/airs/util/sarta_chans_for_l1c.mat
+load /home/sbuczko1/git/rtp_prod2_DEV/airs/util/sarta_chans_for_l1c.mat
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of clear obs into a single output file
@@ -190,6 +174,10 @@ fprintf(1, 'Done\n');
 % Save the rtp file ******************************
 fprintf(1, '>>> Saving first rtp file... ');
 [sID, sTempPath] = genscratchpath();
+MAXOBS = 60000;
+if length(prof.rtime) > MAXOBS
+    prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
+end
 fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
