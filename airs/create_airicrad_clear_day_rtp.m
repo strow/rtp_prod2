@@ -164,6 +164,13 @@ for i=1:length(files)
             % Save the rtp file ******************************
             fprintf(1, '>>> Saving first rtp file... ');
             [sID, sTempPath] = genscratchpath();
+            % remove any obs with stemp < 273
+            iGoodStemps = find(p.stemp >= 273);
+            if length(iGoodStemps) > 0
+                p = rtp_sub_prof(p, iGoodStemps);
+            end
+            % trim obs count if over the rtp 2.0GB limit (with just
+            % clear calcs, somewhere around 60-70k obs)
             MAXOBS = 60000;
             if length(p.rtime) > MAXOBS
                 p = rtp_sub_prof(p, randperm(length(p.rtime), MAXOBS));
