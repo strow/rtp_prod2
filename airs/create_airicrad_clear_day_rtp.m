@@ -168,12 +168,15 @@ for i=1:length(files)
             iGoodStemps = find(p.stemp >= 273);
             if length(iGoodStemps) > 0
                 p = rtp_sub_prof(p, iGoodStemps);
+                dbtun_ag = dbtun_ag(iGoodStemps);
             end
             % trim obs count if over the rtp 2.0GB limit (with just
             % clear calcs, somewhere around 60-70k obs)
             MAXOBS = 60000;
             if length(p.rtime) > MAXOBS
-                p = rtp_sub_prof(p, randperm(length(p.rtime), MAXOBS));
+                iRand = randperm(length(p.rtime), MAXOBS);
+                p = rtp_sub_prof(p, iRand);
+                dbtun_ag = dbtun_ag(iRand);
             end
             fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
             rtpwrite(fn_rtp1,head,hattr,p,pattr)
