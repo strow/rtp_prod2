@@ -90,10 +90,10 @@ for i=1:length(files)
         head.vcmin = min(head.vchan);
         fprintf(1, '>> Header struct built\n');
 
-            
-        % profile attribute changes for airicrad
-        pa = set_attr('profiles', 'robs1', infile);
-        pa = set_attr(pa, 'rtime', 'TAI:1958');
+        
+% $$$         % profile attribute changes for airicrad
+% $$$         pattr = set_attr('profiles', 'robs1', infile);
+% $$$         pattr = set_attr(pa, 'rtime', 'TAI:1958');
 
     end  % end if i == 1
 
@@ -109,8 +109,121 @@ for i=1:length(files)
             % subset down to just the uniform pixels
             fprintf(1, '>> Uniformity test: %d accepted\n', nuniform);
             p = rtp_sub_prof(p, iuniform);
-            dbtun_ag = [dbtun_ag dbtun(iuniform)];
+            dbtun_ag = dbtun(iuniform);
+            clear dbtun;
             
+            fprintf(1, '>>>> Total of %d obs passed uniformity\n', length(p.rtime));
+
+            %    *****************************************
+            
+            %*************************************************
+            % rtp data massaging *****************************
+            % Fix for zobs altitude units
+            if isfield(p,'zobs')
+                p = fix_zobs(p);
+            end
+            %*************************************************
+
+            %*************************************************
+            % Add in model data ******************************
+            fprintf(1, '>>> Add model: %s...', cfg.model)
+            switch cfg.model
+              case 'ecmwf'
+                [p,head,pattr]  = fill_ecmwf(p,head,pattr);
+              case 'era'
+                [p,head,pattr]  = fill_era(p,head,pattr);
+              case 'merra'
+                [p,head,pattr]  = fill_merra(p,head,pattr);
+            end
+            % check that we have same number of model entries as we do obs because
+            % corrupt model files will leave us with an unbalanced rtp
+            % structure which WILL fail downstream (ideally, this should be
+            % checked for in the fill_* routines but, this is faster for now)
+            [~,nobs] = size(p.robs1);
+            [~,mobs] = size(p.gas_1);
+            if mobs ~= nobs
+                fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
+                            'with nobs ***\n'])
+                return;
+            end
+            clear nobs mobs
+            head.pfields = 5;  % robs, model
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+            %*************************************************
+            % Add surface emissivity *************************
+            % Dan Zhou's one-year climatology for land surface emissivity and
+            % standard routine for sea surface emissivity
+            fprintf(1, '>>> Running rtp_add_emis...');
+            [p,pattr] = rtp_add_emis(p,pattr);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+            %*************************************************
+            % Save the rtp file ******************************
+            fprintf(1, '>>> Saving first rtp file... ');
+            [sID, sTempPath] = genscratchpath();
+            MAXOBS = 60000;
+            if length(p.rtime) > MAXOBS
+                p = rtp_sub_prof(p, randperm(length(p.rtime), MAXOBS));
+            end
+            fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
+            rtpwrite(fn_rtp1,head,hattr,p,pattr)
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+            %*************************************************
+            % run klayers ************************************
+            fprintf(1, '>>> running klayers... ');
+            fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
+            klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
+                           sTempPath '/kout.txt'];
+            unix(klayers_run);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+            %*************************************************
+            % Run sarta **************************************
+            fprintf(1, '>>> Running sarta... ');
+            fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
+            sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+                         ' > ' sTempPath '/sartaout.txt'];
+            unix(sarta_run);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+            %*************************************************
+            % Read in new rcalcs and insert into origin p field
+            stFileInfo = dir(fn_rtp3);
+            fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+                        '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
+            [~,~,p2,~] = rtpread(fn_rtp3);
+            p.rclr = p2.rcalc;
+            clear p2;
+            head.pfields = 7;
+
+            % temporary files are no longer needed. delete them to make sure we
+            % don't fill up the scratch drive.
+            delete(fn_rtp1, fn_rtp2, fn_rtp3);
+            fprintf(1, 'Done\n');
+
+            %*************************************************
+
+            %*************************************************
+            % we have obs that passed uniformity and now have calcs
+            % associated so we can do a clear test
+            fprintf(1, '>>> running airs_find_clear')
+            nobs = length(p.rtime);
+            [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
+            
+            iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.5 & p.landfrac <= 0.01);
+            iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
+            iclear = union(iclear_sea, iclear_notsea);
+            nclear = length(iclear);
+            fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
+            p = rtp_sub_prof(p, iclear);
+
             % concatenate rtp structs
             if ~exist('prof')
                 prof = p;
@@ -122,118 +235,7 @@ for i=1:length(files)
         end
         
 end  % end for i=1:length(files)
-    fprintf(1, '>>>> Total of %d obs passed uniformity\n', length(prof.rtime));
 
-    %    *****************************************
-    
-%*************************************************
-% rtp data massaging *****************************
-% Fix for zobs altitude units
-if isfield(prof,'zobs')
-    prof = fix_zobs(prof);
-end
-%*************************************************
-
-%*************************************************
-% Add in model data ******************************
-fprintf(1, '>>> Add model: %s...', cfg.model)
-switch cfg.model
-  case 'ecmwf'
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
-  case 'era'
-    [prof,head,pattr]  = fill_era(prof,head,pattr);
-  case 'merra'
-    [prof,head,pattr]  = fill_merra(prof,head,pattr);
-end
-% check that we have same number of model entries as we do obs because
-% corrupt model files will leave us with an unbalanced rtp
-% structure which WILL fail downstream (ideally, this should be
-% checked for in the fill_* routines but, this is faster for now)
-[~,nobs] = size(prof.robs1);
-[~,mobs] = size(prof.gas_1);
-if mobs ~= nobs
-    fprintf(2, ['*** ERROR: number of model entries does not agree ' ...
-                'with nobs ***\n'])
-    return;
-end
-clear nobs mobs
-head.pfields = 5;  % robs, model
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% Add surface emissivity *************************
-% Dan Zhou's one-year climatology for land surface emissivity and
-% standard routine for sea surface emissivity
-fprintf(1, '>>> Running rtp_add_emis...');
-[prof,pattr] = rtp_add_emis(prof,pattr);
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% Save the rtp file ******************************
-fprintf(1, '>>> Saving first rtp file... ');
-[sID, sTempPath] = genscratchpath();
-MAXOBS = 60000;
-if length(prof.rtime) > MAXOBS
-    prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
-end
-fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
-rtpwrite(fn_rtp1,head,hattr,prof,pattr)
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% run klayers ************************************
-fprintf(1, '>>> running klayers... ');
-fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
-klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
-               sTempPath '/kout.txt'];
-unix(klayers_run);
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% Run sarta **************************************
-fprintf(1, '>>> Running sarta... ');
-fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
-             ' > ' sTempPath '/sartaout.txt'];
-unix(sarta_run);
-fprintf(1, 'Done\n');
-%*************************************************
-
-%*************************************************
-% Read in new rcalcs and insert into origin prof field
-stFileInfo = dir(fn_rtp3);
-fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-            '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
-[~,~,p2,~] = rtpread(fn_rtp3);
-prof.rclr = p2.rcalc;
-clear p2;
-head.pfields = 7;
-
-% temporary files are no longer needed. delete them to make sure we
-% don't fill up the scratch drive.
-delete(fn_rtp1, fn_rtp2, fn_rtp3);
-fprintf(1, 'Done\n');
-
-%*************************************************
-
-%*************************************************
-% we have obs that passed uniformity and now have calcs
-% associated so we can do a clear test
-fprintf(1, '>>> running airs_find_clear')
-nobs = length(prof.rtime);
-[iflagsc, bto1232, btc1232] = airs_find_clear(head, prof, 1:nobs);
-    
-iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.5 & prof.landfrac <= 0.01);
-iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & prof.landfrac >  0.01);
-iclear = union(iclear_sea, iclear_notsea);
-nclear = length(iclear);
-fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
-prof = rtp_sub_prof(prof, iclear);
-
-fprintf(1, 'Done\n');
+    fprintf(1, 'Done\n');
 
     
