@@ -47,6 +47,7 @@ load /home/sbuczko1/git/rtp_prod2_DEV/airs/util/sarta_chans_for_l1c.mat
 files = dir(fullfile(inpath, '*.hdf'));
 dbtun_ag = [];
 
+FIRSTGRAN = true;
 for i=1:length(files)
     % Read the AIRICRAD file
     infile = fullfile(inpath, files(i).name);
@@ -58,9 +59,14 @@ for i=1:length(files)
                     'Skipping.\n'], infile);
         continue;
     end
+    if length(p.rtime) ~= 12150
+        fprintf(1, ['>>> GRANULE MISSING OBS: Discarding granule %s\' ...
+                    'n'], infile);
+        continue
+    end
     fprintf(1, 'Done. \n')
     
-    if i == 1 % only need to build the head structure once but, we do
+    if FIRSTGRAN % only need to build the head structure once but, we do
               % need freq data read in from first data file
               % Header 
         head = struct;
@@ -94,8 +100,8 @@ for i=1:length(files)
 % $$$         % profile attribute changes for airicrad
 % $$$         pattr = set_attr('profiles', 'robs1', infile);
 % $$$         pattr = set_attr(pa, 'rtime', 'TAI:1958');
-
-    end  % end if i == 1
+        FIRSTGRAN = false;
+    end  % end if FIRSTGRAN
 
         % run airs_find_uniform and check for any obs that pass
         % looser land criteria. If such exist, subset to them and
