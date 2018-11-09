@@ -14,29 +14,6 @@ function [head, hattr, prof, pattr] = create_airicrad_random_day_rtp(inpath, cfg
 func_name = 'create_airicrad_random_day_rtp';
 
 %*************************************************
-% Execute user-defined paths *********************
-REPOBASEPATH = '/home/sbuczko1/git/';
-% $$$ REPOBASEPATH = '/asl/packages/';
-
-PKG = 'rtp_prod2_PROD';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG));
-addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
-
-PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG));
-
-PKG = 'matlib';
-addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG));  %
-                                                            %driver_cloudy_sarta;
-
-addpath('/asl/matlib/rtptools');   % for cat_rtp
-addpath('/asl/matlib/aslutil');    % for int2bits
-
-%*************************************************
-
-%*************************************************
 % Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
