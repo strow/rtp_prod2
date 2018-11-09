@@ -174,7 +174,7 @@ for i=1:length(files)
             iGoodStemps = find(p.stemp >= 273);
             fprintf(1, ['>>> Filtering out low stemp obs: of %d ' ...
                         'initial obs, keeping %d\n'], length(p.stemp), ...
-                    iGoodStemps);
+                    length(iGoodStemps));
             if length(iGoodStemps) > 0
                 p = rtp_sub_prof(p, iGoodStemps);
                 dbtun_ag = dbtun_ag(iGoodStemps);
