@@ -178,7 +178,7 @@ for i=1:length(files)
             end
             % trim obs count if over the rtp 2.0GB limit (with just
             % clear calcs, somewhere around 60-70k obs)
-            MAXOBS = 60000;
+            MAXOBS = 50000;
             if length(p.rtime) > MAXOBS
                 iRand = randperm(length(p.rtime), MAXOBS);
                 p = rtp_sub_prof(p, iRand);

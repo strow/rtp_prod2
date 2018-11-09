@@ -53,7 +53,7 @@ for i = 1:chunk
         
         % Now save the four types of cris files
         fprintf(1, '>>> writing output rtp file... ');
-        MAXOBS = 60000;
+        MAXOBS = 50000;
         if length(prof.rtime) > MAXOBS
             prof = rtp_sub_prof(prof, randperm(length(prof.rtime), ...
                                                MAXOBS));
