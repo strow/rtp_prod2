@@ -172,17 +172,27 @@ for i=1:length(files)
             [sID, sTempPath] = genscratchpath();
             % remove any obs with stemp < 273
             iGoodStemps = find(p.stemp >= 273);
+            lGoodStemps = length(iGoodStemps);
             fprintf(1, ['>>> Filtering out low stemp obs: of %d ' ...
                         'initial obs, keeping %d\n'], length(p.stemp), ...
-                    length(iGoodStemps));
-            if length(iGoodStemps) > 0
+                    lGoodStemps);
+            % if all obs flagged for stemp removal, just discard
+            % granule and move on
+            if lGoodStemps == 0
+                fprintf(1, ['>>> All obs miss stemp threshold. ' ...
+                            'Discarding granule\n']);
+                continue;
+            end
+            
+            if lGoodStemps > 0 & lGoodStemps < length(p.stemp) 
                 p = rtp_sub_prof(p, iGoodStemps);
                 dbtun_ag = dbtun_ag(iGoodStemps);
             end
-            fprintf(1, '>>> Saved %d obs after filter\n', length(p.stemp));
+            fprintf(1, ['>>> Saved %d obs after filter. Min stemp ' ...
+                        'in prof: %.1f\n'], length(p.stemp), min(p.stemp));
             % trim obs count if over the rtp 2.0GB limit (with just
             % clear calcs, somewhere around 60-70k obs)
-            MAXOBS = 50000;
+            MAXOBS = 30000;
             if length(p.rtime) > MAXOBS
                 iRand = randperm(length(p.rtime), MAXOBS);
                 p = rtp_sub_prof(p, iRand);
