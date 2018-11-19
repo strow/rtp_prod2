@@ -32,7 +32,7 @@ MATLAB=/usr/cluster/matlab/current/bin/matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_airxbcal_batch"
-$MATLAB $MATOPTS -r "addpath(genpath('~/git/rtp_prod2_PROD'), '~/git/swutils'); run_airxbcal_batch; exit"
+$MATLAB $MATOPTS -r "addpath(genpath('~/git/rtp_prod2'), '~/git/swutils'); run_airxbcal_batch; exit"
     
 echo "Finished with run_airxbcal_batch"
 

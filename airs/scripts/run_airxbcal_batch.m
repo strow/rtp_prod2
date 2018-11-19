@@ -42,6 +42,7 @@ for i = 1:chunk
             iDoy, iYear)
 
     cfg.model='era';
+    cfg.outfile_head='/asl/rtp/rtp_airxbcal_v5';
     create_airxbcal_rtp(iDoy, iYear, cfg);
 end
 
