@@ -32,17 +32,10 @@ for i = 1:chunk
         break;
     end
 
-    % YEAR and DOY are in the retrieved filename. Parse this and
-    % pull them out
-    C = strsplit(inpath, '/');
-    iYear = str2num(C{6});
-    iDoy = str2num(C{7});
-  
-    fprintf(1, 'run_airxbcal_batch: processing day %d, year %d\n', ...
-            iDoy, iYear)
+    fprintf(1, 'run_airxbcal_batch: processing day %s\n', inpath)
 
     cfg.model='era';
     cfg.outfile_head='/asl/rtp/rtp_airxbcal_v5';
-    create_airxbcal_rtp(iDoy, iYear, cfg);
+    create_airxbcal_rtp(inpath, cfg);
 end
 

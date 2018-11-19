@@ -1,4 +1,4 @@
-function [head, hattr, prof, pattr] = create_airxbcal_rtp(iDoy, iYear, cfg)
+function [head, hattr, prof, pattr] = create_airxbcal_rtp(inpath, cfg)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -32,7 +32,13 @@ trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 
-fn = dir(fullfile(indir, '*.hdf'));
+% YEAR and DOY are in the retrieved filename. Parse this and
+% pull them out
+C = strsplit(inpath, '/');
+iYear = str2num(C{6});
+iDoy = str2num(C{7});  
+
+fn = dir(fullfile(inpath, '*.hdf'));
 if (length(fn) > 1)
     fprintf(1, ['>>> *** More than one input ARIXBCAL hdf file present. Terminating ' ...
                 'processing ***\n']);
@@ -45,7 +51,7 @@ end
 
 airxbcal_out_dir = cfg.outfile_head;
 
-fnfull = fullfile(indir,fn.name);
+fnfull = fullfile(inpath,fn.name);
 
 % Read the AIRXBCAL file
 fprintf(1, '>>> Reading input file: %s   ', fnfull);
