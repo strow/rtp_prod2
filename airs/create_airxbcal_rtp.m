@@ -60,6 +60,10 @@ fprintf(1, '>>> Reading input file: %s   ', fnfull);
 [prof, pattr, aux] = read_airxbcal(fnfull);
 fprintf(1, 'Done\n');
 
+% subset for the DCCs to speed up processing
+idcc   = find(bitget(prof.iudef(1,:),3));
+prof   = rtp_sub_prof(prof,idcc);
+
 % subset by 20 during debugging
 bDEBUG=0;
 if bDEBUG
@@ -214,18 +218,16 @@ delete(fn_rtp1, fn_rtp2, fn_rtp3);
 % Subset into four types and save separately
 % $$$ iclear = find(bitget(prof.iudef(1,:),1));
 % $$$ isite  = find(bitget(prof.iudef(1,:),2));
-idcc   = find(bitget(prof.iudef(1,:),3));
+
 % $$$ irand  = find(bitget(prof.iudef(1,:),4));
 
 % $$$ prof_clear = rtp_sub_prof(prof,iclear);
 % $$$ prof_site  = rtp_sub_prof(prof,isite);
-prof_dcc   = rtp_sub_prof(prof,idcc);
 % $$$ prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
 asType = {'dcc'};
-for i = 1:le
-    ngth(asType)
+for i = 1:length(asType)
     sPath = fullfile(airxbcal_out_dir,airs_yearstr,char(asType(i)));
     if exist(sPath) == 0
         mkdir(sPath);
@@ -258,8 +260,8 @@ fprintf(1, '>>> writing output rtp files... ');
 
 if length(idcc)
     rtp_out_fn = [rtp_out_fn_head, '_dcc.rtp'];
-    rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(3)), rtp_out_fn);
-    rtpwrite(rtp_outname,head,hattr,prof_dcc,pattr);
+    rtp_outname = fullfile(airxbcal_out_dir,airs_yearstr, char(asType(1)), rtp_out_fn);
+    rtpwrite(rtp_outname,head,hattr,prof,pattr);
 else
     fprintf(2, '>> AIRS year %c  day %c has no dcc obs\n', airs_yearstr, ...
             airs_doystr);

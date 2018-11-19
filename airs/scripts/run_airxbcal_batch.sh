@@ -9,10 +9,10 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=medium
+#SBATCH --qos=short
 #SBATCH --account=pi_strow
 #SBATCH --mem-per-cpu=18000
-#SBATCH --time=06:00:00
+#SBATCH --time=00:20:00
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
 #SBATCH --requeue
