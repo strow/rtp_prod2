@@ -1,4 +1,4 @@
-function [head, hattr, prof, pattr] = create_airxbcal_rtp(inpath, cfg)
+function [head, hattr, prof, pattr] = create_airxbcal_rtp(iDoy, iYear, cfg)
 %
 % NAME
 %   create_airxbcal_rtp -- wrapper to process AIRXBCAL to RTP
@@ -215,6 +215,8 @@ prof_dcc   = rtp_sub_prof(prof,idcc);
 % $$$ prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
+airs_yearstr = sprintf('%4d', iYear);
+airs_doystr = sprintf('%03d', iDoy);
 asType = {'dcc'};
 for i = 1:le
     ngth(asType)
