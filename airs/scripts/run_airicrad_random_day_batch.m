@@ -3,9 +3,6 @@ function run_airicrad_random_day_batch(cfg)
 % read day file path from specified file list, pass to create_*_rtp
 % function and write resulting rtp data to <cfg.outputpath>/year/doy
 
-addpath ..;    % look one level up for create_* functions
-addpath ../util;
-
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 
