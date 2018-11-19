@@ -37,6 +37,8 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 C = strsplit(inpath, '/');
 iYear = str2num(C{6});
 iDoy = str2num(C{7});  
+airs_yearstr = sprintf('%4d', iYear);
+airs_doystr = sprintf('%03d', iDoy);
 
 fn = dir(fullfile(inpath, '*.hdf'));
 if (length(fn) > 1)
@@ -112,7 +114,7 @@ end
 
 % Add in Scott's calflag
 fprintf(1, '>>> Matching calflags... ');
-[status, tmatchedcalflag] = mkmatchedcalflag(airs_year, airs_doy, ...
+[status, tmatchedcalflag] = mkmatchedcalflag(iYear, iDoy, ...
                                             prof);
 if status == 99
     fprintf(1, ['>>> *** Corrupt meta data file. Terminating ' ...
@@ -221,8 +223,6 @@ prof_dcc   = rtp_sub_prof(prof,idcc);
 % $$$ prof_rand  = rtp_sub_prof(prof,irand);
 
 % Make directory if needed
-airs_yearstr = sprintf('%4d', iYear);
-airs_doystr = sprintf('%03d', iDoy);
 asType = {'dcc'};
 for i = 1:le
     ngth(asType)
