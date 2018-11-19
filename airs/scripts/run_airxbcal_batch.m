@@ -1,6 +1,6 @@
 function run_airxbcal_batch()
 
-addpath('/home/sbuczko1/git/rtp_prod2_PROD/airs/');
+addpath('/home/sbuczko1/git/rtp_prod2_DEV/airs/');
 % 
 airs_daily_file_list = '~/airxbcal-days-to-process';
 
