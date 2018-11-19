@@ -17,9 +17,9 @@ function [head, hattr, prof, pattr] = create_airxbcal_rtp(iDoy, iYear, cfg)
 %      /asl/packages/swutil
 func_name = 'create_airxbcal_rtp';
 
-addpath('/home/sbuczko1/git/rtp_prod2/airs/readers');
-addpath('/home/sbuczko1/git/rtp_prod2/airs/calflag');
-addpath('/home/sbuczko1/git/rtp_prod2/airs/util');
+addpath('/home/sbuczko1/git/rtp_prod2_DEV/airs/readers');
+addpath('/home/sbuczko1/git/rtp_prod2_DEV/airs/calflag');
+addpath('/home/sbuczko1/git/rtp_prod2_DEV/airs/util');
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
