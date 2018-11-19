@@ -9,13 +9,13 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=medium
 #SBATCH --account=pi_strow
 #SBATCH -N1
-#SBATCH --mem-per-cpu=18000
+#SBATCH --mem-per-cpu=20000
 #SBATCH --cpus-per-task 1
 ##SBATCH --array=0-179
-#SBATCH --time=03:59:00
+#SBATCH --time=04:59:00
 
 #SBATCH -o /home/sbuczko1/logs/sbatch/run_create_airs_clear_day-%A_%a.out
 #SBATCH -e /home/sbuczko1/logs/sbatch/run_create_airs_clear_day-%A_%a.err
