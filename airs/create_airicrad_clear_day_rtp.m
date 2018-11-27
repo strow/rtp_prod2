@@ -247,7 +247,7 @@ for i=1:length(files)
             nobs = length(p.rtime);
             [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
             
-            iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.5 & p.landfrac <= 0.01);
+            iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
 % $$$             iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
 % $$$             iclear = union(iclear_sea, iclear_notsea);
             iclear = iclear_sea;
