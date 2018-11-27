@@ -1,4 +1,4 @@
-function iclear = airs_uniform_clear(head, hattr, prof, pattr)
+function [iclear, dbtun] = airs_uniform_clear(head, hattr, prof, pattr)
 % AIRS_UNIFORM_CLEAR select clear obs
 % 
 % Run the AIRS airs_uniform.m and airs_find_clear.m codes for a set of
