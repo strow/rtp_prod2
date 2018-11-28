@@ -13,6 +13,7 @@ emis/DanZ_data
 *.h5
 *.hdf
 *.mat
+!sarta_chans_for_l1c.mat
 *.log
 *.core
 *.rtp
