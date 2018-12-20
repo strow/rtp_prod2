@@ -18,7 +18,7 @@ addpath /asl/matlib/aslutil
 addpath /asl/packages/time
 
 % Location of grib files
-fhdr = '/asl/data/ecmwf_nc/';
+fhdr = '/asl/data/ecmwf/';
 
 ename = '';  % This should be placed outside a rtp file loop
 
