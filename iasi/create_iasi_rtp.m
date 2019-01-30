@@ -42,7 +42,8 @@ sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 % Generate save file from input file: (expect: IASI_xxx_1C_M02_20130101000254Z_20130101000557Z)
 clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
-savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
+%savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
+savPath = ['/umbc/xfs3/strow/asl/rtp/rtp_iasi1/' subset '/'];
 
 % $$$ addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
 addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m

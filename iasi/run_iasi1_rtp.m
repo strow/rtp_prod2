@@ -126,14 +126,15 @@ end
 clear prof;
 
 % Save the hourly/daily RTP file
-outpath = '/asl/rtp/rtp_iasi1';
+%outpath = '/asl/rtp/rtp_iasi1';
+outpath = '/umbc/xfs3/strow/asl/rtp/rtp_iasi1';
 savPath = fullfile(outpath, subset, syr);
 
 if ~exist(savPath)
     mkdir(savPath)
 end
 
-  savFil  = ['iasi1_era_d' syr smo sdy '_' subset '_fs.rtp'];
+  savFil  = ['iasi1_era_d' syr smo sdy '_' subset '.rtp'];
   savF    = fullfile(savPath, savFil);
 
   fprintf(1, '>>> Writing to output file: %s\n', savF);
