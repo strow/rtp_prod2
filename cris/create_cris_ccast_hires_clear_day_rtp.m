@@ -210,6 +210,11 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         
 
         % run klayers
+        MAXOBS = 60000;
+        if length(prof.rtime) > MAXOBS
+            prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
+        end
+
         fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
         rtpwrite(fn_rtp1,head,hattr,prof,pattr);
         fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);

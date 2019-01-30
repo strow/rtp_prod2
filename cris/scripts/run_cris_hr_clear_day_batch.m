@@ -31,10 +31,10 @@ for i = 1:chunk
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
-    [gpath, gname, ext] = fileparts(infile);
-    C = strsplit(gpath, '/');
-    cris_yearstr = C{7};
-    cris_doystr = C{8};
+% $$$     [gpath, gname, ext] = fileparts(infile);
+    C = strsplit(infile, '/');
+    cris_yearstr = C{6};
+    cris_doystr = C{7};
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
