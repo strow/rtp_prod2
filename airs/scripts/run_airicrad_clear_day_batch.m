@@ -44,7 +44,7 @@ for i = 1:chunk
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir,airs_yearstr, char(asType(i)));
+        sPath = fullfile(cfg.outputdir, char(asType(i)), airs_yearstr);
         fprintf(1, '>>> Writing output rtp to directory %s\n', sPath);
         if exist(sPath) == 0
             fprintf(1, '>>>> %s does not exist. Creating\n', sPath);

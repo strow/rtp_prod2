@@ -188,6 +188,7 @@ gdata.iudef(2,:) = junk2(i0);
 %
 junk = cell2mat(hdfread(fn, 'scan_node_type'));
 junk2 = reshape( (ones(90,1)*double(junk))', 1,nobs);
+junk2 = (junk2 == 68); % change A/D to 0/1
 gdata.iudef(4,:) = junk2(i0);
 %
 junk = hdfread(fn, 'SceneInhomogeneous');
