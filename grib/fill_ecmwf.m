@@ -3,6 +3,11 @@
 % L. Strow, 22 Oct 2014
 %
 % Modify to include era?
+%
+% REQUIRES:
+%     /asl/matlib/aslutil
+%     /asl/packages/time
+%
 
 function [prof, head, pattr] = fill_ecmwf(prof, head, pattr, cfg);
 
@@ -13,9 +18,6 @@ if (nargin < 4) & (nargin ~= nargout)
            'outputs.\n\tUse either [p,h]=fill_ecmwf(p,h) or ' ...
            '[p,h,pa]=fill_ecmwf(p,h,pa) (preferred)\n\tTerminating'], '\n');
 end
-
-addpath /asl/matlib/aslutil
-addpath /asl/packages/time
 
 % Location of grib files
 fhdr = '/asl/data/ecmwf/';

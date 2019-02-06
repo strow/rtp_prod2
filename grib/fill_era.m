@@ -3,6 +3,10 @@
 % L. Strow, 12 Jan 2015
 %
 % Start with fill_ecmwf.m and modify for ERA
+%
+% REQUIRES:
+%     /asl/matlib/aslutil
+%     /asl/packages/time
 
 function [prof, head, pattr] = fill_era(prof, head, pattr)
 
@@ -13,9 +17,6 @@ if nargin ~= nargout
            'outputs.\n\tUse either [p,h]=fill_era(p,h) or ' ...
            '[p,h,pa]=fill_era(p,h,pa) (preferred)\n\tTerminating'], '\n')
 end
-
-addpath /asl/matlib/aslutil
-addpath /asl/packages/time
 
 % Location of grib files
 fhdr = '/asl/data/era/';

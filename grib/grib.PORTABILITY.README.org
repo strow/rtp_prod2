@@ -1,0 +1,16 @@
+
+For portability, this structure either needs to be replicated on host
+machines or these paths need to be made configurable.
+
+* Required addpaths
+Functions fill_ecmwf, fill_era, and fill_merra require routines found
+on the UMBC cluster system at
+   - /asl/matlib/aslutil
+   - /asl/packages/time
+
+* staticly defined directories
+Each function also looks for a static directory where it's input data
+files can be found. On the UMBC system, these directories are:
+     - /asl/data/ecmwf
+     - /asl/data/era
+     - /asl/data/merra
