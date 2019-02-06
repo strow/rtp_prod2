@@ -1,0 +1,14 @@
+* rtpadd_usgs_10dem
+needs path to source data file but is configurable. Default is UMBC
+local path /asl/data/usgs/world_grid_deg10_v2.mat
+
+Optional calling paramter 'root' can be set as a directory path to
+replace the '/asl/' root or can be set as a full path to a replacement
+DEM file.
+
+* hha_lat_subsample_equal_area3
+Requires two paths
+- /asl/matlib/rtptools
+- /asl/packages/ccast/motmsc/time (can this be replaced by
+  /asl/packages/time or do we need to rip more isolated functions out
+  of ccast?)

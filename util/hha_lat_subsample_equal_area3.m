@@ -10,8 +10,9 @@ function [keep2D,keep_ind] = hha_lat_subsample_equal_area3(head0,prof0)
 % Output:  keep2D     : indices 2D matrix of input vector (xtrack,atrack) to keep
 %          keep_ind : changing those 2d indices into one that indexes (1x12150)
 %
-addpath /asl/packages/ccast/motmsc/time
-addpath /asl/matlib/rtptools/
+% REQUIRES:
+%     /asl/packages/ccast/motmsc/time
+%     /asl/matlib/rtptools/
 
 head = head0;
 prof = prof0;
