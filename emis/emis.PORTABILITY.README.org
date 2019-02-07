@@ -1,0 +1,24 @@
+* emis_danz
+- requires /asl/packages/time
+
+** fixed paths
+- load /asl/data/iremis/danz/danz_interpolant.mat
+- load /asl/data/iremis/danz/u_vector_global
+- load /asl/data/iremis/danz/iasi_f
+
+
+* emis_danz_rtp
+- requires ~/git/rtp_prod2 ???  (ultimately wants access to seq_match)
+
+** fixed paths
+- load Data/danz_interpolant.mat
+- load Data/u_vector_global
+- load_fiasi
+
+* rtp_add_emis
+** fixed paths
+- load /asl/data/iremis/danz/iasi_f
+
+* rtp_add_emis_single
+** fixed paths
+- load /asl/data/iremis/danz/iasi_f

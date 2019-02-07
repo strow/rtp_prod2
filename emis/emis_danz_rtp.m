@@ -1,7 +1,10 @@
 %function [emis] = emis_danz_rtp(prof);
 function [emis] = emis_danz_rtp(lat,lon,rtime,efreq);
 % function [prof] = emis_danz_rtp(prof);
-addpath ~/Git/rtp_prod2;  % seq_match
+%
+% REQUIRES:
+%     ~/Git/rtp_prod2;  % seq_match
+%
 % Returning emis instead of prof for now until get straight
 % on code for hinge points
 

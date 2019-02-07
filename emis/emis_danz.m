@@ -4,7 +4,10 @@ function [emis] = emis_danz(lat,lon,rtime,efreq);
 % Returns Dan Zhou's land emissivity climatology
 % Dan provides a monthly climatology, here we do both
 % temporal and spatial linear interpolation.
-addpath /asl/packages/time
+%
+% REQUIRES:
+%     /asl/packages/time
+%
 % danz interpolant is big, keep it around
 persistent danz
 if isempty(danz)
