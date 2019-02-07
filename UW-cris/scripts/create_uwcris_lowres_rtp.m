@@ -2,7 +2,21 @@ function [head, hattr, prof, pattr] = create_uwcris_lowres_rtp(fnCrisInput)
 % CREATE_UWCRIS_LOWRES_RTP process one granule of UW CrIS data
 %
 % Process a single UW CrIS netcdf granule file.
-
+%
+% REQUIRES:
+%	addpath(genpath('/asl/matlib'));
+%	% Need these two paths to use iasi2cris.m in iasi_decon
+%	addpath /asl/packages/iasi_decon
+%	addpath /asl/packages/ccast/source
+%	addpath /asl/packages/time
+%	addpath /asl/packages/ccast/motmsc/rtp_sarta
+%	addpath /asl/rtp_prod/cris/unapod  % cris_box_to_ham.m
+%	addpath /home/sbuczko1/git/rtp_prod2/cris
+%	addpath /home/sbuczko1/git/rtp_prod2/util
+%	addpath /home/sbuczko1/git/rtp_prod2/emis
+%	addpath /home/sbuczko1/git/rtp_prod2/grib
+%	addpath /home/sbuczko1/git/rtp_prod2/UW-cris
+%	
 %set_process_dirs;
 
 % input granule names are of the form:
@@ -25,18 +39,6 @@ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 % $$$                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 sarta_exec = '/asl/bin/crisg4_oct16';
 
-addpath(genpath('/asl/matlib'));
-% Need these two paths to use iasi2cris.m in iasi_decon
-addpath /asl/packages/iasi_decon
-addpath /asl/packages/ccast/source
-addpath /asl/packages/time
-addpath /asl/packages/ccast/motmsc/rtp_sarta
-addpath /asl/rtp_prod/cris/unapod  % cris_box_to_ham.m
-addpath /home/sbuczko1/git/rtp_prod2/cris
-addpath /home/sbuczko1/git/rtp_prod2/util
-addpath /home/sbuczko1/git/rtp_prod2/emis
-addpath /home/sbuczko1/git/rtp_prod2/grib
-addpath /home/sbuczko1/git/rtp_prod2/UW-cris
 
 [sID, sTempPath] = genscratchpath();
 sID = getenv('SLURM_ARRAY_TASK_ID');
