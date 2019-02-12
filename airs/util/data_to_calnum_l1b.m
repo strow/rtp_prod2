@@ -6,6 +6,9 @@ function [calnum, cstr] = data_to_calnum_l1b(tai, freq, nen, ...
 %
 % Convert various AIRS L1B granule data into an 8-bit "calnum".
 %
+% REQUIRES:
+% /home/sbuczko1/git/rtp_prod2/util
+%
 % Input:
 %    tai            - [1  x 1] granule mean time {sec since 0z 01 Jan 1993}
 %       Note: used to select appropriate calibration properties file
@@ -32,7 +35,7 @@ function [calnum, cstr] = data_to_calnum_l1b(tai, freq, nen, ...
 %  Update: 20 Apr 2011, Paul Schou - added support for L2 data, 2378 x 45
 %  Update: 14 Jun 2011, S.Hannon - bug fix for NEdT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-addpath /home/sbuczko1/git/rtp_prod2_PROD/util
+
 % Spectral calibration filename and TAI time when A/B weight changes
 caldir = '/asl/matlab/airs/utils';
 caldir = '/asl/matlab2012/airs/utils';

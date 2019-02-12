@@ -5,6 +5,9 @@ function [eq_x_tai, f, gdata, attr] = read_airibrad(fn);
 % Reads an AIRS level 1b granule file and returns an RTP-like structure of
 % observation data.  Returns all 2378 channels and 90x135 FOVs.
 %
+% REQUIRES:
+% addpath(genpath('/home/sbuczko1/git/rtp_prod2/'));
+%
 % Input:
 %    fn = (string) Name of an AIRS l1b granule file, something like
 %          'AIRS.2000.12.15.084.L1B.AIRS_Rad.v2.2.0.64.A000'
@@ -33,11 +36,6 @@ function [eq_x_tai, f, gdata, attr] = read_airibrad(fn);
 %    data_to_calnum_l1b; read nominal_freq
 % Update: 15 Oct 2011, S.Hannon - add path for data_to_calnum_l1b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
-% addpath /asl/matlab2012/airs/utils  % data_to_calnum_l1b
-addpath(genpath('/home/sbuczko1/git/rtp_prod2_PROD/'));
-%addpath /home/strow
 
 % Granule dimensions
 nchan=2378;
@@ -160,13 +158,8 @@ for ia=1:natrack
    tmp_atrack(iobs)=ia;
    tmp_xtrack(iobs)=ix;
    tmp_zobs(iobs)=satheight(ia)*1000;  % convert km to meters
-%%% faster?
    tmp_calflag(:,iobs) = repmat(calnum(:,ia),1,nxtrack);
-%%% slower?
-%   for ii=1:nxtrack
-%      tmp_calflag(:,iobs(ii))=calnum(:,ia);
-%   end
-%%%
+
 end
 %
 clear ix ia iobs calnum satheight
