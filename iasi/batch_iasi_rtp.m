@@ -58,10 +58,10 @@ FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-fprintf(FH,'#SBATCH --partition=prod\n');
-fprintf(FH,'#SBATCH --qos=medium_prod\n');
+fprintf(FH,'#SBATCH --partition=batch\n');
+fprintf(FH,'#SBATCH --qos=medium+\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
-fprintf(FH,'#SBATCH --time=07:30:00\n');
+fprintf(FH,'#SBATCH --time=01:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
 fprintf(FH,'#SBATCH -N1\n');
 fprintf(FH,'#SBATCH --output=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.out\n');
@@ -70,7 +70,7 @@ fprintf(FH,'#SBATCH --mem=14000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 1\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
 
-fprintf(FH,'MATLAB=''/usr/cluster/matlab/2015b/bin/matlab''\n');
+fprintf(FH,'MATLAB=''matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
