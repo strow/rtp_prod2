@@ -59,7 +59,7 @@ fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
 fprintf(FH,'#SBATCH --partition=batch\n');
-fprintf(FH,'#SBATCH --qos=medium+\n');
+fprintf(FH,'#SBATCH --qos=normal+\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
 fprintf(FH,'#SBATCH --time=01:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
