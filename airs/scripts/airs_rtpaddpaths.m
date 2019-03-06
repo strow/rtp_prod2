@@ -17,4 +17,5 @@ addpath(sprintf('%s/matlib/clouds/sarta', REPOBASEPATH));  % driver_cloudy_sarta
 addpath(sprintf('%s/matlib/aslutil', REPOBASEPATH));
 addpath(sprintf('%s/matlib/rtptools', REPOBASEPATH));   % for cat_rtp
 
+addpath /asl/matlib/time
 %*************************************************
