@@ -28,7 +28,16 @@ F.skt.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'skt',[1 1 hindex
 F.v10.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'v10',[1 1 hindex],[Inf Inf 1]))'),'linear');
 F.u10.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'u10',[1 1 hindex],[Inf Inf 1]))'),'linear');
 F.tcc.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'tcc',[1 1 hindex],[Inf Inf 1]))'),'linear');
-F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'ci',[1 1 hindex],[Inf Inf 1]))'),'linear');
+
+%%%%% Quick fix to address discontinuity in ERA variable naming at
+%%%%% 2018-08-31/2018-09-01 boundary. 
+%%%%% **** THIS FIX IS NOT GENERAL AND BREAKS FILL_ERA FOR ALL
+%%%%% DATES PRIOR TO 2018-09-01 ****
+F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'siconc',[1 ...
+                    1 hindex],[Inf Inf 1]))'),'linear');
+% $$$ F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'ci',[1 1 hindex],[Inf Inf 1]))'),'linear');
+%%%%%
+
 %F.tcwv.ig = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'tcwv',[1 1 hindex],[Inf Inf 1]))'),'linear');
 %F.msl.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'msl',[1 1 hindex],[Inf Inf 1]))'),'linear');
 
