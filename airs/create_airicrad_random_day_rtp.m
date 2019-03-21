@@ -22,14 +22,11 @@ sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_w
 
 %*************************************************
 % Build traceability info ************************
-trace.klayers = klayers_exec;
-trace.sartaclr = sartaclr_exec;
-trace.sartacld = sartacld_exec;
-trace.githash = githash(func_name);
-trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
+githash = githash(func_name);
+RunDate = char(datetime('now','TimeZone','local','Format', ...
                               'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
-        trace.RunDate, trace.githash);
+        RunDate, githash);
 %*************************************************
 
 load ./util/sarta_chans_for_l1c.mat
@@ -58,16 +55,22 @@ for i=1:length(files)
               % Header 
         head = struct;
         head.pfields = 4;  % robs1, no calcs in file
-        head.ptype = 0;    
+        head.ptype = 0;       
         head.ngas = 0;
         
         % Assign header attribute strings
         hattr={ {'header' 'pltfid' 'Aqua'}, ...
                 {'header' 'instid' 'AIRS'}, ...
-                {'header' 'githash' trace.githash}, ...
-                {'header' 'rundate' trace.RunDate}, ...
+                {'header' 'pfields' '[1=profile,2=calc,4=obs (val=sum)]'}, ...
+                {'header' 'ptype' '[0=levels,1=layers,2=AIRS layers]'}, ...
+                {'header' 'githash' githash}, ...
+                {'header' 'rundate' RunDate}, ...
                 {'header' 'klayers_exec' klayers_exec}, ...
-                {'header' 'sartaclr_exec' sartaclr_exec} };
+                {'header' 'sartaclr_exec' sartaclr_exec}, ...
+                {'header' 'sartacld_exec' sartacld_exec}, ...
+                {'header' 'source' inpath}, ...
+                {'header' 'rtime' 'TAI:1958'}};
+                
         
         nchan = size(prof0.robs1,1);
         %vchan = aux.nominal_freq(:);
@@ -82,11 +85,6 @@ for i=1:length(files)
         head.vcmax = max(head.vchan);
         head.vcmin = min(head.vchan);
         fprintf(1, '>> Header struct built\n');
-
-            
-        % profile attribute changes for airicrad
-        pa = set_attr('profiles', 'robs1', infile);
-        pa = set_attr(pa, 'rtime', 'TAI:1958');
 
     end  % end if i == 1
 

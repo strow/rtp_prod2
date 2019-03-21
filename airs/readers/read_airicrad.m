@@ -186,14 +186,14 @@ junk = hdfread(fn, 'dust_score');
 junk2 = reshape( double(junk'), 1,nobs);
 gdata.iudef(2,:) = junk2(i0);
 %
+junk = hdfread(fn, 'SceneInhomogeneous');
+junk2 = reshape( double(junk'), 1,nobs);
+gdata.iudef(3,:) = junk2(i0);
+%
 junk = cell2mat(hdfread(fn, 'scan_node_type'));
 junk2 = reshape( (ones(90,1)*double(junk))', 1,nobs);
 junk2 = (junk2 == 68); % change A/D to 0/1
 gdata.iudef(4,:) = junk2(i0);
-%
-junk = hdfread(fn, 'SceneInhomogeneous');
-junk2 = reshape( double(junk'), 1,nobs);
-gdata.iudef(6,:) = junk2(i0);
 %
 % $$$ junk = permute(hdfread(fn, 'AB_Weight'), [3 2 1]);
 % $$$ junk2 = reshape( double(junk), nchan, nobs);
@@ -204,15 +204,15 @@ gdata.iudef(6,:) = junk2(i0);
 %
 junk = hdfread(fn, 'sun_glint_distance');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(3,:) = junk2(i0);
+gdata.udef(1,:) = junk2(i0);
 %
 junk = hdfread(fn, 'spectral_clear_indicator');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(4,:) = junk2(i0);
+gdata.udef(2,:) = junk2(i0);
 %
 junk = hdfread(fn, 'BT_diff_SO2');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(5,:) = junk2(i0);
+gdata.udef(3,:) = junk2(i0);
 %
 % $$$ junk = permute(hdfread(fn, 'NeN'), [3 2 1]);
 % $$$ junk2 = reshape( double(junk), nchan, nobs);
@@ -220,40 +220,30 @@ gdata.udef(5,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Inhomo850');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(7,:) = junk2(i0);
+gdata.udef(4,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Rdiff_swindow');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(8,:) = junk2(i0);
+gdata.udef(5,:) = junk2(i0);
 %
 junk = hdfread(fn, 'Rdiff_lwindow');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.udef(9,:) = junk2(i0);
+gdata.udef(6,:) = junk2(i0);
 %
 
 clear junk junk2 i0
 
 % Assign attribute strings
-attr={{'profiles' 'iudef(1,:)' 'Dust flag:[1=true,0=false,-1=land,-2=cloud,-3=bad data] {dustflag}'},...
-      {'profiles' 'iudef(2,:)' 'Dust_score'},...
-      {'profiles' 'iudef(3,:)' 'L1cProc'},...
-      {'profiles' 'iudef(4,:)' 'scan_node_type'},...
-      {'profiles' 'iudef(5,:)' 'L1cSynthReason'},...
-      {'profiles' 'iudef(6,:)' 'SceneInhomogeneous'},...
-      {'profiles' 'iudef(7,:)' 'AB_weight'},...
-      {'profiles' 'udef(3,:)' 'sun_glint_distance'},...
-      {'profiles' 'udef(4,:)' 'spectral_clear_indicator'},...
-      {'profiles' 'udef(5,:)' 'BT_diff_SO2'},...
-      {'profiles' 'udef(6,:)' 'NeN'},...
-      {'profiles' 'udef(7,:)' 'Inhomo850'},...
-      {'profiles' 'udef(8,:)' 'Rdiff_swindow'},...
-      {'profiles' 'udef(9,:)' 'Rdiff_lwindow'}};
-
-
-% $$$       {'profiles' 'Node' '[Ascend/Descend/Npole/Spole/Zunknown] {scan_node_type}'},...
-% $$$       {'profiles' 'sun_glint_distance' ''},...
-% $$$       {'profiles' 'spectral_clear_indicator' ''},...
-% $$$       {'profiles' 'BT_diff_SO2' ''},...
+attr={{'profiles' 'iudef(1,:)' 'Dust flag:[1=true,0=false,-1=land,-2=cloud,-3=bad data]'},...
+      {'profiles' 'iudef(2,:)' 'Dust_score:[>380 (probable), N/A if Dust Flag < 0]'},...
+      {'profiles' 'iudef(3,:)' 'SceneInhomogeneous:[128=inhomogeneous,64=homogeneous]'},...
+      {'profiles' 'iudef(4,:)' 'scan_node_type [0=Ascending, 1=Descending]'},...
+      {'profiles' 'udef(1,:)' 'sun_glint_distance:[km to sunglint,-9999=unknown,30000=no glint]'},...
+      {'profiles' 'udef(2,:)' 'spectral_clear_indicator:[2=ocean clr,1=ocean n/clr,0=inc. data,-1=land n/clr,-2=land clr]'},...
+      {'profiles' 'udef(3,:)' 'BT_diff_SO2:[<-6, likely volcanic input]'},...
+      {'profiles' 'udef(4,:)' 'Inhomo850:[abs()>0.84 likely inhomogeneous'},...
+      {'profiles' 'udef(5,:)' 'Rdiff_swindow'},...
+      {'profiles' 'udef(6,:)' 'Rdiff_lwindow'}};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
