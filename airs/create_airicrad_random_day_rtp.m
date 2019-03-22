@@ -29,7 +29,8 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         RunDate, ghash);
 %*************************************************
 
-load ./util/sarta_chans_for_l1c.mat
+channelfile = sprintf('%s/airs/util/sarta_chans_for_l1c.mat', cfg.repodir);
+load(channelfile)
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of random obs into a single output file
