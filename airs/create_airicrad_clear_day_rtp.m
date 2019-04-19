@@ -20,6 +20,11 @@ function [head, hattr, prof, pattr] = create_airicrad_clear_day_rtp(inpath, cfg)
 % DISCUSSION (TBD)
 func_name = 'create_airicrad_clear_day_rtp';
 
+% establish local directory structure
+currentFilePath = mfilename('fullpath');
+[cfpath, cfname, cfext] = fileparts(currentFilePath);
+fprintf(1,'> Executing routine: %s\n', currentFilePath);
+
 %*************************************************
 % Build configuration ****************************
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
@@ -38,7 +43,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
 %*************************************************
 
 
-load /home/sbuczko1/git/rtp_prod2_DEV/airs/util/sarta_chans_for_l1c.mat
+load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of clear obs into a single output file

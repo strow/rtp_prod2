@@ -16,24 +16,10 @@ function [head, hattr, prof, pattr] = ...
 % DISCUSSION (TBD)
 func_name = 'create_airicrad_allfov_gran_rtp';
 
-%*************************************************
-% Execute user-defined paths *********************
-REPOBASEPATH = '/home/sbuczko1/git/';
-% $$$ REPOBASEPATH = '/asl/packages/';
-
-PKG = 'rtp_prod2_PROD';
-addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG);
-addpath(sprintf('%s/%s/emis', REPOBASEPATH, PKG);
-addpath(genpath(sprintf('%s/%s/airs', REPOBASEPATH, PKG)));
-
-PKG = 'swutils'
-addpath(sprintf('%s/%s', REPOBASEPATH, PKG);
-
-PKG = 'matlib';
-addpath(sprintf('%s/%s/clouds/sarta', REPOBASEPATH, PKG)  % driver_cloudy_sarta
-
-%*************************************************
+% establish local directory structure
+currentFilePath = mfilename('fullpath');
+[cfpath, cfname, cfext] = fileparts(currentFilePath);
+fprintf(1,'> Executing routine: %s\n', currentFilePath);
 
 %*************************************************
 % Build configuration ****************************
@@ -67,7 +53,7 @@ nchan = size(prof.robs1,1);
 % $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
 % $$$                     % for chan 2378 and higher
 % following line loads array 'ichan' which gets swapped for chani below
-load /home/sbuczko1/git/rtp_prod2_PROD/airs/util/sarta_chans_for_l1c.mat
+load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
 
 %vchan = aux.nominal_freq(:);
 vchan = freq;

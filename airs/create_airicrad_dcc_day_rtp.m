@@ -20,6 +20,11 @@ function [head, hattr, prof, pattr] = create_airicrad_dcc_day_rtp(inpath, cfg)
 % DISCUSSION (TBD)
 func_name = 'create_airicrad_dcc_day_rtp';
 
+% establish local directory structure
+currentFilePath = mfilename('fullpath');
+[cfpath, cfname, cfext] = fileparts(currentFilePath);
+fprintf(1,'> Executing routine: %s\n', currentFilePath);
+
 %*************************************************
 % Build configuration ****************************
 klayers_exec = 'NOT RUN';
@@ -37,8 +42,7 @@ fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         trace.RunDate, trace.githash);
 %*************************************************
 
-
-load /home/sbuczko1/git/rtp_prod2_DEV/airs/util/sarta_chans_for_l1c.mat
+load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
 
 % This version operates on a day of AIRICRAD granules and
 % concatenates the subset of clear obs into a single output file

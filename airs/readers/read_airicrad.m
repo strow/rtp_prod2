@@ -1,13 +1,11 @@
-function [eq_x_tai, f, gdata, attr] = read_airicrad(fn);
-
-% function [eq_x_tai, f, gdata, attr] = xreadl1b_all(fn);
+function [eq_x_tai, f, gdata, attr, opt] = read_airicrad(fn);
 %
-% Reads an AIRS level 1b granule file and returns an RTP-like structure of
-% observation data.  Returns all 2378 channels and 90x135 FOVs.
+% Reads an AIRS level 1c granule file and returns an RTP-like structure of
+% observation data.  Returns all 2645 channels and 90x135 FOVs.
 %
 % Input:
 %    fn = (string) Name of an AIRS l1b granule file, something like
-%          'AIRS.2000.12.15.084.L1B.AIRS_Rad.v2.2.0.64.A000'
+%          'AIRS.2016.12.10.229.L1C.AIRS_Rad.v6.1.2.0.G16346151726.hdf'
 %
 % Output:
 %    eq_x_tai = (1x 1) 1993 TAI time of southward equator crossing
@@ -22,9 +20,12 @@ function [eq_x_tai, f, gdata, attr] = read_airicrad(fn);
 % in L1B is unnecessary here as it is done in the raw data. Data
 % that might have been rejected in L1B is filled with interpolated
 % values. Channels which have been filled (and the reasons for that
-% filling) can be tracked through L1CSynthReason (iudef(5,:)).
+% filling) can be tracked through L1CSynthReason (gdata.l1csreason)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% establish local directory structure
+currentFilePath = mfilename('fullpath');
+[cfpath, cfname, cfext] = fileparts(currentFilePath);
 
 % Granule dimensions
 nchan=2645;
@@ -33,7 +34,8 @@ natrack=135;
 nobs=nxtrack*natrack;
 
 % Default f
-load /asl/matlab2012/airs/readers/f_default_l1c.mat
+% $$$ load /asl/matlab2012/airs/readers/f_default_l1c.mat
+load(fullfile(cfpath, '../static/f_default_l1c.mat'))
 f_default = f;
 
 % Read "state" and find good FOVs
@@ -139,7 +141,7 @@ gdata.rlon = junk2(i0);
 junk = hdfread(fn, 'Time');
 junk2 = reshape( double(junk'), 1,nobs);
 gdata.rtime = junk2(i0);
-gdata.rtime = gdata.rtime  + 12784 * 86400 + 27;
+gdata.rtime = airs2tai(gdata.rtime);
 %
 junk = hdfread(fn, 'scanang');
 junk2 = reshape( double(junk'), 1,nobs);
@@ -176,7 +178,15 @@ gdata.l1cproc = junk2(:,i0);
 junk = permute(hdfread(fn, 'L1cSynthReason'), [3 2 1]);
 junk2 = reshape( double(junk), nchan, nobs);
 gdata.l1csreason = junk2(:,i0);
-
+%
+junk = cell2mat(hdfread(fn,'sat_lat'));
+junk2 = reshape(repmat(junk,90,1), 1, nobs);
+gdata.satlat = junk2(i0);
+%
+junk = cell2mat(hdfread(fn,'sat_lon'));
+junk2 = reshape(repmat(junk,90,1), 1, nobs);
+opt.satlon = junk2(i0);
+%
 % iudefs (maximum of 10?)
 junk = hdfread(fn, 'dust_flag');
 junk2 = reshape( double(junk'), 1,nobs);
@@ -194,9 +204,9 @@ junk = cell2mat(hdfread(fn, 'scan_node_type'));
 junk2 = reshape( (ones(90,1)*double(junk))', 1,nobs);
 gdata.iudef(4,:) = junk2(i0);
 %
-% $$$ junk = permute(hdfread(fn, 'AB_Weight'), [3 2 1]);
-% $$$ junk2 = reshape( double(junk), nchan, nobs);
-% $$$ gdata.iudef(7,:,:) = junk2(:,i0);
+junk = permute(hdfread(fn, 'AB_Weight'), [3 2 1]);
+junk2 = reshape( double(junk), nchan, nobs);
+opt.ABweight = junk2(:,i0);
 %
 
 % udefs (maximum of 20?)
@@ -213,9 +223,9 @@ junk = hdfread(fn, 'BT_diff_SO2');
 junk2 = reshape( double(junk'), 1,nobs);
 gdata.udef(3,:) = junk2(i0);
 %
-% $$$ junk = permute(hdfread(fn, 'NeN'), [3 2 1]);
-% $$$ junk2 = reshape( double(junk), nchan, nobs);
-% $$$ gdata.udef(6,:,:) = junk2(:,i0);
+junk = permute(hdfread(fn, 'NeN'), [3 2 1]);
+junk2 = reshape( double(junk), nchan, nobs);
+opt.NeN = junk2(:,i0);
 %
 junk = hdfread(fn, 'Inhomo850');
 junk2 = reshape( double(junk'), 1,nobs);
