@@ -118,7 +118,13 @@ for i=1:length(files)
         nuniform = length(iuniform);
         if nuniform > 0
             % subset down to just the uniform pixels
-            fprintf(1, '>> Uniformity test: %d accepted\n', nuniform);
+            fprintf(1, '>> Uniformity test: %d accepted\n', ...
+                    nuniform);
+% $$$             % subset for land obs only
+% $$$             LANDTHRESHOLD = 1;
+% $$$             iland = find(p.landfrac == LANDTHRESHOLD);
+% $$$             KeepObs = intersect(iuniform, iland);
+
             p = rtp_sub_prof(p, iuniform);
             dbtun_ag = dbtun(iuniform);
             clear dbtun;
@@ -235,6 +241,7 @@ for i=1:length(files)
                         '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
             [~,~,p2,~] = rtpread(fn_rtp3);
             p.rclr = p2.rcalc;
+            p.rcalc = p2.rcalc;
             clear p2;
             head.pfields = 7;
 
@@ -253,9 +260,9 @@ for i=1:length(files)
             [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
             
             iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
-% $$$             iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
+            iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
 % $$$             iclear = union(iclear_sea, iclear_notsea);
-            iclear = iclear_sea;
+            iclear = iclear_notsea;
             p.dbtun = dbtun_ag;
             nclear = length(iclear);
             fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
@@ -272,6 +279,9 @@ for i=1:length(files)
         end
         
 end  % end for i=1:length(files)
+    
+    % remove duplicate rcalc (kept to make cat_rtp happy)
+    prof = rmfield(prof, 'rcalc');
 
     fprintf(1, 'Done\n');
 
