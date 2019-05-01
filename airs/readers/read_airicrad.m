@@ -26,6 +26,7 @@ function [eq_x_tai, f, gdata, attr, opt] = read_airicrad(fn);
 % establish local directory structure
 currentFilePath = mfilename('fullpath');
 [cfpath, cfname, cfext] = fileparts(currentFilePath);
+fprintf(2, '>> Using file: %s\n', currentFilePath);
 
 % Granule dimensions
 nchan=2645;
@@ -140,8 +141,7 @@ gdata.rlon = junk2(i0);
 %
 junk = hdfread(fn, 'Time');
 junk2 = reshape( double(junk'), 1,nobs);
-gdata.rtime = junk2(i0);
-gdata.rtime = airs2tai(gdata.rtime);
+gdata.rtime = airs2tai(junk2(i0));
 %
 junk = hdfread(fn, 'scanang');
 junk2 = reshape( double(junk'), 1,nobs);

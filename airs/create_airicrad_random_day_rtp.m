@@ -1,13 +1,13 @@
 function [head, hattr, prof, pattr] = create_airicrad_random_day_rtp(inpath, cfg)
 %
 % NAME
-   create_airicrad_random_day_rtp -- wrapper to process AIRICRAD to RTP
+%   create_airicrad_random_day_rtp -- wrapper to process AIRICRAD to RTP
 %
 % SYNOPSIS
-%   create_airicrad_random_day_rtp(infile, outfile_head)
+%   [head, hattr, prof, pattr] = create_airicrad_random_day_rtp(inpath, cfg)
 %
 % INPUTS
-%    infile :   path to input AIRICRAD hdf file
+%    inpath :   path to day of input AIRICRAD hdf granules
 %    cfg    :   configuration struct
 %
 % DISCUSSION (TBD)
