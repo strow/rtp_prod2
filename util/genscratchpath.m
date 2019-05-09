@@ -12,7 +12,7 @@ sScratchPath = getenv('JOB_SCRATCH_DIR');
 if ~isempty(sNodeID) && ~isempty(sScratchPath)
     sTempPath = sScratchPath;
 else
-    sTempPath = '/tmp';
+    sTempPath = '/scratch';
     rng('shuffle', 'twister');
     sNodeID = sprintf('%03d', randi(999));
 end
