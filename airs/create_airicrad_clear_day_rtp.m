@@ -181,26 +181,26 @@ for i=1:length(files)
             % Save the rtp file ******************************
             fprintf(1, '>>> Saving first rtp file... ');
             [sID, sTempPath] = genscratchpath();
-            % remove any obs with stemp < 273
-            iGoodStemps = find(p.stemp >= 273);
-            lGoodStemps = length(iGoodStemps);
-            fprintf(1, ['>>> Filtering out low stemp obs: of %d ' ...
-                        'initial obs, keeping %d\n'], length(p.stemp), ...
-                    lGoodStemps);
-            % if all obs flagged for stemp removal, just discard
-            % granule and move on
-            if lGoodStemps == 0
-                fprintf(1, ['>>> All obs miss stemp threshold. ' ...
-                            'Discarding granule\n']);
-                continue;
-            end
-            
-            if lGoodStemps > 0 & lGoodStemps < length(p.stemp) 
-                p = rtp_sub_prof(p, iGoodStemps);
-                dbtun_ag = dbtun_ag(iGoodStemps);
-            end
-            fprintf(1, ['>>> Saved %d obs after filter. Min stemp ' ...
-                        'in prof: %.1f\n'], length(p.stemp), min(p.stemp));
+% $$$             % remove any obs with stemp < 273
+% $$$             iGoodStemps = find(p.stemp >= 273);
+% $$$             lGoodStemps = length(iGoodStemps);
+% $$$             fprintf(1, ['>>> Filtering out low stemp obs: of %d ' ...
+% $$$                         'initial obs, keeping %d\n'], length(p.stemp), ...
+% $$$                     lGoodStemps);
+% $$$             % if all obs flagged for stemp removal, just discard
+% $$$             % granule and move on
+% $$$             if lGoodStemps == 0
+% $$$                 fprintf(1, ['>>> All obs miss stemp threshold. ' ...
+% $$$                             'Discarding granule\n']);
+% $$$                 continue;
+% $$$             end
+% $$$             
+% $$$             if lGoodStemps > 0 & lGoodStemps < length(p.stemp) 
+% $$$                 p = rtp_sub_prof(p, iGoodStemps);
+% $$$                 dbtun_ag = dbtun_ag(iGoodStemps);
+% $$$             end
+% $$$             fprintf(1, ['>>> Saved %d obs after filter. Min stemp ' ...
+% $$$                         'in prof: %.1f\n'], length(p.stemp), min(p.stemp));
             % trim obs count if over the rtp 2.0GB limit (with just
             % clear calcs, somewhere around 60-70k obs)
             MAXOBS = 30000;
@@ -256,13 +256,14 @@ for i=1:length(files)
             % we have obs that passed uniformity and now have calcs
             % associated so we can do a clear test
             fprintf(1, '>>> running airs_find_clear')
+            fprintf(1, '>>> *** FIND_CLEAR DISABLED ***');
             nobs = length(p.rtime);
-            [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
-            
-            iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
-            iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
+% $$$             [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
+% $$$             
+% $$$             iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
+% $$$             iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
 % $$$             iclear = union(iclear_sea, iclear_notsea);
-            iclear = iclear_notsea;
+            iclear = find(p.landfrac > 0.01);
             p.dbtun = dbtun_ag;
             nclear = length(iclear);
             fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
