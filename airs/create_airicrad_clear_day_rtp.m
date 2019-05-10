@@ -263,7 +263,7 @@ for i=1:length(files)
 % $$$             iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
 % $$$             iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
 % $$$             iclear = union(iclear_sea, iclear_notsea);
-            iclear = find(p.landfrac > 0.01);
+            iclear = find(p.landfrac > 0.95);
             p.dbtun = dbtun_ag;
             nclear = length(iclear);
             fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
