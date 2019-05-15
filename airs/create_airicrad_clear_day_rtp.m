@@ -213,7 +213,8 @@ for i=1:length(files)
             rtpwrite(fn_rtp1,head,hattr,p,pattr)
             fprintf(1, 'Done\n');
             %*************************************************
-
+RUNKLAYERSSARTA = false;
+if RUNKLAYERSSARTA
             %*************************************************
             % run klayers ************************************
             fprintf(1, '>>> running klayers... ');
@@ -249,7 +250,7 @@ for i=1:length(files)
             % don't fill up the scratch drive.
             delete(fn_rtp1, fn_rtp2, fn_rtp3);
             fprintf(1, 'Done\n');
-
+end  % if RUNKLAYERSSARTA
             %*************************************************
 
             %*************************************************
@@ -282,7 +283,7 @@ for i=1:length(files)
 end  % end for i=1:length(files)
     
     % remove duplicate rcalc (kept to make cat_rtp happy)
-    prof = rmfield(prof, 'rcalc');
+% $$$     prof = rmfield(prof, 'rcalc');
 
     fprintf(1, 'Done\n');
 

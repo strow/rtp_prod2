@@ -9,13 +9,13 @@
 # partition = dev/batch
 #SBATCH --partition=high_mem
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=medium+
+#SBATCH --qos=short+
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem-per-cpu=20000
 #SBATCH --cpus-per-task 1
 ##SBATCH --array=0-179
-#SBATCH --time=03:59:00
+#SBATCH --time=01:59:00
 ##SBATCH --exclude=cnode[101-134]
 
 #SBATCH -o /home/sbuczko1/logs/sbatch/run_create_airs_clear_day-%A_%a.out
