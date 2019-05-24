@@ -14,6 +14,7 @@ emis/DanZ_data
 *.hdf
 *.mat
 !sarta_chans_for_l1c.mat
+!f_default_l1c.mat
 *.log
 *.core
 *.rtp
