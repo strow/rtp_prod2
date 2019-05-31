@@ -15,6 +15,7 @@ emis/DanZ_data
 *.mat
 !sarta_chans_for_l1c.mat
 !f_default_l1c.mat
+!CrIS_ancillary.mat
 *.log
 *.core
 *.rtp
