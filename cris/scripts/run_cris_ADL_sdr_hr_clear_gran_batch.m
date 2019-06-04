@@ -31,19 +31,21 @@ for i = 1:chunk
         fprintf(2, '>> No clear obs found. Exiting.\n');
         continue
     end
-    
+    %/asl/data/UW_CrIS_PL/h5_SDR_J01_FSR_PLon/2019/002/SCRIF_j01_d20190102_t2357039_e2357337_b05826_c20190205014148823988_ADu_ops_gz.h5    
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    tstamp = C{end};
-    dt = datetime(tstamp, 'InputFormat', 'yyyyMMdd');
-    iYear = year(dt);
-    iDay = day(dt, 'dayofmonth');
-    iDoy = day(dt, 'dayofyear');
-    cris_yearstr = sprintf('%4d', iYear);;
-    cris_doystr = sprintf('%03d', iDoy);
+% $$$     tstamp = C{end};
+% $$$     dt = datetime(tstamp, 'InputFormat', 'yyyyMMdd');
+% $$$     iYear = year(dt);
+% $$$     iDay = day(dt, 'dayofmonth');
+% $$$     iDoy = day(dt, 'dayofyear');    
+% $$$     cris_yearstr = sprintf('%4d', iYear);;
+% $$$     cris_doystr = sprintf('%03d', iDoy);
+    cris_yearstr = C{6};
+    cris_doystr = C{7};
 
     % Make directory if needed
     % cris hires data will be stored in
