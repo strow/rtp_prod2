@@ -343,25 +343,26 @@ if(~SKIP)
   %unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > ' s1Path '/klayers_stdout']);
   unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > /dev/null']);
 
-  % run sarta on first half
-  %eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > sartastdout1.txt']);
-  eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > /dev/null']);
+% $$$   % run sarta on first half
+% $$$   %eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > sartastdout1.txt']);
+% $$$   eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > /dev/null']);
+% $$$ 
+% $$$   % run klayers on second half
+% $$$   %unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' s1Path '/klayers_stdout']);
+% $$$   unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > /dev/null']);
+% $$$ 
+% $$$   % run sarta on second half
+% $$$   %eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > sartastdout1.txt']);
+% $$$   eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > /dev/null']);
+% $$$ 
+% $$$   % read the results files back in
+% $$$   cfin = [tmp '.sar'];
+  cfin = [tmp '.kla'];
 
-  % run klayers on second half
-  %unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' s1Path '/klayers_stdout']);
-  unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > /dev/null']);
-
-  % run sarta on second half
-  %eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > sartastdout1.txt']);
-  eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > /dev/null']);
-
-  % read the results files back in
-  cfin = [tmp '.sar'];
-
-% $$$   [hd ha pd pa] = rtpread_12(cfin);
-  [~,~,ptemp,~] = rtpread_12(cfin);
-  pd.rcalc = ptemp.rcalc;
-  clear ptemp;
+  [hd ha pd pa] = rtpread_12(cfin);
+% $$$   [~,~,ptemp,~] = rtpread_12(cfin);
+% $$$   pd.rcalc = ptemp.rcalc;
+% $$$   clear ptemp;
 
   % -----------------------------------------------------
   %               CLEAR-2 subset - using sarta calcs
