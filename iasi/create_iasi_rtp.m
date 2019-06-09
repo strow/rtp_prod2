@@ -332,7 +332,7 @@ if(~SKIP)
 
   % first split the spectrum & save a copy of each half
 
-  [~,tmp]` = genscratchpath();
+  [~,tmp] = genscratchpath();
   outfiles = rtpwrite_12(tmp,hd,ha,pd,pa);
   s1Path = '/scratch/';
   %disp(['tmp = ', tmp]);
