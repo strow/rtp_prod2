@@ -126,8 +126,7 @@ end
 clear prof;
 
 % Save the hourly/daily RTP file
-%outpath = '/asl/rtp/rtp_iasi1';
-outpath = '/umbc/xfs3/strow/asl/rtp/rtp_iasi1';
+outpath = '/asl/rtp/rtp_iasi1';
 savPath = fullfile(outpath, subset, syr);
 
 if ~exist(savPath)
