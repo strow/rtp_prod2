@@ -358,9 +358,9 @@ if(~SKIP)
 % $$$ 
 % $$$   % read the results files back in
 % $$$   cfin = [tmp '.sar'];
-  cfin = [tmp '.kla'];
+% $$$   cfin = [tmp '.kla'];
 
-  [hd ha pd pa] = rtpread_12(cfin);
+  [hd ha pd pa] = rtpread_12(ofn_1);
 % $$$   [~,~,ptemp,~] = rtpread_12(cfin);
 % $$$   pd.rcalc = ptemp.rcalc;
 % $$$   clear ptemp;
