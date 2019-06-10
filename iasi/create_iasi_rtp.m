@@ -50,7 +50,7 @@ addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
 addpath /asl/packages/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
 addpath /asl/matlib/rtptools      % set_attr.m
 addpath /asl/packages/time
-addpath /home/sbuczko1/git/slurmutils
+addpath /home/sbuczko1/git/slurmutil
 
 [pathstr,fnamin,ext] = fileparts(fnIasiIn);
 [pparts,pmatches]    = strsplit(pathstr,'/');      % parts 6=year, 7=mon, 8=day.
