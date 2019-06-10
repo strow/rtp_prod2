@@ -74,7 +74,7 @@ fprintf(FH,'MATLAB=''matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');run_iasi1_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');iasiAddPaths;run_iasi1_rtp(''%s'',''%s''); exit"',param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

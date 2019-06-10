@@ -32,25 +32,11 @@ function [head, hattr, prof, pattr] = create_iasi_rtp(fnIasiIn, subset)
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 sarta_exec   = '/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
 
-% add dependency paths
-% ********  run paths.m first *************
-%addpath /asl/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
-%addpath /asl/rtp_prod2/emis       % rtp_add_emis_single.m
-%addpath /asl/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
-%addpath /asl/matlib/rtptools      % set_attr.m
-
 % Generate save file from input file: (expect: IASI_xxx_1C_M02_20130101000254Z_20130101000557Z)
 clear savPath;
 %%savPath = '/asl/s1/chepplew/projects/iasi/rtpprod/';
 savPath = ['/asl/rtp/rtp_iasi1/' subset '/'];
 % $$$ savPath = ['/umbc/xfs3/strow/asl/rtp/rtp_iasi1/' subset '/'];
-
-% $$$ addpath /asl/packages/rtp_prod2/grib       % fill_ecmwf.m fill_era.m
-addpath /asl/packages/rtp_prod2/emis       % rtp_add_emis_single.m
-addpath /asl/packages/rtp_prod2/util       % seq_match.m, rtpadd_usgs_10dem.m
-addpath /asl/matlib/rtptools      % set_attr.m
-addpath /asl/packages/time
-addpath /home/sbuczko1/git/slurmutil
 
 [pathstr,fnamin,ext] = fileparts(fnIasiIn);
 [pparts,pmatches]    = strsplit(pathstr,'/');      % parts 6=year, 7=mon, 8=day.
@@ -319,7 +305,7 @@ end
 % if no profiles are available after subsetting then skip the rest
 %fprintf(1,'SKIP = %d\n',SKIP);
 if(~SKIP)
-  %fprintf(1,'Running klayers and sarta\n');
+  fprintf(1,'Running klayers and sarta\n');
   %disp(hd);
   % trap bad observations if there are no good ones return:
   qgood   = find(pd.robsqual == 0);
@@ -333,40 +319,45 @@ if(~SKIP)
   % first split the spectrum & save a copy of each half
 
 % $$$   [~,tmp] = genscratchpath();
-  tmp = mktemp();
+  [~, sScratchPath] = genscratchpath();
+  tmp = [sScratchPath '/iasi1'];
   fprintf(1,'>> Scratch dir: %s\n', tmp);
   outfiles = rtpwrite_12(tmp,hd,ha,pd,pa);
-% $$$   s1Path = '/scratch/';
-  %disp(['tmp = ', tmp]);
 
   ifn_1 = outfiles{1};     ifn_2 = outfiles{2};
   ofn_1 = [tmp '.kla_1'];  ofn_2 = [tmp '.kla_2'];
   ofn_3 = [tmp '.sar_1'];  ofn_4 = [tmp '.sar_2'];
+  
+  fprintf(1, '\nofn_1=%s\nofn_2=%s\nofn_3=%s\nofn_4=%n', ofn_1, ofn_2, ...
+          ofn_3, ofn_4);
 
   % run klayers on first half
   %unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > ' s1Path '/klayers_stdout']);
   unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > /dev/null']);
 
-% $$$   % run sarta on first half
-% $$$   %eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > sartastdout1.txt']);
-% $$$   eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > /dev/null']);
-% $$$ 
-% $$$   % run klayers on second half
-% $$$   %unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' s1Path '/klayers_stdout']);
-% $$$   unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > /dev/null']);
-% $$$ 
-% $$$   % run sarta on second half
-% $$$   %eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > sartastdout1.txt']);
-% $$$   eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > /dev/null']);
-% $$$ 
-% $$$   % read the results files back in
-% $$$   cfin = [tmp '.sar'];
-% $$$   cfin = [tmp '.kla'];
+  % run sarta on first half
+  %eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > sartastdout1.txt']);
+  eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > /dev/null']);
 
+  % run klayers on second half
+  %unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' s1Path '/klayers_stdout']);
+  unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > /dev/null']);
+
+  % run sarta on second half
+  %eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > sartastdout1.txt']);
+  eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > /dev/null']);
+
+  % read the results files back in
+  cfin = [tmp '.sar'];
+  cfin = [tmp '.kla'];
+
+  % read in klayers output so that we have profiles in layers
   [hd ha pd pa] = rtpread_12(ofn_1);
-% $$$   [~,~,ptemp,~] = rtpread_12(cfin);
-% $$$   pd.rcalc = ptemp.rcalc;
-% $$$   clear ptemp;
+
+  % read in sarta output to grab calcs
+  [~,~,ptemp,~] = rtpread_12(ofn_3);
+  pd.rcalc = ptemp.rcalc;
+  clear ptemp;
 
   % -----------------------------------------------------
   %               CLEAR-2 subset - using sarta calcs

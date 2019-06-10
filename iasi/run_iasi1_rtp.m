@@ -18,17 +18,9 @@ function run_iasi1_rtp(dateFile,subset)
 % prep the batch job from the dateFile.
 %-----------------------------------------------------------
 
-    cd /home/sbuczko1/git/rtp_prod2/iasi/run
-    addpath /asl/packages/rtp_prod2/emis
-    addpath /asl/packages/rtp_prod2/util
-    addpath /asl/packages/rtp_prod2/grib
-addpath /home/sbuczko1/git/rtp_prod2/iasi
-addpath /asl/packages/rtp_prod2/iasi/readers
-addpath /asl/matlib_2015/aslutil  % for utc2tai2000 (replace this
-                                  % with new time commands)
-addpath /asl/matlib/aslutil
+    cd /home/sbuczko1/git/rtp_prod2_DEV/iasi/run
 
-ddc = load(dateFile);
+    ddc = load(dateFile);
 
 nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 %%%%%nslurm = [];
