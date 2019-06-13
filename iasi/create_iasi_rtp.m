@@ -353,7 +353,7 @@ if(~SKIP)
 
   % read in sarta output to grab calcs
   [~,~,ptemp,~] = rtpread_12(ofn_3);
-  pd.rclr = ptemp.rcalc;
+  pd.rcalc = ptemp.rcalc;
   clear ptemp;
 
   % -----------------------------------------------------
@@ -387,7 +387,10 @@ if(~SKIP)
   % -------------------------------------------
   %     or return structure for merging
   % -------------------------------------------  
-    head=hd; hattr=ha; prof=pd; pattr=pa;
+  % rename pd.rcalc -> pd.rclr
+  pd.rclr = pd.rcalc;
+  prof = rmfield(pd, 'rcalc');
+  head=hd; hattr=ha; pattr=pa;
 
   end
 
