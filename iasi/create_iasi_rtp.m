@@ -351,12 +351,9 @@ if(~SKIP)
   cfin = [tmp '.sar'];
   cfin = [tmp '.kla'];
 
-  % read in klayers output so that we have profiles in layers
-  [hd ha pd pa] = rtpread_12(ofn_1);
-
   % read in sarta output to grab calcs
   [~,~,ptemp,~] = rtpread_12(ofn_3);
-  pd.rcalc = ptemp.rcalc;
+  pd.rclr = ptemp.rcalc;
   clear ptemp;
 
   % -----------------------------------------------------

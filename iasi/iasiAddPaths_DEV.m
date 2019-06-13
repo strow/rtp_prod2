@@ -1,4 +1,4 @@
-addpath /home/sbuczko1/git/rtp_prod2_DEV/emis
+xoaddpath /home/sbuczko1/git/rtp_prod2_DEV/emis
 addpath /home/sbuczko1/git/rtp_prod2_DEV/util
 addpath /home/sbuczko1/git/rtp_prod2_DEV/grib
 addpath /home/sbuczko1/git/rtp_prod2_DEV/iasi
@@ -9,3 +9,4 @@ addpath /asl/matlib/aslutil
 addpath /asl/matlib/rtptools      % set_attr.m
 addpath /asl/packages/time
 addpath /home/sbuczko1/git/slurmutil
+addpath /asl/matlab2012/rtptoolsV201/
