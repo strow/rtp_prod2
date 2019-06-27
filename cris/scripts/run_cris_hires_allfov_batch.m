@@ -36,10 +36,11 @@ for i = 1:chunk
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/SDR_j01_s45/2018/005/CrIS_SDR_j01_s45_d20180105_t0006010_g002_v20a.mat
     % for jpss-1 testing
+    %/asl/cris/ccast/sdr45_npp_HR/2019/176/CrIS_SDR_npp_s45_d20190625_t0400080_g041_v20a.mat
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    cris_yearstr = C{7};  %11
-    cris_doystr = C{8};   %12
+    cris_yearstr = C{6};  %11
+    cris_doystr = C{7};   %12
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
@@ -56,10 +57,11 @@ for i = 1:chunk
         % Now save the four types of cris files
         fprintf(1, '>>> writing output rtp file... ');
         C = strsplit(gname, '_');
+        % CrIS_SDR_npp_s45_d20190625_t0424080_g045_v20a.mat
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{2}, C{3});    %C{5}, C{6});
+                        C{5}, C{6});
         rtp_outname = fullfile(sPath, fname);
         fprintf(1, '>>> Writing output file: %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
