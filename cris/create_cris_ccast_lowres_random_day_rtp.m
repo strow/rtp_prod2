@@ -82,7 +82,10 @@ cris_yearstr=pathparts{end-1};  % grab YYYY from input path, needed
 
 % generate a list of the mat files in the the day pointed to by
 % fnCrisInput
-fnLst1 = dir(fullfile(fnCrisInput, 'SDR_d*_t*.mat')); 
+% CrIS_SDR_npp_s45_d20180921_t1412080_g143_v20a.mat
+% $$$ fnamestr = 'SDR_d*_t*.mat';
+fnamestr = 'CrIS_SDR_npp_s45_d*_t*_g*_v20a.mat
+fnLst1 = dir(fullfile(fnCrisInput, fnamestr)); 
 numgrans = numel(fnLst1);
 if numgrans ~= 0
     fprintf(1,'>>> %s Found %d granule files to process\n', ...
@@ -146,8 +149,8 @@ for i=1:numel(fnLst1)
     % currently restrict obs count in random to ~20k to match
     % historical AIRXBCAL processing
     limit = 20000;  % number of obs to keep
-    nswath = 60;  % length of ccast granules
-    ngrans = 180;  % number of granules per day
+    nswath = 45;  % length of ccast granules
+    ngrans = 240;  % number of granules per day
     nfovs = 9;  % number of FOVs per FOR
     maxobs = nswath * length(fors) * nfovs * ngrans;
     scale = (limit/maxobs)*1.6; % preserves ~20k obs/day 
