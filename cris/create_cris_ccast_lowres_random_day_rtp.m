@@ -124,8 +124,9 @@ for i=1:numel(fnLst1)
     % profiles form ccast2rtp) so, filter to remove profiles
     % outside this range to keep sarta from failing.
     inrange = find(p.satzen >= 0.0 & p.satzen < 63.0);
-    prof = rtp_sub_prof(p, inrange);
-    clear inrange;
+    p2 = rtp_sub_prof(p, inrange);
+    p=p2;
+    clear p2 inrange;
 
 % $$$     % create random subsample
 % $$$     fprintf(1, '>>> Running hha_lat_subsample... ');
