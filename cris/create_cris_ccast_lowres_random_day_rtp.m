@@ -84,7 +84,7 @@ cris_yearstr=pathparts{end-1};  % grab YYYY from input path, needed
 % fnCrisInput
 % CrIS_SDR_npp_s45_d20180921_t1412080_g143_v20a.mat
 % $$$ fnamestr = 'SDR_d*_t*.mat';
-fnamestr = 'CrIS_SDR_npp_s45_d*_t*_g*_v20a.mat
+fnamestr = 'CrIS_SDR_npp_s45_d*_t*_g*_v20a.mat';
 fnLst1 = dir(fullfile(fnCrisInput, fnamestr)); 
 numgrans = numel(fnLst1);
 if numgrans ~= 0
