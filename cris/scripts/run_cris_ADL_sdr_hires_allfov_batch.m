@@ -33,13 +33,18 @@ for i = 1:chunk
     [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_allfov_rtp(infile, ...
                                                       cfg);
     % use fnCrisOutput to generate year and doy strings
-    %SCRIF_j01_d20180108_t2351369_e2352067_b00733_c20180112052326962834_ADu_ops.h5
+    % /asl/data/cris_sdr/sdr15_npp/2019/20190629/
+    % SCRIF_npp_d20190629_t2351439_e2352137_b39748_c20190711010735594001_ADu_ops.h5
+    % /asl/cris/sdr60_npp/2019/062/SCRIS_npp_d20190303_t2327039_e2335017_b38073_c20190304033504356469_nobc_ops.h5
     [gpath, gname, ext] = fileparts(infile);
-% $$$     C = strsplit(gpath, '/');
-% $$$     cris_yearstr = C{8};
-% $$$     cris_doystr = C{9};
-    cris_yearstr = '2018';
-    cris_doystr = '166';
+    C = strsplit(gpath, '/');
+% $$$     [yyear, mmonth, dday] = ymd(datetime(C{7}, 'InputFormat', 'yyyyMMdd'));
+    cris_yearstr = C{5};
+    cris_doystr = C{6};
+% $$$     cris_yearstr = sprintf('%04d', yyear);
+% $$$     cris_doystr = sprintf('%03d', day(datetime(C{7}, 'InputFormat', ...
+% $$$                                                'yyyyMMdd', 'Format', ...
+% $$$                                                'DDD'), 'dayofyear'));
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
@@ -58,8 +63,8 @@ for i = 1:chunk
         C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{3}, C{4});
+        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+                        C{3}, C{4}, C{5});
         rtp_outname = fullfile(sPath, fname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
