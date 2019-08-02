@@ -104,7 +104,7 @@ clear all_profs;
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
 % of clear obs to meet threshold limit
-lmax = 44000;
+lmax = 34000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
 if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);

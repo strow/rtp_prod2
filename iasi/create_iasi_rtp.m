@@ -314,6 +314,13 @@ if(~SKIP)
     head.N ='NULL'; hattr.N='NULL';prof.N='NULL';pattr.N='NULL';
     return; 
   end
+  lmax = 34000;
+  if length(qgood) > lmax
+      isave = randperm(length(qgood), lmax);
+      qgood2 = qgood(isave);
+      qgood = qgood2;
+      clear qgood2
+  end
   [hd pd] = subset_rtp(hd, pd, [], [], qgood);
 
   % first split the spectrum & save a copy of each half
