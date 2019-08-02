@@ -9,7 +9,7 @@
 # partition = dev/batch
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=short
+#SBATCH --qos=short+
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --cpus-per-task=1
@@ -22,22 +22,24 @@
 #SBATCH --time=00:50:00
 
 #SBATCH --mail-user=sbuczko1@umbc.edu
-#SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-type=REQUEUE
-#SBATCH --mail-type=TIME_LIMIT_50
 
 #SBATCH -o /home/sbuczko1/logs/sbatch/run_airicrad_allfov_rtp-%A_%a.out
 #SBATCH -e /home/sbuczko1/logs/sbatch/run_airicrad_allfov_rtp-%A_%a.err
 
 # matlab options
-MATLAB=/usr/cluster/matlab/current/bin/matlab
+MATLAB=matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
-echo "Executing run_airicrad_rand"
-$MATLAB $MATOPT -r "addpath('~/git/swutils', '~/git/rtp_prod2_PROD/airs/scripts'); run_airicrad_allfov_gran; exit"
+echo "Executing run_airicrad_allfov"
+$MATLAB $MATOPT -r "disp('>>Starting script');\
+                    airs_rtpaddpaths;\
+                    cfg=ini2struct('$1');\
+                    run_airicrad_allfov_gran(cfg);\
+                    exit"
     
-echo "Finished with run_airicrad_rand"
+echo "Finished with run_airicrad_allfov"
 
 
 

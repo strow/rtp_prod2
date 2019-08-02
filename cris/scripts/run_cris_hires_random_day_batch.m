@@ -51,9 +51,9 @@ for i = 1:chunk
     % /asl/data/cris/ccast/SDR_j01_s45/2018/005/CrIS_SDR_j01_s45_d20180105_t0006010_g002_v20a.mat
     % for jpss-1 testing
     C = strsplit(infile, '/');
-    cris_yearstr = C{7};
+    cris_yearstr = C{6};
     year = int32(str2num(cris_yearstr));
-    cris_doystr = C{8};
+    cris_doystr = C{7};
     doy = int32(str2num(cris_doystr));
     % Make directory if needed
     % cris hires data will be stored in

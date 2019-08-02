@@ -1,4 +1,4 @@
-function  run_airicrad_allfov_gran()
+function  run_airicrad_allfov_gran(cfg)
 % 
 %
 % read in a directory of rtp files (most likely constituting a day
@@ -7,11 +7,12 @@ function  run_airicrad_allfov_gran()
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2_PROD/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('~/git/rtp_prod2_PROD/airs');  % sub_airxbcal
+addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
+addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
 
 % 
-airs_daily_file_list = '~/rtp_gen_files/airicrad_grans_to_process';
+% $$$ airs_daily_file_list = '~/rtp_gen_files/airicrad_grans_to_process';
+airs_daily_file_list = cfg.file_list;
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -21,7 +22,7 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % list (because each day takes less time to process than it takes
 % to load matlab so, it is inefficient to do each day as a
 % separate array)
-chunk = 1;
+chunk = cfg.chunk;
 for i = 1:chunk
     dayindex = (slurmindex*chunk) + i;
     %    dayindex=281; % testing testing testing
@@ -41,6 +42,49 @@ for i = 1:chunk
         break;
     end
 
-    create_airicrad_allfov_gran_rtp(inpath);
+    [head,hattr,prof,pattr] = create_airicrad_allfov_gran_rtp(inpath, cfg);
+
+    % /asl/data/airs/L1C/2003/021/AIRS.2003.01.21.207.L1C.AIRS_Rad.v6.1.2.0.G16323214907.hdf
+    [gpath, gname, ext] = fileparts(inpath);
+    
+    C = strsplit(gpath, '/');
+    airs_yearstr = C{6};
+    airs_doystr = C{7};
+
+    C = strsplit(gname, '.');
+    granstr = C{5};
+    
+    % Make directory if needed
+    %
+    asType = {'allfov'};
+    for i = 1:length(asType)
+        % check for existence of output path and create it if necessary. This may become a source
+        % for filesystem collisions once we are running under slurm.
+        sPath = fullfile(cfg.outputdir, char(asType(i)), airs_yearstr, ...
+                         airs_doystr);
+        fprintf(1, '>>> Writing output rtp to directory %s\n', sPath);
+        if exist(sPath) == 0
+            fprintf(1, '>>>> %s does not exist. Creating\n', sPath);
+            mkdir(sPath);
+        end
+        
+        % Now save the four types of cris files
+        fprintf(1, '>>> writing output rtp file... ');
+        MAXOBS = 40000;
+        if length(prof.rtime) > MAXOBS
+            prof = rtp_sub_prof(prof, randperm(length(prof.rtime), ...
+                                               MAXOBS));
+        end
+        % output naming convention:
+
+        fname = sprintf('%s_%s_airicrad_d%s%s_%s.rtp', asType{i}, ...
+                        cfg.model, airs_yearstr, airs_doystr, granstr);
+        fprintf(1, '%s\n', fname);
+        rtp_outname = fullfile(sPath, fname);
+        rtpwrite(rtp_outname,head,hattr,prof,pattr);
+        fprintf(1, 'Done\n');
+    end
+
+
     
 end  % ends loop over chunk

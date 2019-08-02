@@ -84,13 +84,15 @@ end  % end if nargin == 2
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-[~, ~, attr] = read_SCRIF(fnCrisInput);
+% $$$ [~, ~, attr] = read_SCRIF(fnCrisInput);  % Hires
+[~, ~, attr] = read_SCRIS(fnCrisInput);  % lowres
 
-if length(attr.Ascending_Descending_Indicator) > 1
+ADind = attr.Ascending_Descending_Indicator;
+if length(ADind) > 1
     fprintf(2, '** Multiple asc/desc indicators found **\n');
     return
 end
-prof.iudef(4,:) = ones(1,length(prof.rtime),'int32') * int32(attr.Ascending_Descending_Indicator);
+prof.iudef(4,:) = ones(1,length(prof.rtime),'int32') * int32(ADind);
 
 %-------------------
 % set header values

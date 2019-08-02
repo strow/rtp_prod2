@@ -31,10 +31,11 @@ for i = 1:chunk
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+    % /asl/cris/ccast/sdr45_npp_HR/2019/177/CrIS_SDR_npp_s45_d20190626_t2342080_g238_v20a.mat
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    cris_yearstr = C{6};
-    cris_doystr = C{7};
+    cris_yearstr = C{9};
+    cris_doystr = C{10};
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
@@ -53,10 +54,11 @@ for i = 1:chunk
         C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{2}, C{3});
+        % /asl/cris/ccast/sdr45_npp_HR/2019/177/CrIS_SDR_npp_s45_d20190626_t2342080_g238_v20a.mat
 % $$$         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-% $$$                         C{5}, C{6});  % changed for cris2 cal testing
+% $$$                         C{2}, C{3});
+        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+                        C{5}, C{6});  % changed for cris2 cal testing
         rtp_outname = fullfile(sPath, fname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');

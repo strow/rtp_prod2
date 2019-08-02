@@ -39,8 +39,8 @@ for i = 1:chunk
     %/asl/cris/ccast/sdr45_npp_HR/2019/176/CrIS_SDR_npp_s45_d20190625_t0400080_g041_v20a.mat
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    cris_yearstr = C{6};  %11
-    cris_doystr = C{7};   %12
+    cris_yearstr = C{9};  %11
+    cris_doystr = C{10};   %12
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>

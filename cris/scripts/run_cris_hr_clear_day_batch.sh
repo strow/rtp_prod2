@@ -8,7 +8,7 @@
 #SBATCH --job-name=RUN_CREATE_CRIS_HR_CLEAR_RTP
 #SBATCH --partition=batch
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=normal+
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem-per-cpu=18000
@@ -20,7 +20,7 @@
 #SBATCH -e /home/sbuczko1/logs/sbatch/run_cris_hr_clear_batch-%A_%a.err
 
 # matlab options
-MATLAB=/usr/cluster/matlab/current/bin/matlab
+MATLAB=matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing srun of run_cris_batch"
