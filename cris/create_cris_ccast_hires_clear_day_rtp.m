@@ -126,6 +126,16 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         end
         fprintf(1, 'Done.\n');
 
+        % check rtime values for NaN. subset out obs with such
+        % rtimes (in all such cases found so far, Nans are in a
+        % contiguous block and all profile fields are NaN'd)
+        gnans = isnan(p_gran.rtime);
+        nnans = sum(gnans);
+        if nnans
+            nan_inds = find(~gnans);
+            p_gran = rtp_sub_prof(p_gran,nan_inds);
+        end
+
         % check that [iv]chan are column vectors
         temp = size(h_gran.ichan);
         if temp(2) > 1
