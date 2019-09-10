@@ -16,7 +16,7 @@
 #SBATCH --cpus-per-task 1
 ##SBATCH --array=0-179
 #SBATCH --time=03:59:00
-#SBATCH --exclude=cnode[101-134]
+##SBATCH --exclude=cnode[101-134]
 
 #SBATCH -o /home/sbuczko1/logs/sbatch/run_create_airs_clear_day-%A_%a.out
 #SBATCH -e /home/sbuczko1/logs/sbatch/run_create_airs_clear_day-%A_%a.err
