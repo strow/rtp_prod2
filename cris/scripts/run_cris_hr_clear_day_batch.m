@@ -34,7 +34,9 @@ for i = 1:chunk
 % $$$     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(infile, '/');
     cris_yearstr = C{6};
+    year = int32(str2num(cris_yearstr));
     cris_doystr = C{7};
+    doy = int32(str2num(cris_doystr));
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
@@ -43,20 +45,21 @@ for i = 1:chunk
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr,cris_doystr);
+        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr);
         if exist(sPath) == 0
             mkdir(sPath);
         end
         
         % Now save the four types of cris files
         fprintf(1, '>>> writing output rtp file... ');
-        C = strsplit(gname, '_');
+        dt = int32(yyyymmdd(datetime(year,01,01) + caldays(doy-1)));
+% $$$         C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
 % $$$         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
 % $$$                         C{2}, C{3});
-        fname = sprintf('%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{5});  % changed for cris2 cal testing
+        fname = sprintf('%s_%s_%s_%s_d%d.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+                        dt);  % changed for cris2 cal testing
         rtp_outname = fullfile(sPath, fname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');

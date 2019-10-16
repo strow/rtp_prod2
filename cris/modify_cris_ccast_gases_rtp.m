@@ -14,7 +14,7 @@ function [head, hattr, prof, pattr] = ...
 
 fprintf(1, '>> Running modify_cris_ccast_ch4_rtp for input: %s\n', ...
         fnCrisInput);
-addpath /home/sergio/MATLABCODE/PLOTTER  %
+addpath /home/sbuczko1/git/rtp_prod2/extutils  %
                                          % equal_area_spherical_bands
 
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';

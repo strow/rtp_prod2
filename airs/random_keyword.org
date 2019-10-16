@@ -1,0 +1,45 @@
+#+OPTIONS: ^:nil
+
+| typical rtp | cloudy rta fields    |
+|-------------+----------------------|
+| atrack      | cfrac                |
+| cc          | cfrac12              |
+| ciwc        | cfrac2               |
+| clwc        | cngwat               |
+| efreq       | cngwat2              |
+| emis        | cprbot               |
+| findex      | cprbot2              |
+| gas_1       | cprtop               |
+| gas_3       | cprtop2              |
+| iudef       | cpsize               |
+| l1cproc     | cpsize2              |
+| l1csreason  | ctype                |
+| landfrac    | ctype2               |
+| nemis       |                      |
+| nlevs       |                      |
+| nrho        | icecldX              |
+| plat        | icecldY              |
+| plevs       | orig_ctop            |
+| plon        | orig_ctop2           |
+| ptemp       | sarta_iceOD_warn     |
+| rho         | sarta_index_wgtpeakI |
+| rlat        | sarta_index_wgtpeakW |
+| rlon        | sarta_lvlDMEice      |
+| robs1       | sarta_lvlDMEwater    |
+| rtime       | sarta_lvlODice       |
+| salti       | sarta_lvlODwater     |
+| satazi      | sarta_lvlZ           |
+| satzen      | sarta_lvl_iceOD_1    |
+| scanang     | sarta_lvl_waterOD_1  |
+| solazi      | sarta_waterOD_warn   |
+| solzen      | sarta_wgtI           |
+| spres       | sarta_wgtW           |
+| stemp       | sarta_wgtpeakI       |
+| tcc         | sarta_wgtpeakW       |
+| udef        | watercldX            |
+| wsource     | watercldY            |
+| wspeed      | co2ppm               |
+| xtrack      | cemis                |
+| zobs        |                      |
+| rcld        |                      |
+| rclr        |                      |

@@ -46,10 +46,11 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         klayers_exec = cfg.klayers_exec;
     end
 
-    sartaclr_exec  = ['/asl/packages/sartaV108/BinV201/' ...
-                   'sarta_iasi_may09_wcon_nte'];
+% $$$     sartaclr_exec  = ['/asl/packages/sartaV108/BinV201/' ...
+% $$$                    'sarta_iasi_may09_wcon_nte'];
+    sartaclr_exec = '/asl/bin/crisg4_oct16'; 
     if isfield(cfg, 'sartaclr_exec')
-        sartaclr_exec = cfg.sarta_exec;
+        sartaclr_exec = cfg.sartaclr_exec;
     end
     nguard = 2;  % number of guard channels
     if isfield(cfg, 'nguard')
