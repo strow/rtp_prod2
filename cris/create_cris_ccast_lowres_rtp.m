@@ -37,7 +37,7 @@ addpath /asl/packages/rtp_prod2/cris
 addpath /asl/packages/rtp_prod2/util
 addpath /asl/packages/rtp_prod2/emis
 addpath /asl/packages/rtp_prod2/grib
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+% $$$ addpath /home/sbuczko1/git/rtp_prod2/cris/readers  % ccast2rtp
 addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
 addpath(genpath('/asl/matlib'));
 

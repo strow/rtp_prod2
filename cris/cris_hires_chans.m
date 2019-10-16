@@ -1,6 +1,6 @@
 function [n1,n2,n3,userLW,userMW,userSW, ichan_hires] = cris_hires_chans();
 
-addpath /asl/packages/ccast/motmsc/rtp_sarta
+addpath /home/sbuczko1/git/rtp_prod2/cris/readers
 addpath /asl/packages/ccast/source
 
 wlaser = 773.1307;

@@ -25,7 +25,7 @@ sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
 % $$$ sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
 % $$$                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 
-addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath /home/sbuczko1/git/rtp_prod2/cris/readers  % ccast2rtp
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon

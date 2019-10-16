@@ -16,7 +16,7 @@ function create_cris_ccast_lowres_random_day_rtp(fnCrisInput, cfg)
 % above:
 func_name = 'create_cris_ccast_lowres_random_day_rtp';
 
-addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+addpath /home/sbuczko1/git/rtp_prod2/cris/readers  % ccast2rtp
 addpath /asl/packages/ccast/source  % fixmyQC
 addpath /home/sbuczko1/git/matlib/clouds/sarta  %
                                                 % driver_cloud... (version

@@ -10,7 +10,7 @@ addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
-addpath /asl/packages/ccast/motmsc/utils  % read_SCRIF
+addpath /home/sbuczko1/git/ccast/motmsc/utils  % read_SCRIF
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
 % $$$ addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp

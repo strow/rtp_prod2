@@ -21,7 +21,7 @@ fprintf(1, '>> Running modify_cris_ccast_ch4_rtp for input: %s\n', ...
 % $$$                'sarta_crisg4_nov09_wcon_nte'];  %% lowres
 sarta_exec = '/asl/bin/crisg4_oct16';
 
-% $$$ addpath /asl/packages/ccast/motmsc/rtp_sarta  % ccast2rtp
+% $$$ addpath /home/sbuczko1/git/rtp_prod2/cris/readers  % ccast2rtp
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
