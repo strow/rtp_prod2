@@ -8,7 +8,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
     REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
-    PKG = 'rtp_prod2';
+    PKG = 'rtp_prod2_DEV';
     % era/ecmwf/merra, emissivity, etc
     addpath(sprintf('%s/%s/util', REPOBASEPATH, PKG));
     addpath(sprintf('%s/%s/grib', REPOBASEPATH, PKG));
@@ -29,6 +29,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
     % cat_rtp
     addpath('/asl/matlib/rtptools'); 
     addpath('/asl/matlib/time');
+    addpath('/asl/matlib/aslutil');
     
 % $$$ % Need these two paths to use iasi2cris.m in iasi_decon
 % $$$ addpath /asl/packages/iasi_decon   % seq_match?
@@ -74,7 +75,9 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
 
     % Pick up system/slurm info **********************
     [sID, sTempPath] = genscratchpath();
-
+    %%%%%% REMOVE ME
+    sTempPath = '/home/sbuczko1/Work/scratch';  
+    %%%%%% FOR PRODUCTION
     cfg.sID = sID;
     cfg.sTempPath = sTempPath;
     % ************************************************
@@ -127,15 +130,40 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         end
         fprintf(1, 'Done.\n');
 
+        %*********
+        % cris_find_uniform is predicated on having a full 9x30x45
+        % granule. We may have to turn the following NaN check into
+        % a 'throw out this granule and continue to next' until
+        % things can be made more flexible
+        %*********
         % check rtime values for NaN. subset out obs with such
         % rtimes (in all such cases found so far, Nans are in a
         % contiguous block and all profile fields are NaN'd)
         gnans = isnan(p_gran.rtime);
         nnans = sum(gnans);
         if nnans
-            nan_inds = find(~gnans);
-            p_gran = rtp_sub_prof(p_gran,nan_inds);
+            fprintf(2,'>> Granule %d contains NaNs. SKIPPING\n',i);
+% $$$             nan_inds = find(~gnans);
+% $$$             p_gran = rtp_sub_prof(p_gran,nan_inds);
+            continue;
         end
+
+        % check pixel uniformity. If no FOR/FOVs satisfy
+        % uniformity, no point in continuing to process this
+        % granule
+        uthreshold = 0.4; 
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uthreshold);
+        
+        % subset out non-uniform FOVs
+        nuniform = length(iuniform);
+        if 0 == nuniform
+            fprintf(2,['>> No uniform FOVs found for granule %d. ' ...
+                       'SKIPPING\n'],i)
+            continue;
+        end
+        
+        fprintf(1, '>> Uniform obs found: %d/12150\n', nuniform);
+        p_gran = rtp_sub_prof(p_gran,iuniform);
 
         % check that [iv]chan are column vectors
         temp = size(h_gran.ichan);
@@ -180,54 +208,15 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         fprintf(1, '>>> Running rtp_ad_emis...');
         [p_gran,pa_gran] = rtp_add_emis_single(p_gran,pa_gran);
         fprintf(1, 'Done\n');
-
-        % run Sergio's subsetting routine
-        fprintf(1, '>> Building basic filtering flags (uniform_clear_template...)\n');
-% $$$ % $$$ px = rmfield(p_gran,'rcalc');
-% $$$ hx = h_gran; hx.pfields = 5;
-        fprintf(1, '>>> NGAS = %d\n', h_gran.ngas);
-
-        try
-            px = uniform_clear_template_lowANDhires_HP(h_gran,ha_gran,p_gran,pa_gran); %% super (if it works)
-        catch
-            fprintf(2, ['>>> FAILURE in uniform_clear_template_lowANDhires_HP ' ...
-                        'for granule %s   SKIPPING\n'], infile)
-            continue
-        end
         
-        % subset out the clear
-        % output rtp splitting from airxbcal processing
-        % Subset into four types and save separately
-        iclear = find(px.iudef(1,:) == 1);
-        p_gran = rtp_sub_prof(px,iclear);
-        clear px;
-
-
-        if i == 1
-            prof = p_gran;
-            head = h_gran;
-            hattr = ha_gran;
-            pattr = pa_gran;
-        else
-            % concatenate new random rtp data into running random rtp structure
-            [head, prof] = cat_rtp(head, prof, head, p_gran);
-        end
-
-        adflag = unique(prof.iudef(4,:));
-        fprintf(1, '>>> Asc/Desc flag values: %d\n', adflag);
-        
-    end  % end for i=1:length(files)
-        clear p_gran;
-        
-
         % run klayers
         MAXOBS = 60000;
-        if length(prof.rtime) > MAXOBS
-            prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
+        if length(p_gran.rtime) > MAXOBS
+            p_gran = rtp_sub_p_gran(p_gran, randperm(length(p_gran.rtime), MAXOBS));
         end
 
         fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
-        rtpwrite(fn_rtp1,head,hattr,prof,pattr);
+        rtpwrite(fn_rtp1,h_gran,ha_gran,p_gran,pa_gran);
         fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
         unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 
@@ -238,11 +227,11 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
             delete fn_rtp2
             if isfield(cfg, 'scaleco2')
                 pp.gas_2 = pp.gas_2 * cfg.scaleco2;
-                pattr{end+1} = {'profiles' 'scaleCO2' sprintf('%f', cfg.scaleco2)};
+                pattr{end+1} = {'p_graniles' 'scaleCO2' sprintf('%f', cfg.scaleco2)};
             end
             if isfield(cfg, 'scalech4')
                 pp.gas_6 = pp.gas_6 * cfg.scalech4;
-                pattr{end+1} = {'profiles' 'scaleCH4' sprintf('%f', cfg.scalech4)};        
+                pattr{end+1} = {'p_graniles' 'scaleCH4' sprintf('%f', cfg.scalech4)};        
             end
             rtpwrite(fn_rtp2,hh,hha,pp,ppa)
         end
@@ -258,7 +247,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
 
             % read in sarta results to capture rcalc
             [~,~,p,~] = rtpread(fn_rtp3);
-            prof.rclr = p.rcalc;
+            p_gran.rclr = p.rcalc;
             clear p;
             fprintf(1, 'Done\n');
         else if strcmp('isarta', cfg.rta)
@@ -266,8 +255,36 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
                 cfg.fn_rtp2 = fn_rtp2;
                 [hh,hha,pp,ppa] = rtpread(fn_rtp2);
                 [~, ~, p, ~] = run_sarta_iasi(hh,hha,pp,ppa,cfg);
-                prof.rclr = p.rclr;
+                p_gran.rclr = p.rclr;
                 fprintf(1, 'Done\n');
         end
     end  % end run sarta 
         
+        % now that we have calcs, find clear FOVs
+        iobs2check = 1:length(p_gran.rtime);
+        [iflagsc, bto1232, btc1232] = xfind_clear_hires(h_gran, p_gran, iobs2check);
+        iclear_sea    = find(iflagsc == 0 & p_gran.landfrac <= 0.01);
+        iclear_notsea = find(iflagsc == 0 & p_gran.landfrac >  0.01);
+% $$$         iclear = union(iclear_sea, iclear_notsea);
+        iclear = iclear_sea;
+        nclear = length(iclear);
+        fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
+        p_gran = rtp_sub_prof(p_gran, iclear);
+
+        if i == 1
+            prof = p_gran;
+            head = h_gran;
+            hattr = ha_gran;
+            pattr = pa_gran;
+        else
+            % concatenate new random rtp data into running random rtp structure
+            [head, prof] = cat_rtp(head, prof, head, p_gran);
+        end
+
+        adflag = unique(p_gran.iudef(4,:));
+        fprintf(1, '>>> Asc/Desc flag values: %d\n', adflag);
+        
+    end  % end for i=1:length(files)
+        clear p_gran;
+        
+

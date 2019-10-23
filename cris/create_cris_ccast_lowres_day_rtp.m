@@ -20,10 +20,10 @@ addpath /home/sbuczko1/git/ccast/motmsc/rtp_sarta  % ccast2rtp
 addpath /asl/matlib/rtptools  % cat_rtp.m
 addpath /asl/matlib/aslutil   % int2bits
 addpath /asl/packages/time    % iet2tai (in ccast2rtp)
-addpath /home/sbuczko1/git/rtp_prod2/cris
-addpath /asl/packages/rtp_prod2/util
-addpath /asl/packages/rtp_prod2/emis
-addpath /asl/packages/rtp_prod2/grib
+addpath /home/sbuczko1/git/rtp_prod2_DEV/cris
+addpath /asl/packages/rtp_prod2_DEV/util
+addpath /asl/packages/rtp_prod2_DEV/emis
+addpath /asl/packages/rtp_prod2_DEV/grib
 
 [sID, sTempPath] = genscratchpath();
 sID = getenv('SLURM_ARRAY_TASK_ID')
