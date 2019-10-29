@@ -48,7 +48,7 @@ a(4,i1,j1) = d2(i1,j1);
 amax = squeeze(max(abs(a),[],1));
 
 % Final output is amax, but with NaNs for scenes that are not clear
-amax_keep = amax;
+amax_keep = amax(2:3:134,2:3:89);
 amax_keep(amax_keep > threshold) = NaN;
 
 % Get amax_keep indices for uniform FOVs
