@@ -76,7 +76,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
     % Pick up system/slurm info **********************
     [sID, sTempPath] = genscratchpath();
     %%%%%% REMOVE ME
-    sTempPath = '/home/sbuczko1/Work/scratch';  
+% $$$     sTempPath = '/home/sbuczko1/Work/scratch';  
     %%%%%% FOR PRODUCTION
     cfg.sID = sID;
     cfg.sTempPath = sTempPath;
@@ -152,7 +152,8 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         % uniformity, no point in continuing to process this
         % granule
         uthreshold = 0.4; 
-        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uthreshold);
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, ...
+                                             uthreshold);
         
         % subset out non-uniform FOVs
         nuniform = length(iuniform);
