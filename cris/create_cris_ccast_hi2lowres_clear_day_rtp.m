@@ -153,8 +153,10 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(
         % check pixel uniformity. If no FOR/FOVs satisfy
         % uniformity, no point in continuing to process this
         % granule
-        uthreshold = 0.4; 
-        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uthreshold);
+        uniform_cfg = struct;
+        uniform_cfg.uniform_test_channel = 961;
+        uniform_cfg.uniform_bt_threshold = 0.4; 
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
         
         % subset out non-uniform FOVs
         nuniform = length(iuniform);

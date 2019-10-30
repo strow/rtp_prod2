@@ -1,4 +1,4 @@
-function  [clear_ind, amax_keep] = cris_find_uniform(head, prof, threshold);
+function  [clear_ind, amax_keep] = cris_find_uniform(head, prof, opt);
 %
 % airs_uniform_clear
 %
@@ -20,7 +20,17 @@ function  [clear_ind, amax_keep] = cris_find_uniform(head, prof, threshold);
 % d = hdfread(fn,'radiances');
 % 
 % bt = rad2bt(1231,squeeze(d(:,:,1291)));
-wn = 961;
+wn = 1231;  % 1231 cm^-1 default
+threshold = 0.4;  % 0.4K FOV to FOV BT difference threshold
+if nargin == 3 
+    if isfield(opt, 'uniform_test_channel')
+        wn = opt.uniform_test_channel;
+    end
+    if isfield(opt, 'uniform_bt_threshold')
+        threshold = opt.uniform_bt_threshold
+    end
+end
+
 ch = find(head.vchan > wn, 1);
 bt_rtp = rad2bt(head.vchan(ch), prof.robs1(ch,:));
 

@@ -141,8 +141,9 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         % contiguous block and all profile fields are NaN'd)
         gnans = isnan(p_gran.rtime);
         nnans = sum(gnans);
-        if nnans
-            fprintf(2,'>> Granule %d contains NaNs. SKIPPING\n',i);
+        nobs = length(p_gran.rtime);
+        if nnans | nobs ~= 12150
+            fprintf(2,'>> Granule %d contains NaNs or is wrong size. SKIPPING\n',i);
 % $$$             nan_inds = find(~gnans);
 % $$$             p_gran = rtp_sub_prof(p_gran,nan_inds);
             continue;
@@ -151,9 +152,10 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         % check pixel uniformity. If no FOR/FOVs satisfy
         % uniformity, no point in continuing to process this
         % granule
-        uthreshold = 0.4; 
-        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, ...
-                                             uthreshold);
+        uniform_cfg = struct;
+        uniform_cfg.uniform_test_channel = 961;
+        uniform_cfg.uniform_bt_threshold = 0.4; 
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
         
         % subset out non-uniform FOVs
         nuniform = length(iuniform);
