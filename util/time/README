@@ -1,0 +1,40 @@
+
+Fundamental time functions
+
+  utc2tai   - UTC 58 to TAI 58, adds NIST leap seconds
+  tai2utc   - TAI 58 to UTC 58, subtracts NIST leap seconds
+
+  airs2tai  - AIRS TAI 93 to TAI 58, direct conversion
+  tai2airs  - TAI 58 to AIRS TAI 93, direct conversion
+
+  iet2tai   - IET 58 to TAI 58, direct conversion
+  tai2iet   - TAI 58 to IET 58, direct conversion
+
+Matlab datenum functions
+
+  utc2dnum  - UTC 58 to Matlab date numbers, direct conversion
+  dnum2utc  - Matlab date numbers to UTC 58, direct conversion
+
+  tai2dnum  - TAI 58 to Matlab date numbers, calls tai2utc
+  dnum2tai  - Matlab date numbers to TAI 58, calls utc2tai
+
+  airs2dnum - AIRS TAI 93 to Matlab date numbers, calls tai2dnum
+  dnum2airs - Matlab date numbers to AIRS TAI 93, calls dnum2tai
+
+  iet2dnum  - IET to Matlab date numbers, calls tai2dnum
+  dnum2iet  - Matlab date numbers to IET, calls dnum2tai
+
+Matlab datetime functione
+
+  dtime2tai - Matlab datetime to TAI 58, calls dnum2utc, utc2tai
+  tai2dtime - TAI 58 to Matlab datetime, calls tai2utc, utc2dnum
+
+Time units
+
+  TAI 58, seconds since 1 jan 1958 including leap seconds
+  TAI 93, seconds since 1 jan 1993 including leap seconds
+  IET 58, microseconds since 1 jan 1958 including leap seconds
+  UTC 58, seconds since 1 jan 1958 assuming 86400 seconds/day
+  Matlab date numbers, days from year 0 with fractional days
+  Matlab datetime structs, UTC-style time objects
+

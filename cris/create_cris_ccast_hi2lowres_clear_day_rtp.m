@@ -1,8 +1,8 @@
-function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inpath, cfg)
-% PROCESS_CRIS_LOWRES process one granule of CrIS data
+function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(inpath, cfg)
+% PROCESS_CRIS_HI2LOWRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
-    func_name = 'create_cris_ccast_lowres_clear_day_rtp';
+    func_name = 'create_cris_ccast_hi2lowres_clear_day_rtp';
     
 % Execute user-defined paths *********************
     REPOBASEPATH = '/home/sbuczko1/git/';
@@ -38,7 +38,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
 
     % ************************************************
 
-    fprintf(1, '>> Running create_cris_ccast_lowres_rtp for input: %s\n', ...
+    fprintf(1, '>> Running create_cris_ccast_hi2lowres_rtp for input: %s\n', ...
             inpath);
 
     % ************************************************
@@ -50,7 +50,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
 
 % $$$     sartaclr_exec  = ['/asl/packages/sartaV108/BinV201/' ...
 % $$$                    'sarta_iasi_may09_wcon_nte'];
-    sartaclr_exec = '/asl/bin/sarta_crisg4_nov09_wcon_nte'; 
+    sartaclr_exec = '/asl/bin/crisg4_oct16'; 
     if isfield(cfg, 'sartaclr_exec')
         sartaclr_exec = cfg.sartaclr_exec;
     end
@@ -118,7 +118,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
         fprintf(1, '>>> Reading input file: %s  ', infile);
         
         try
-            [h_gran, ha_gran, p_gran, pa_gran] = ccast2rtp(infile, nguard, nsarta);
+            [h_gran, ha_gran, p_gran, pa_gran] = ccast2rtp_hi2lo(infile, nguard, nsarta);
             %%** second parameter sets up the use of 4 CrIS guard
             %%channels. Looking at h_gran.ichan and h_gran.vchan shows some
             %%similarity to the cris channel description in
