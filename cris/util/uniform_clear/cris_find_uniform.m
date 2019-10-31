@@ -27,7 +27,7 @@ if nargin == 3
         wn = opt.uniform_test_channel;
     end
     if isfield(opt, 'uniform_bt_threshold')
-        threshold = opt.uniform_bt_threshold
+        threshold = opt.uniform_bt_threshold;
     end
 end
 

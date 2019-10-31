@@ -154,7 +154,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(
         % uniformity, no point in continuing to process this
         % granule
         uniform_cfg = struct;
-        uniform_cfg.uniform_test_channel = 961;
+        uniform_cfg.uniform_test_channel = 1231;
         uniform_cfg.uniform_bt_threshold = 0.4; 
         [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
         
