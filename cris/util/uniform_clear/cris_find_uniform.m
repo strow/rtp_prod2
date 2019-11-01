@@ -1,4 +1,4 @@
-function  [clear_ind, amax_keep] = cris_find_uniform(head, prof, opt);
+function  [clear_ind, amax_keep, amax] = cris_find_uniform(head, prof, opt);
 %
 % airs_uniform_clear
 %
@@ -60,11 +60,13 @@ amax = squeeze(max(abs(a),[],1));
 % Final output is amax, but with NaNs for scenes that are not clear
 amax_keep = amax(2:3:134,2:3:89);
 amax_keep(amax_keep > threshold) = NaN;
+%scatter_coast(prof.rlon(tind), prof.rlat(tind),reshape(amax_keep',1,1350))
 
 % Get amax_keep indices for uniform FOVs
-k = ~isnan(amax_keep);
+k = find(~isnan(amax_keep));
 
 % need to map k back into the rtp linear index space
 ind = reshape(1:(9*30*45),9,30,45);
 indscan = create_airs_scan_from_cris(ind)';
 clear_ind = indscan(k);
+% scatter_coast(prof.rlon(clear_ind), prof.rlat(clear_ind), 10, ones(size(clear_ind)))
