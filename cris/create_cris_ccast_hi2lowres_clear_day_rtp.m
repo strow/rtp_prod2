@@ -77,7 +77,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(
     % Pick up system/slurm info **********************
     [sID, sTempPath] = genscratchpath();
     %%%%%% REMOVE ME
-    sTempPath = '/home/sbuczko1/Work/scratch';  
+% $$$     sTempPath = '/home/sbuczko1/Work/scratch';  
     %%%%%% FOR PRODUCTION
     cfg.sID = sID;
     cfg.sTempPath = sTempPath;
@@ -266,7 +266,8 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(
         
         % now that we have calcs, find clear FOVs
         iobs2check = 1:length(p_gran.rtime);
-        [iflagsc, bto1232, btc1232] = xfind_clear_hires(h_gran, p_gran, iobs2check);
+        fprintf(2, '>> IOBS2CHECK = %d\n', length(iobs2check));
+        [iflagsc, bto1232, btc1232] = xfind_clear(h_gran, p_gran, iobs2check);
         iclear_sea    = find(iflagsc == 0 & p_gran.landfrac <= 0.01);
         iclear_notsea = find(iflagsc == 0 & p_gran.landfrac >  0.01);
 % $$$         iclear = union(iclear_sea, iclear_notsea);

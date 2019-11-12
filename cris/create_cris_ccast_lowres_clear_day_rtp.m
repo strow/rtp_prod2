@@ -77,7 +77,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
     % Pick up system/slurm info **********************
     [sID, sTempPath] = genscratchpath();
     %%%%%% REMOVE ME
-    sTempPath = '/home/sbuczko1/Work/scratch';  
+% $$$     sTempPath = '/home/sbuczko1/Work/scratch';  
     %%%%%% FOR PRODUCTION
     cfg.sID = sID;
     cfg.sTempPath = sTempPath;
@@ -153,10 +153,12 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
         % check pixel uniformity. If no FOR/FOVs satisfy
         % uniformity, no point in continuing to process this
         % granule
-        uniform_cfg = struct;
-        uniform_cfg.uniform_test_channel = 961;
-        uniform_cfg.uniform_bt_threshold = 0.4; 
-        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
+% $$$         uniform_cfg = struct;
+% $$$         uniform_cfg.uniform_test_channel = 961;
+% $$$         uniform_cfg.uniform_bt_threshold = 0.4; 
+% $$$         [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, ...
+% $$$                                                   uniform_cfg);
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran);
 
         % subset out non-uniform FOVs
         nuniform = length(iuniform);
@@ -266,7 +268,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
         
         % now that we have calcs, find clear FOVs
         iobs2check = 1:length(p_gran.rtime);
-        [iflagsc, bto1232, btc1232] = xfind_clear_hires(h_gran, p_gran, iobs2check);
+        [iflagsc, bto1232, btc1232] = xfind_clear(h_gran, p_gran, iobs2check);
         iclear_sea    = find(iflagsc == 0 & p_gran.landfrac <= 0.01);
         iclear_notsea = find(iflagsc == 0 & p_gran.landfrac >  0.01);
 % $$$         iclear = union(iclear_sea, iclear_notsea);

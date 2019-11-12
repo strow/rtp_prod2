@@ -58,12 +58,13 @@ a(4,i1,j1) = d2(i1,j1);
 amax = squeeze(max(abs(a),[],1));
 
 % Final output is amax, but with NaNs for scenes that are not clear
-amax_keep = amax(2:3:134,2:3:89);
+% $$$ amax_keep = amax(2:3:134,2:3:89);
+amax_keep = amax;
 amax_keep(amax_keep > threshold) = NaN;
 %scatter_coast(prof.rlon(tind), prof.rlat(tind),reshape(amax_keep',1,1350))
 
 % Get amax_keep indices for uniform FOVs
-k = find(~isnan(amax_keep));
+k = ~isnan(amax_keep);
 
 % need to map k back into the rtp linear index space
 ind = reshape(1:(9*30*45),9,30,45);

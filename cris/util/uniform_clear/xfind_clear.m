@@ -19,11 +19,18 @@ function [iflags, bto, btc] = xfind_clear(head, prof, icheck);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-wn = 961;
+wn = 1231;
 itest = find(head.vchan > wn,1);
 
 % Find sea and non-sea indices
 ncheck = length(icheck);
+
+%% debug tests %%
+[rnchans, rnobs] = size(prof.robs1);
+[cnchans, cnobs] = size(prof.rclr);
+fprintf(2, '>>> NCHECK = %d\tRNOBS = %d\tCNOBS = %d\n', ncheck, ...
+        rnobs, cnobs);
+%%
 isea = find(prof.landfrac(icheck) < 0.02);
 inot = setdiff(1:ncheck,isea);
 
@@ -33,7 +40,10 @@ iflags = zeros(1,ncheck);
 
 
 % Compute BT of test channels
-r = prof.robs1(itest,icheck);
+robs = box_to_ham(prof.robs1(:,icheck));
+r = robs(itest,:);
+clear robs
+% $$$ r = prof.robs1(itest,icheck);
 ibad = find(r < 1E-5);
 r(ibad) = 1E-5;
 bto = rad2bt(head.vchan(itest), r);
@@ -45,14 +55,10 @@ clear r ibad
 
 
 % Test #1 bitvalue=1: window channel dBT
-ix1232 = 9; % ~1232 wn
-%
-bto1232 = bto(ix1232,:);
-btc1232 = btc(ix1232,:);
-dbt1232 = bto1232 - btc1232;
-ii = isea( find(dbt1232(isea) > 4 | dbt1232(isea) < -3) );
+dbt = bto - btc;
+ii = isea( find(dbt(isea) > 4 | dbt(isea) < -3) );
 iflags(ii) = iflags(ii) + 1;
-ii = inot( find(dbt1232(inot) > 7 | dbt1232(inot) < -7) );
+ii = inot( find(dbt(inot) > 7 | dbt(inot) < -7) );
 iflags(ii) = iflags(ii) + 1;
 
 

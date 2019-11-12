@@ -96,36 +96,48 @@ dg = nguard;  % number of dst guard chans
 %% MW and SW need to be interpolated to the new user grid
 opt1 = struct;
 opt1.user_res = 'lowres';
-opt1.inst_res = 'hires3';
-wlaser = 773.1301;
+opt1.inst_res = 'hires2';
+wlaser = 773.1307;
+
+%% LW
+[instLW, userLW] = inst_params('LW', wlaser, opt1);
+[r2LW, v2LW] = finterp(rLW(:,:), vLW, userLW.dv);
+ix = find(userLW.v1 <= v2LW & v2LW <= userLW.v2);
+v2LW = v2LW(ix);
+r2LW = real(r2LW(ix,:));
 
 %% MW
 [instMW, userMW] = inst_params('MW', wlaser, opt1);
 [r2MW, v2MW] = finterp(rMW(:,:), vMW, userMW.dv);
 ix = find(userMW.v1 <= v2MW & v2MW <= userMW.v2);
 v2MW = v2MW(ix);
-r2MW = r2MW(ix,:);
+r2MW = real(r2MW(ix,:));
 
 %% SW
 [instSW, userSW] = inst_params('SW', wlaser, opt1);
 [r2SW, v2SW] = finterp(rSW(:,:), vSW, userSW.dv);
 ix = find(userSW.v1 <= v2SW & v2SW <= userSW.v2);
 v2SW = v2SW(ix);
-r2SW = r2SW(ix,:);
+r2SW = real(r2SW(ix,:));
 
 % total number of output channels
-nLW = length(vLW) - 2 * sg;  
-nMW = length(v2MW);  % 'find' commands above remove the incoming
-                     % guard channels for both MW and SW
+nLW = length(v2LW);   % 'find' commands above remove the incoming
+                      % guard channels for both MW and SW  
+nMW = length(v2MW);
 nSW = length(v2SW);
 nout = nLW + nMW + nSW + 6 * dg;
 
 % initialize radiance output
 prof.robs1 = ones(nout, nobs, 'single') * NaN;
 
-%% LW is unchanged when interpolating down to lowres
-[si, di] = guard_ind(sg, dg, nLW);
-rtmp = reshape(rLW, length(vLW), nobs);
+% $$$ %% LW is unchanged when interpolating down to lowres
+% $$$ [si, di] = guard_ind(sg, dg, nLW);
+% $$$ rtmp = reshape(rLW, length(vLW), nobs);
+% $$$ prof.robs1(di, :) = single(rtmp(si, :));
+%% LW
+[si, di] = guard_ind(0, dg, nLW);  % 'find' command above removes
+                                   % guard channels
+rtmp = reshape(r2LW, length(v2LW), nobs);
 prof.robs1(di, :) = single(rtmp(si, :));
 
 %% MW
