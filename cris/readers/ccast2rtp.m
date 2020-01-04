@@ -138,12 +138,12 @@ prof.iudef = zeros(10, nobs, 'int32');
 % $$$ t2 = int32(ones(270,1) * t1);
 % $$$ prof.iudef(3,:) = t2(:)';
 
-iudef 4 is ascending/descending flag
+% iudef 4 is ascending/descending flag
 t1 = geo.Asc_Desc_Flag';
 t2 = int32(ones(270,1) * t1);
 prof.iudef(4,:) = t2(:)';
 
-iudef 5 is orbit number 
+% iudef 5 is orbit number 
 t1 = geo.Orbit_Number';
 t2 = int32(ones(270,1) * t1);
 prof.iudef(5,:) = t2(:)';
