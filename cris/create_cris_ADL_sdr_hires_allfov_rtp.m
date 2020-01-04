@@ -84,8 +84,8 @@ end  % end if nargin == 2
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-% $$$ [~, ~, attr] = read_SCRIF(fnCrisInput);  % Hires
-[~, ~, attr] = read_SCRIS(fnCrisInput);  % lowres
+[~, ~, attr] = read_SCRIF(fnCrisInput);  % Hires
+% $$$ [~, ~, attr] = read_SCRIS(fnCrisInput);  % lowres
 
 ADind = attr.Ascending_Descending_Indicator;
 if length(ADind) > 1

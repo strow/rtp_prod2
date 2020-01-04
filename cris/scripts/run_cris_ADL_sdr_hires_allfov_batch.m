@@ -66,6 +66,7 @@ for i = 1:chunk
         fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
                         C{3}, C{4}, C{5});
         rtp_outname = fullfile(sPath, fname);
+        fprintf(1, '>> Writing output to file: %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
     end

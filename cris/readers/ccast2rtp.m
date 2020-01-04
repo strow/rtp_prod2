@@ -133,29 +133,29 @@ prof.upwell = ones(1,nobs,'int32');
 prof.udef = zeros(20, nobs, 'single');
 prof.iudef = zeros(10, nobs, 'int32');
 
-% iudef 3 is granule ID as an int32
-% t1 = str2double(cellstr(geo.Granule_ID(:,4:16)))';
-% t2 = int32(ones(270,1) * t1);
-% prof.iudef(3,:) = t2(:)';
+% $$$ iudef 3 is granule ID as an int32
+% $$$ t1 = str2double(cellstr(geo.Granule_ID(:,4:16)))';
+% $$$ t2 = int32(ones(270,1) * t1);
+% $$$ prof.iudef(3,:) = t2(:)';
 
-% iudef 4 is ascending/descending flag
-% t1 = geo.Asc_Desc_Flag';
-% t2 = int32(ones(270,1) * t1);
-% prof.iudef(4,:) = t2(:)';
+iudef 4 is ascending/descending flag
+t1 = geo.Asc_Desc_Flag';
+t2 = int32(ones(270,1) * t1);
+prof.iudef(4,:) = t2(:)';
 
-% iudef 5 is orbit number 
-% t1 = geo.Orbit_Number';
-% t2 = int32(ones(270,1) * t1);
-% prof.iudef(5,:) = t2(:)';
+iudef 5 is orbit number 
+t1 = geo.Orbit_Number';
+t2 = int32(ones(270,1) * t1);
+prof.iudef(5,:) = t2(:)';
 
-% Interpolate X,Y,Z at MidTime to rtime
-% xyz = geo.SCPosition; % [3 x 4*n]
-% mtime = iet2tai(geo.MidTime); % [1 x 4*n]
-% isub = prof.rtime > 0;
-% msel = [logical(1); diff(mtime) > 0];
-% prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
-% prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
-% prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
+% $$$ Interpolate X,Y,Z at MidTime to rtime
+% $$$ xyz = geo.SCPosition; % [3 x 4*n]
+% $$$ mtime = iet2tai(geo.MidTime); % [1 x 4*n]
+% $$$ isub = prof.rtime > 0;
+% $$$ msel = [logical(1); diff(mtime) > 0];
+% $$$ prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
+% $$$ prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
+% $$$ prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
 
 %-------------------------------
 % trim output to a valid subset

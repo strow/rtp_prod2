@@ -87,7 +87,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
     % Build traceability info ************************
     trace.klayers = klayers_exec;
     trace.sartaclr = sartaclr_exec;
-    trace.githash = githash(func_name);
+    [status, trace.githash] = githash();
     trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                                   'd-MMM-y HH:mm:ss Z'));
     fprintf(1, '>>> Run executed %s with git hash %s\n', ...
@@ -112,6 +112,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
     fprintf(1, '>>> Found %d granule files to be read\n', ...
             length(files));
 
+    FIRSTPASS = true;
     for i=1:length(files)
         % Read ccast granule file
         infile = fullfile(inpath, files(i).name);
@@ -277,11 +278,12 @@ function [head, hattr, prof, pattr] = create_cris_ccast_lowres_clear_day_rtp(inp
         fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
         p_gran = rtp_sub_prof(p_gran, iclear);
 
-        if i == 1
+        if FIRSTPASS
             prof = p_gran;
             head = h_gran;
             hattr = ha_gran;
             pattr = pa_gran;
+            FIRSTPASS = false;
         else
             % concatenate new random rtp data into running random rtp structure
             [head, prof] = cat_rtp(head, prof, head, p_gran);

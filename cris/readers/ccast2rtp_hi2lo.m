@@ -174,15 +174,15 @@ prof.iudef = zeros(10, nobs, 'int32');
 % t2 = int32(ones(270,1) * t1);
 % prof.iudef(3,:) = t2(:)';
 
-% iudef 4 is ascending/descending flag
-% t1 = geo.Asc_Desc_Flag';
-% t2 = int32(ones(270,1) * t1);
-% prof.iudef(4,:) = t2(:)';
+iudef 4 is ascending/descending flag
+t1 = geo.Asc_Desc_Flag';
+t2 = int32(ones(270,1) * t1);
+prof.iudef(4,:) = t2(:)';
 
-% iudef 5 is orbit number 
-% t1 = geo.Orbit_Number';
-% t2 = int32(ones(270,1) * t1);
-% prof.iudef(5,:) = t2(:)';
+iudef 5 is orbit number 
+t1 = geo.Orbit_Number';
+t2 = int32(ones(270,1) * t1);
+prof.iudef(5,:) = t2(:)';
 
 % Interpolate X,Y,Z at MidTime to rtime
 % xyz = geo.SCPosition; % [3 x 4*n]
