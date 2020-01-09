@@ -33,7 +33,7 @@ sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_w
 trace.klayers = klayers_exec;
 trace.sartaclr = sartaclr_exec;
 trace.sartacld = sartacld_exec;
-trace.githash = githash(func_name);
+[status, trace.githash] = githash();
 trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                          'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
