@@ -7,8 +7,8 @@ function  run_airicrad_allfov_gran(cfg)
 % concatenation. This routine drives input/output selection and
 % does the final rtpwrite
 
-addpath('~/git/rtp_prod2/util');  % rtpread,rtpwrite,cat_rtp_dir
-addpath('~/git/rtp_prod2/airs');  % sub_airxbcal
+addpath('~/git/rtp_prod2_DEV/util');  % rtpread,rtpwrite,cat_rtp_dir
+addpath('~/git/rtp_prod2_DEV/airs');  % sub_airxbcal
 
 % 
 % $$$ airs_daily_file_list = '~/rtp_gen_files/airicrad_grans_to_process';
