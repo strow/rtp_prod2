@@ -27,7 +27,7 @@ sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_w
 
 %*************************************************
 % Build traceability info ************************
-ghash = githash(func_name);
+[status, ghash] = githash();
 RunDate = char(datetime('now','TimeZone','local','Format', ...
                               'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
