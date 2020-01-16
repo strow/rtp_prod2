@@ -86,7 +86,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
     % Build traceability info ************************
     trace.klayers = klayers_exec;
     trace.sartaclr = sartaclr_exec;
-    trace.githash = githash(func_name);
+    [status, trace.githash] = githash();
     trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
                                   'd-MMM-y HH:mm:ss Z'));
     fprintf(1, '>>> Run executed %s with git hash %s\n', ...
