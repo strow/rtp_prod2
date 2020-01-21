@@ -84,8 +84,8 @@ end  % end if nargin == 2
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-[~, ~, attr] = read_SCRIF(fnCrisInput);  % Hires
-% $$$ [~, ~, attr] = read_SCRIS(fnCrisInput);  % lowres
+% $$$ [~, ~, attr] = read_SCRIF(fnCrisInput);  % Hires
+[~, ~, attr] = read_SCRIS(fnCrisInput);  % lowres
 
 ADind = attr.Ascending_Descending_Indicator;
 if length(ADind) > 1
@@ -213,7 +213,7 @@ if strcmp('csarta', cfg.rta)
 % $$$ % run driver_sarta_cloud to handle klayers and sarta runs
     sarta_cfg.clear=+1;
     sarta_cfg.cloud=+1;
-    sarta_cfg.cumsum=-1;
+    sarta_cfg.cumsum=+9999;
     sarta_cfg.klayers_code = klayers_exec;
     sarta_cfg.sartaclear_code = sarta_exec;
     sarta_cfg.sartacloud_code = sartacld_exec;
