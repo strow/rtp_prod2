@@ -17,8 +17,8 @@
 ##SBATCH --array=0-179
 #SBATCH --time=00:59:00
 
-#SBATCH -o /home/sbuczko1/logs/sbatch/run_cris_hr_allfov_batch-%A_%a.out
-#SBATCH -e /home/sbuczko1/logs/sbatch/run_cris_hr_allfov_batch-%A_%a.err
+#SBATCH -o /home/sbuczko1/LOGS/sbatch/run_cris_hr_allfov_batch-%A_%a.out
+#SBATCH -e /home/sbuczko1/LOGS/sbatch/run_cris_hr_allfov_batch-%A_%a.err
 
 # matlab options
 MATLAB=matlab

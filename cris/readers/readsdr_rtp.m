@@ -53,7 +53,7 @@ end
 %  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
 %else
 
-  f = dir(regexprep(pdfile,{'SCRIF' '_c[0-9]+'},{'GCRSO' '*'}));
+  f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
 
   if(numel(f)>1)
     fdates=[f.datenum];
