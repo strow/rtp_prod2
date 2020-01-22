@@ -26,7 +26,7 @@ addpath /home/sbuczko1/git/matlib/clouds/sarta  %
                                                 % has typos)
 addpath /home/sbuczko1/git/matlab2012/cris/readers  % sdr read
                                                     % functions
-addpath ./util  % build_satlat
+addpath ../util  % build_satlat
 
 [sID, sTempPath] = genscratchpath();
 
