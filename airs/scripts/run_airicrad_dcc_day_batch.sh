@@ -26,7 +26,7 @@ MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing srun of run_cris_batch"
 $MATLAB $MATOPT -r "disp('>>Starting script');\
-                    rtp_addpaths;\
+                    airs_rtpaddpaths;\
                     cfg=ini2struct('$1');\
                     run_airicrad_dcc_day_batch(cfg);\
                     exit"
