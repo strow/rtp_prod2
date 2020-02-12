@@ -33,8 +33,10 @@ seconds1958to2000 = 15340 * 24 * 3600;
 
 % Note: nchan* includes 2 guards at each end of each band
 nchanLW = 717;
-nchanMW = 437;
-nchanSW = 163;
+% $$$ nchanMW = 437;
+% $$$ nchanSW = 163;
+nchanMW = 869;
+nchanSW = 637;
 nchan = round(nchanLW + nchanMW + nchanSW); % exact integer
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,12 +50,19 @@ end
 [pd pd_file_a pd_aggr_a pd_sdr_a pd_gran0_a] = readsdr_rawpd_all(pdfile);
 
 % Determine geofile from pdfile
-[sdrdir,~,~] = fileparts(pdfile);
+[sdrdir,sdrname,sdrext] = fileparts(pdfile);
+
 %if isfield(pd_file_a,'N_GEO_Ref')
 %  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
 %else
 
-  f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
+% $$$   f = dir(regexprep(pdfile,{'sdr' 'SCRIS' '_c[0-9]+'},{'geo' 'GCRSO' '*'}));
+% $$$   geodir = regexprep(sdrdir, {'sdr'},{'geo'});
+  
+  C = strsplit(sdrdir, '/');
+  geodir = sprintf('/asl/cris/geo60_npp/%s/%s', C{8},C{9});
+  geoname = [regexprep(sdrname,{'SCRIF' '_c[0-9]+'},{'GCRSO' '*'}) sdrext];
+  f = dir(fullfile(geodir, geoname));
 
   if(numel(f)>1)
     fdates=[f.datenum];
@@ -62,7 +71,8 @@ end
     f=f(ifnewest);
   end
 
-  geofile = fullfile(sdrdir,f.name);
+  geofile = fullfile(f.folder,f.name);
+
 %end
 
 if exist(geofile) ~= 2
@@ -110,7 +120,8 @@ end
 %
 if (isfield(geo,'FORTime'))
    % Convert IET1958 microseconds to TAI2000
-   junk = double(geo.FORTime)*1E-6 - seconds1958to2000; % [30 x 4*n]
+% $$$    junk = double(geo.FORTime)*1E-6 - seconds1958to2000; % [30 x 4*n]
+   junk = iet2tai(double(geo.FORTime));
    s = size(junk);
    nx = round(prod(s)); % exact integer
    junk2 = reshape(junk,1,nx);

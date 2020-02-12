@@ -13,69 +13,64 @@ if isfield(cfg, 'klayers_exec')
     klayers_exec = cfg.klayers_exec;
 end
 
-sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
-               'sarta_iasi_may09_wcon_nte'];
-if isfield(cfg, 'sarta_exec')
-    sarta_exec = cfg.sarta_exec;
-    USE_IASI_SARTA = false;  % this really needs to be a TEST of
-                             % the configured sarta or needs to be
-                             % set by an additional flag in cfg
+sartaclr_exec = '/asl/bin/crisg4_oct16'; 
+if isfield(cfg, 'sartaclr_exec')
+    sartaclr_exec = cfg.sartaclr_exec;
 end
+
 nguard = 2;  % number of guard channels
 if isfield(cfg, 'nguard')
     nguard = cfg.nguard;
 end
+
 nsarta = 4;  % number of sarta guard channels
 if isfield(cfg, 'nsarta')
     nsarta = cfg.nsarta;
 end
+
 % check for validity of guard channel specifications
 if nguard > nsarta
     fprintf(2, ['*** Too many guard channels requested/specified ' ...
                 '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
     return
 end
-    
 
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
 addpath /asl/packages/iasi_decon
 addpath /asl/packages/ccast/source
-addpath /asl/packages/rtp_prod2/cris;  % uniform_clear_template_...
-% addpath /home/sbuczko1/git/rtp_prod2/cris/readers; % ccast2rtp, cris_[iv]chan
-addpath /home/motteler/cris/ccast/motmsc/rtp_sarta; % ccast2rtp, cris_[iv]chan
+addpath /home/sbuczko1/git/ccast/motmsc/utils  % read_SCRIF
+addpath /asl/matlib/aslutil   % int2bits
+% $$$ addpath /asl/packages/rtp_prod2/cris;  % ccast2rtp
+addpath /home/sbuczko1/git/ccast/test % read_SCRIS
+
 % $$$ addpath /asl/packages/rtp_prod2/grib;  % fill_era/ecmwf
-addpath /home/sbuczko1/git/rtp_prod2/grib
-addpath /asl/packages/rtp_prod2/emis;  % add_emis
-addpath /asl/packages/rtp_prod2/util;  % rtpread/write
-addpath ../util
-addpath /home/sbuczko1/git/matlab2012/cris/readers  % sdr read
-                                                    % functions
-addpath /home/sbuczko1/git/ccast/motmsc/utils;  % read_SCRIF
+addpath /home/sbuczko1/git/rtp_prod2_DEV/grib;  % fill_era/ecmwf
+addpath /home/sbuczko1/git/rtp_prod2_DEV/emis;  % add_emis
+addpath /home/sbuczko1/git/rtp_prod2_DEV/util;  % rtpread/write
+
+addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/readers % sdr read
+                                                      % function
+
+addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util  % build_satlat
+addpath /home/sbuczko1/git/rtp_prod2_DEV/util  % genscratchpath
+addpath /home/sbuczko1/git/rtp_prod2_DEV/util/time % time functions
+addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util/uniform_clear
 
 [sID, sTempPath] = genscratchpath();
 
 % Load up rtp
-% Load up rtp
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
-[~, ~, attr] = read_SCRIF(fnCrisInput);
-
-if length(attr.Ascending_Descending_Indicator) > 1
-    fprintf(2, '** Multiple asc/desc indicators found **\n');
-    return
-end
-prof.iudef(4,:) = ones(1,length(prof.rtime),'int32') * int32(attr.Ascending_Descending_Indicator);
-
-% remove partial scanlines (atrack 1&5) to keep from killing clear
-% filter routine. Ideally, these should be matched up with partial
-% tracks from previous and succeeding granules. Just tossing them
-% for now.
-ind51 = find(prof.atrack ~= 1 & prof.atrack ~= 5);
-prof2 = rtp_sub_prof(prof, ind51);
-prof = prof2;
-clear prof2
+% $$$ [~, ~, attr] = read_SCRIF(fnCrisInput);
+% $$$ tmp=attr.Ascending_Descending_Indicator;
+% $$$ if length(tmp) > 1
+% $$$     fprintf(2, '** Multiple asc/desc indicators found **\n');
+% $$$     return
+% $$$ end
+% $$$ prof.iudef(4,:) = ones(1,length(prof.rtime),'int32') * int32(tmp);
+prof.iudef(4,:) = (prof.solzen < 90.0);
 
 %-------------------
 % set header values
@@ -95,6 +90,45 @@ head.pfields = 4; % 4 = IR obs
 hattr = {{'header', 'instid', 'CrIS'}, ...
          {'header', 'reader', 'readsdr_rtp'}, ...
         };
+
+%*********
+% cris_find_uniform is predicated on having a full 9x30x45
+% granule. We may have to turn the following NaN check into
+% a 'throw out this granule and continue to next' until
+% things can be made more flexible
+%*********
+% check rtime values for NaN. subset out obs with such
+% rtimes (in all such cases found so far, Nans are in a
+% contiguous block and all profile fields are NaN'd)
+gnans = isnan(prof.rtime);
+nnans = sum(gnans);
+nobs = length(prof.rtime);
+if nnans | nobs ~= 16200        % for 60 scan files, 12150 for 45 scan files
+    fprintf(2,'>> Granule %d contains NaNs or is wrong size. SKIPPING\n',i);
+% $$$             nan_inds = find(~gnans);
+% $$$             p_gran = rtp_sub_prof(p_gran,nan_inds);
+    return;
+end
+
+% check pixel uniformity. If no FOR/FOVs satisfy
+% uniformity, no point in continuing to process this
+% granule
+uniform_cfg = struct;
+uniform_cfg.uniform_test_channel = 961;
+uniform_cfg.uniform_bt_threshold = 0.4; 
+uniform_cfg.scanlines = 60;
+[iuniform, amax_keep] = cris_find_uniform(head, prof, uniform_cfg);
+
+% subset out non-uniform FOVs
+nuniform = length(iuniform);
+if 0 == nuniform
+    fprintf(2,['>> No uniform FOVs found for granule %d. ' ...
+               'SKIPPING\n'],i)
+    return;
+end
+
+fprintf(1, '>> Uniform obs found: %d/12150\n', nuniform);
+prof = rtp_sub_prof(prof,iuniform);
 
 % check that [iv]chan are column vectors
 temp = size(head.ichan);
@@ -139,24 +173,6 @@ fprintf(1, '>>> Running rtp_ad_emis...');
 [prof,pattr] = rtp_add_emis_single(prof,pattr);
 fprintf(1, 'Done\n');
 
-% run Sergio's subsetting routine
-fprintf(1, '>> Building basic filtering flags (uniform_clear_template...)\n');
-% $$$ % $$$ px = rmfield(prof,'rcalc');
-% $$$ hx = head; hx.pfields = 5;
-fprintf(1, '>>> NGAS = %d\n', head.ngas);
-px = uniform_clear_template_lowANDhires_HP(head,hattr,prof,pattr); %% super (if it works)
-
-% subset out the clear
-% output rtp splitting from airxbcal processing
-% Subset into four types and save separately
-iclear = find(px.iudef(1,:) == 1);
-if length(iclear) == 0
-    prof = [];
-    return
-end
-
-prof = rtp_sub_prof(px,iclear);
-clear px;
 
 % run klayers
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
@@ -179,107 +195,29 @@ if isfield(cfg, 'scaleco2') | isfield(cfg, 'scalech4')
     end
     rtpwrite(fn_rtp2,hh,hha,pp,ppa)
 end
-    
-% run sarta
 
-% if using IASI sarta
-if USE_IASI_SARTA
-% $$$     % read in output from klayers and prep to run through IASI sarta
-% $$$     [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-% $$$     
-% $$$     % Remove CrIS channel dependent fields before doing IASI calc
-% $$$     if (isfield(head,'vchan'))
-% $$$         %%** removes the user space frequency channel array but leaves
-% $$$         %%the channel index array (which sarta needs?)
-% $$$         head = rmfield(head,'vchan');
-% $$$     end
-% $$$     if (isfield(prof,'robs1'))
-% $$$         prof = rmfield(prof,'robs1');
-% $$$         head.pfields = head.pfields - 4;
-% $$$     end
-% $$$     if (isfield(prof,'rcalc'))
-% $$$         prof = rmfield(prof,'rcalc');
-% $$$         head.pfields = head.pfields - 2;
-% $$$     end
-% $$$     if (isfield(prof,'calflag'))
-% $$$         prof = rmfield(prof,'calflag');
-% $$$     end
-% $$$ 
-% $$$     %%** fiasi is a LUT for the IASI frequency space channel
-% $$$     %%allocations
-% $$$     ltemp = load('/asl/data/iremis/danz/iasi_f', 'fiasi'); % load fiasi
-% $$$     fiasi = ltemp.fiasi;
-% $$$     clear ltemp;
-% $$$ 
-% $$$     % First half of IASI
-% $$$     %%** replace both cris ichan and vchan with iasi equivalents (??
-% $$$     %%but without guard channels??). This is done because we have a
-% $$$     %%sarta model for iasi but not for cris, correct?? Why, exactly did
-% $$$     %%we do the field removal of head.vchan a few lines ago but not
-% $$$     %%similarly remove ichan? Here, we replace both with iasi
-% $$$     %%equiv. so, why the removal?
-% $$$     head.nchan = 4231;
-% $$$     head.ichan = (1:4231)';
-% $$$     head.vchan = fiasi(1:4231);
-% $$$     fn_rtpi = fullfile(sTempPath, ['cris_' sID '_rtpi.rtp']);
-% $$$     rtpwrite(fn_rtpi,head,hattr,prof,pattr);
-% $$$     fn_rtprad = fullfile(sTempPath, ['cris_' sID '_rtprad.rtp']);
-% $$$     disp('running SARTA for IASI channels 1-4231')
-% $$$     eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
-% $$$           sTempPath '/sartastdout1.txt']);
-% $$$     %psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
-% $$$     [head, hattr, prof, pattr] = rtpread(fn_rtprad);
-% $$$     rad_pt1 = prof.rcalc;
-% $$$     % Second half of IASI
-% $$$     head.nchan = 4230;
-% $$$     head.ichan = (4232:8461)';
-% $$$     head.vchan = fiasi(4232:8461);
-% $$$     rtpwrite(fn_rtpi,head,hattr,prof,pattr);
-% $$$     disp('running SARTA for IASI channels 4232-8461')
-% $$$     eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
-% $$$           sTempPath '/sartastdout2.txt' ]);
-% $$$     %psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
-% $$$     [head, hattr, prof, pattr] = rtpread(fn_rtprad);
-% $$$     rad_pt2 = prof.rcalc;
-% $$$ 
-% $$$     %
-% $$$     rad_iasi = [rad_pt1; rad_pt2];
-% $$$     clear rad_pt1 rad_pt2
-% $$$ 
-% $$$     % Convert IASI radiances to CrIS
-% $$$     opt.hapod = 0;  % Want sinc from iasi2cris
-% $$$     opt.resmode = 'hires2'; % CrIS mode after Dec. 4, 2014
-% $$$     opt.nguard = nguard; % adding 2 guard channels
-% $$$ 
-% $$$     % Convert Iasi to CrIS
-% $$$     [tmp_rad_cris, f_cris] = iasi2cris(rad_iasi,fiasi,opt);
-% $$$     %%% trying to add 2 guard channels. This check will need to be
-% $$$     %%% redone but, for now, I will just remove it
-% $$$ % $$$ % f_cris are real channels, no guard channels
-% $$$     [num_ichan_iasi, num_profs] = size(tmp_rad_cris);
-% $$$ % $$$ if num_ichan_iasi ~= 2211
-% $$$ % $$$    disp('Error: iasi2cris returning wrong channels');
-% $$$ % $$$ end
-% $$$ 
-% $$$     % Full g4 radiance variable
-% $$$     rad_cris = ones(length(ichan_ccast),num_profs).*NaN;
-% $$$     % Indices (not channels) for real radiances
-% $$$     ireal = find(ichan_ccast <= 2211);
-% $$$ 
-% $$$ % $$$ rad_cris(ireal,:) = tmp_rad_cris;
-% $$$     rad_cris = tmp_rad_cris;
-% $$$     % end if USE_IASI_SARTA true
-else
+% run sarta
     fprintf(1, '>>> Running sarta... ');
     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-    sarta_run = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+    sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                  ' > ' sTempPath '/sartaout.txt'];
     unix(sarta_run);
-
     % read in sarta results to capture rcalc
     [~,~,p,~] = rtpread(fn_rtp3);
     prof.rclr = p.rcalc;
     clear p;
+
+        % now that we have calcs, find clear FOVs
+        iobs2check = 1:length(prof.rtime);
+        [iflagsc, bto1232, btc1232] = xfind_clear_hires(head, prof, iobs2check);
+        iclear_sea    = find(iflagsc == 0 & prof.landfrac <= 0.01);
+        iclear_notsea = find(iflagsc == 0 & prof.landfrac >  0.01);
+% $$$         iclear = union(iclear_sea, iclear_notsea);
+        iclear = iclear_sea;
+        nclear = length(iclear);
+        fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
+        prof = rtp_sub_prof(prof, iclear);
+
     fprintf(1, 'Done\n');
-end  % end run sarta 
+
     

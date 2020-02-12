@@ -20,8 +20,10 @@ function  [clear_ind, amax_keep, amax] = cris_find_uniform(head, prof, opt);
 % d = hdfread(fn,'radiances');
 % 
 % bt = rad2bt(1231,squeeze(d(:,:,1291)));
+
 wn = 1231;  % 1231 cm^-1 default
 threshold = 0.4;  % 0.4K FOV to FOV BT difference threshold
+scanlines = 45; % default number of CrIS scanlines per granule
 if nargin == 3 
     if isfield(opt, 'uniform_test_channel')
         wn = opt.uniform_test_channel;
@@ -29,27 +31,30 @@ if nargin == 3
     if isfield(opt, 'uniform_bt_threshold')
         threshold = opt.uniform_bt_threshold;
     end
+    if isfield(opt, 'scanlines')
+        scanlines = opt.scanlines;
+    end
 end
 
 ch = find(head.vchan > wn, 1);
 bt_rtp = rad2bt(head.vchan(ch), prof.robs1(ch,:));
 
-bt_cris = reshape(bt_rtp, 9,30,45);
-bt = create_airs_scan_from_cris(bt_cris)';
+bt_cris = reshape(bt_rtp, 9,30,scanlines);
+bt = create_airs_scan_from_cris(bt_cris, scanlines)';
 
 % Do the xtrack and atrack diffs
 d1 = diff(bt,1,1);
 d2 = diff(bt,1,2);
 
 % a will hold the diffs for each of the four neighbors
-a = NaN(4,135,90);
+a = NaN(4,3*scanlines,90);
 
 % Indices to save, cannot use first/last rows or columns since neighbors missing
-i1 = 2:134;
+i1 = 2:3*scanlines-1;
 j1 = 2:89;
 
 % Tricky part, assign the four diffs into a
-a(1,i1,j1) = d1(1:133,j1);
+a(1,i1,j1) = d1(1:3*scanlines-2,j1);
 a(2,i1,j1) = d1(i1,j1);
 a(3,i1,j1) = d2(i1,1:88);
 a(4,i1,j1) = d2(i1,j1);
@@ -67,7 +72,7 @@ amax_keep(amax_keep > threshold) = NaN;
 k = ~isnan(amax_keep);
 
 % need to map k back into the rtp linear index space
-ind = reshape(1:(9*30*45),9,30,45);
-indscan = create_airs_scan_from_cris(ind)';
+ind = reshape(1:(9*30*scanlines),9,30,scanlines);
+indscan = create_airs_scan_from_cris(ind, scanlines)';
 clear_ind = indscan(k);
 % scatter_coast(prof.rlon(clear_ind), prof.rlat(clear_ind), 10, ones(size(clear_ind)))

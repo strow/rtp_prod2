@@ -38,13 +38,11 @@ for i = 1:chunk
     % /asl/cris/sdr60_npp/2019/062/SCRIS_npp_d20190303_t2327039_e2335017_b38073_c20190304033504356469_nobc_ops.h5
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-% $$$     [yyear, mmonth, dday] = ymd(datetime(C{7}, 'InputFormat', 'yyyyMMdd'));
-    cris_yearstr = C{5};
-    cris_doystr = C{6};
-% $$$     cris_yearstr = sprintf('%04d', yyear);
-% $$$     cris_doystr = sprintf('%03d', day(datetime(C{7}, 'InputFormat', ...
-% $$$                                                'yyyyMMdd', 'Format', ...
-% $$$                                                'DDD'), 'dayofyear'));
+% $$$     cris_yearstr = C{5};
+% $$$     cris_doystr = C{6};
+    cris_yearstr = C{8}; % for /umbc/hpcnfs1/strow/asl/data/SCRIF_sorted/...
+    cris_doystr = C{9};
+
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>

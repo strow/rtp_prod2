@@ -44,8 +44,8 @@ for i = 1:chunk
 % $$$     iDoy = day(dt, 'dayofyear');    
 % $$$     cris_yearstr = sprintf('%4d', iYear);;
 % $$$     cris_doystr = sprintf('%03d', iDoy);
-    cris_yearstr = C{6};
-    cris_doystr = C{7};
+    cris_yearstr = C{8};
+    cris_doystr = C{9};
 
     % Make directory if needed
     % cris hires data will be stored in
@@ -65,11 +65,10 @@ for i = 1:chunk
         C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-% $$$         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-% $$$                         C{2}, C{3});
-        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
-                        C{3}, C{4});  % changed for cris2 cal testing
+        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+                        C{3}, C{4}, C{5});
         rtp_outname = fullfile(sPath, fname);
+        fprintf(1, '>> Writing output to file: %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
     end

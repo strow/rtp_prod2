@@ -40,8 +40,8 @@ for i = 1:chunk
     % for jpss-1 testing
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gpath, '/');
-    cris_yearstr = C{7};
-    cris_doystr = C{8};
+    cris_yearstr = C{6};
+    cris_doystr = C{7};
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
