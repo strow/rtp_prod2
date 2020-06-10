@@ -23,9 +23,12 @@ fprintf(1,'> Executing routine: %s\n', currentFilePath);
 
 %*************************************************
 % Build configuration ****************************
-klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
-sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
+% $$$ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+% $$$ sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+% $$$ sartacld_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
+klayers_exec = cfg.klayers_exec;
+sartaclr_exec   = cfg.sartaclr_exec;
+sartacld_exec   = cfg.sartacld_exec;
 %*************************************************
 
 %*************************************************
@@ -101,6 +104,8 @@ switch cfg.model
     [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'merra'
     [prof,head,pattr]  = fill_merra(prof,head,pattr);
+  case 'era5'
+    [prof,head,pattr]  = fill_era5(prof,head,pattr);
 end
 % check that we have same number of model entries as we do obs because
 % corrupt model files will leave us with an unbalanced rtp
@@ -137,13 +142,13 @@ fprintf(1, 'Done\n');
 %*************************************************
 
 % call klayers/sarta cloudy
-run_sarta.cloud=+1;
-run_sarta.clear=+1;
-run_sarta.cumsum=9999;
-% driver_sarta_cloud_rtp ultimately looks for default sarta
-% executables in Sergio's directories. **DANGEROUS** These need to
-% be brought under separate control for traceability purposes.
-% $$$ try
+run_sarta.cloud=cfg.sarta_cld;
+run_sarta.clear=cfg.sarta_clr;
+run_sarta.cumsum=cfg.sarta_cumsum;
+run_sarta.klayers_code=klayers_exec;
+run_sarta.sartaclear_code=sartaclr_exec;
+run_sarta.sartacloud_code=sartacld_exec;
+
 [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 
 % NEED ERROR CHECKING

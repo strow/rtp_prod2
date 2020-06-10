@@ -7,7 +7,7 @@
 # sbatch options
 #SBATCH --job-name=RUN_AIRICRAD_ALLFOV
 # partition = dev/batch
-#SBATCH --partition=batch
+#SBATCH --partition=high_mem
 # qos = short/normal/medium/long/long_contrib
 #SBATCH --qos=short+
 #SBATCH --account=pi_strow

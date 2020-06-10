@@ -27,8 +27,10 @@ fprintf(1,'> Executing routine: %s\n', currentFilePath);
 
 %*************************************************
 % Build configuration ****************************
-klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+% $$$ klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
+% $$$ sartaclr_exec   = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+klayers_exec = cfg.klayers_exec;
+sartaclr_exec = cfg.sartaclr_exec;
 %*************************************************
 
 %*************************************************
@@ -50,6 +52,7 @@ load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
 % >> inpath is the path to an AIRS day of data
 % /asl/data/airs/AIRICRAD/<year>/<doy>
 files = dir(fullfile(inpath, '*.hdf'));
+fprintf(1, '> Found %d files to process in %s\n', length(files), inpath)
 dbtun_ag = [];
 
 FIRSTGRAN = true;
@@ -149,6 +152,8 @@ for i=1:length(files)
                 [p,head,pattr]  = fill_ecmwf(p,head,pattr);
               case 'era'
                 [p,head,pattr]  = fill_era(p,head,pattr);
+              case 'era5'
+                [p,head,pattr]  = fill_era5(p,head,pattr);
               case 'merra'
                 [p,head,pattr]  = fill_merra(p,head,pattr);
             end
@@ -227,7 +232,7 @@ for i=1:length(files)
             %*************************************************
             % Run sarta **************************************
             fprintf(1, '>>> Running sarta... ');
-            fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
+            fn_rtp3 = fullfile(sTempPath, ['airs_' sID '_3.rtp']);
             sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                          ' > ' sTempPath '/sartaout.txt'];
             unix(sarta_run);
