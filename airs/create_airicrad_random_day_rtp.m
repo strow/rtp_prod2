@@ -159,6 +159,9 @@ end
 fprintf(1, 'Done\n');
 %*************************************************
 
+% set co2 ppm value
+prof.co2ppm = cfg.co2ppm * ones(size(prof.stemp));
+
 %*************************************************
 % Save the rtp file ******************************
 fprintf(1, '>>> Saving first rtp file... ');
@@ -176,7 +179,7 @@ run_sarta.cumsum=cfg.sarta_cumsum;
 run_sarta.klayers_code=klayers_exec;
 run_sarta.sartaclear_code=sartaclr_exec;
 run_sarta.sartacloud_code=sartacld_exec;
-
+run_sarta.co2ppm = cfg.co2ppm;
 
 [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 

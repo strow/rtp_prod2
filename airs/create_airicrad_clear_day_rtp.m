@@ -214,6 +214,11 @@ for i=1:length(files)
                 p = rtp_sub_prof(p, iRand);
                 dbtun_ag = dbtun_ag(iRand);
             end
+
+            % set co2ppm
+            p.co2ppm = cfg.co2ppm * ones(size(p.stemp));
+
+            % write out first temp file for klayers input
             fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
             rtpwrite(fn_rtp1,head,hattr,p,pattr)
             fprintf(1, 'Done\n');
@@ -241,9 +246,9 @@ for i=1:length(files)
 
             %*************************************************
             % Read in new rcalcs and insert into origin p field
-            stFileInfo = dir(fn_rtp3);
-            fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-                        '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
+% $$$             stFileInfo = dir(fn_rtp3);
+% $$$             fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
+% $$$                         '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
             [~,~,p2,~] = rtpread(fn_rtp3);
             p.rclr = p2.rcalc;
             p.rcalc = p2.rcalc;
