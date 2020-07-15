@@ -26,7 +26,7 @@ MATOPT=' -nojvm -nodisplay -nosplash'
 
 echo "Executing run_uwcris_batch"
 $MATLAB $MATOPT -r "disp('>>Starting script');\
-                    addpath(genpath('~/git/rtp_prod2_DEV'));\
+                    cris_nc_addpaths;\
                     cfg=ini2struct('$1');\
                     run_UW_cris_rtp(cfg);\
                     exit"
