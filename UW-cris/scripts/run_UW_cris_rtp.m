@@ -48,22 +48,41 @@ for i=1:numfiles
     fnCrisInput = fullfile(infilepath, files(i).name);
 
     % process netcdf file to rtp
-% $$$     try
-        [h,ha,p,pa] = create_uwcris_lowres_rtp(fnCrisInput);
-% $$$     catch
-% $$$         fprintf(2, '>>> Error converting granule: %s  :: skipping\n', ...
-% $$$                 files(i).name);
-% $$$         continue;
-% $$$     end
+    [h,ha,p,pa] = create_rtp_cris_netcdf(fnCrisInput);
+
+    % filter out desired FOVs/scan angles
+    fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... \n');
+    fors = [1:30];
+
+    nadir = ismember(p.xtrack,fors);
+
+    % rtp has a 2GB limit so we have to scale number of kept FOVs
+    % to stay within that as an absolute limit. Further, we
+    % currently restrict obs count in random to ~20k to match
+    % historical AIRXBCAL processing
+    limit = 20000;  % number of obs to keep
+    nswath = 45;  % length of ccast granules
+    ngrans = 240;  % number of granules per day
+    nfovs = 9;  % number of FOVs per FOR
+    maxobs = nswath * length(fors) * nfovs * ngrans;
+    scale = (limit/maxobs)*1.6; % preserves ~65k obs/day 
+    randoms = get_equal_area_sub_indices(p.rlat, scale);
+    nrinds = find(nadir & randoms);
+    if length(nrinds) == 0
+        return
+    end
+    p2 = rtp_sub_prof(p, nrinds);
+    clear p
+    fprintf(1, '>>> Found %d obs after random selection\n', length(p2.rtime));
 
 
     if 1 == i
         head = h;
         hattr = ha;
-        prof = p;
+        prof = p2;
         pattr = pa;
     else
-        prof = rtp_cat_prof(prof, p);
+        prof = rtp_cat_prof(prof, p2);
     
     end
 
