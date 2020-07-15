@@ -1,4 +1,4 @@
-function run_UW_cris_rtp()
+function run_UW_cris_rtp(cfg)
 
 addpath /home/sbuczko1/git/rtp_prod2_DEV/UW-cris
 addpath /home/sbuczko1/git/rtp_prod2_DEV/util
@@ -18,8 +18,9 @@ slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 % offset slurmindex to bypass MaxArraySize boundary
 %slurmindex = slurmindex + 19999
 
-chunk = 1;
-dayindex = (slurmindex*chunk);
+chunk = cfg.chunk;
+for i = 1:chunk
+dayindex = (slurmindex*chunk) + i;
 fprintf(1, '>>> chunk %d  dayindex %d\n', 1, dayindex);
 
 % File ~/cris-files-process.txt is a list of filepaths to the input
@@ -95,8 +96,7 @@ D = extractBetween(C{4},1,8);
 sName = ['SNDR.SNPP.CRIS_' D{1} '_random.rtp'];
 
 C = strsplit(infilepath, '/');
-outfilepath = ['/asl/isilon/rtp/rtp_SNPP_CrIS/random/2017' '/' ...
-               C{end}];
+outfilepath = fullfile(cfg.outputdir, 'random', C{end-1}, C{end});
 if exist(outfilepath) == 0
     mkdir(outfilepath);
 end
@@ -104,4 +104,5 @@ fnOutFile = fullfile(outfilepath, sName);
 fprintf(1, '>> Writing output rtp to: %s\n', fnOutFile)
 rtpwrite(fnOutFile, head, hattr, prof, pattr);
 
+end % end loop over chunk
 fprintf(1, '> Done\n');
