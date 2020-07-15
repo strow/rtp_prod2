@@ -54,7 +54,7 @@ prof.rtime = reshape(ones(9,1)*temp, 1, nobs);
 clear temp;
 
 % $$$ prof.satzen = reshape(s.sat_zen, 1, nobs);
-prof.satzen = rectify_satzen(s, nfile);
+prof.satzen = reshape(s.sat_zen, 1, nobs);
 prof.satazi = reshape(s.sat_azi, 1, nobs);
 prof.solzen = reshape(s.sol_zen, 1, nobs);
 prof.solazi = reshape(s.sol_azi, 1, nobs);

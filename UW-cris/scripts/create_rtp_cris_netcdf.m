@@ -44,16 +44,16 @@ sarta_exec = '/asl/bin/crisg4_oct16';
 sID = getenv('SLURM_ARRAY_TASK_ID');
 nguard = 2;  % number of guard channels
 
-opt.resmode = 'hires';
 
 % Load up rtp
-try
-    [head, hattr, prof, pattr] = uwnc2rtp(fnCrisInput, opt);
-catch
-    fprintf(2, '>>> ERROR: uwnc2rtp failed for %s\n', ...
-            fnCrisInput);
-    return;
-end
+opt.resmode = 'hires';
+% $$$ try
+    [head, hattr, p, pattr] = uwnc2rtp(fnCrisInput, opt);
+% $$$ catch
+% $$$     fprintf(2, '>>> ERROR: uwnc2rtp failed for %s\n', ...
+% $$$             fnCrisInput);
+% $$$     return;
+% $$$ end
 
 temp = size(head.ichan)
 if temp(2) > 1
@@ -63,6 +63,30 @@ temp = size(head.vchan)
 if temp(2) > 1
     head.vchan = head.vchan';
 end
+
+% filter out desired FOVs/scan angles
+fprintf(1, '>>> Running get_equal_area_sub_indices for random selection... \n');
+fors = [1:30];
+
+nadir = ismember(p.xtrack,fors);
+
+% rtp has a 2GB limit so we have to scale number of kept FOVs
+% to stay within that as an absolute limit. Further, we
+% currently restrict obs count in random to ~20k to match
+% historical AIRXBCAL processing
+limit = 20000;  % number of obs to keep
+nswath = 45;  % length of ccast granules
+ngrans = 240;  % number of granules per day
+nfovs = 9;  % number of FOVs per FOR
+maxobs = nswath * length(fors) * nfovs * ngrans;
+scale = (limit/maxobs)*1.6; % preserves ~65k obs/day 
+randoms = get_equal_area_sub_indices(p.rlat, scale);
+nrinds = find(nadir & randoms);
+if length(nrinds) == 0
+    return
+end
+prof = rtp_sub_prof(p, nrinds);
+fprintf(1, '>>> Found %d obs after random selection\n', length(prof.rtime));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -80,12 +104,12 @@ end
 ichan_ccast = head.ichan;
 
 % Add profile data
-% $$$ fprintf(1, '>>> Running fill_era... ');
-% $$$ [prof,head, pattr]=fill_era(prof,head,pattr);
-% $$$ fprintf(1, 'Done\n');
-fprintf(1, '>>> Running fill_ecmwf... ');
-[prof,head, pattr]=fill_ecmwf(prof,head,pattr);
+fprintf(1, '>>> Running fill_era... ');
+[prof,head, pattr]=fill_era(prof,head,pattr);
 fprintf(1, 'Done\n');
+% $$$ fprintf(1, '>>> Running fill_ecmwf... ');
+% $$$ [prof,head, pattr]=fill_ecmwf(prof,head,pattr);
+% $$$ fprintf(1, 'Done\n');
 
 head.pfields = 5;
 [nchan,nobs] = size(prof.robs1);
@@ -112,26 +136,6 @@ fprintf(1, 'Done\n');
 % Subset for quicker debugging
 % prof = rtp_sub_prof(prof, 1:10:length(prof.rlat));
 
-% run Sergio's subsetting routine
-px = prof;
-% $$$ px = rmfield(prof,'rcalc');
-% $$$ hx = head; hx.pfields = 5;
-
-prof = uniform_clear_template_lowANDhires_HP(head,hattr,px,pattr); %% super (if it works)
-% for redo of random subset. There are some issues with Sergio's
-% code that we are trying to find a way around. THIS WILL NOT WORK
-% FOR OTHER SUBSETS
-% $$$ fprintf(1, '>>> Running hha_lat_subsample... ');
-% $$$ [irand,irand2] = hha_lat_subsample_equal_area2_cris_hires(head, prof);
-% $$$ if numel(irand) == 0
-% $$$     fprintf(2, ['>>> ERROR : No random obs returned. Skipping to ' ...
-% $$$                 'next granule.\n'])
-% $$$     return;
-% $$$ end
-% $$$ 
-% $$$ prof = rtp_sub_prof(prof,irand)
-% $$$ fprintf(1, 'Done\n');
-
 % run klayers
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 fprintf(1, '>>> Writing klayers input temp file %s ...', fn_rtp1);
@@ -149,9 +153,6 @@ fprintf(1, 'Done\n');
 fprintf(1, 'Done\n');
 
 % Run sarta
-% *** split fn_rtp3 into 'N' multiple chunks (via rtp_sub_prof like
-% below for clear,site,etc?) make call to external shell script to
-% run 'N' copies of sarta backgrounded
 fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
 run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
              sTempPath '/sarta_' sID '_stdout.txt'];
@@ -164,52 +165,11 @@ fprintf(1, 'Done\n');
 % $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
 % $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
 fprintf(1, '>>> Reading sarta output... ');
-[~,~,p,~] = rtpread(fn_rtp3);
+[head, hattr, p, pattr] = rtpread(fn_rtp3);
 fprintf(1, 'Done\n');
 
-% Go get output from klayers, which is what we want except for rcalc
-% $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-% Insert rcalc for CrIS derived from IASI SARTA
+% Insert rcalc and return to caller
 prof.rclr = p.rcalc;
 head.pfields = 7;
-% $$$ 
-% $$$ asType = {'clear'};
-% $$$ rtp_out_fn_head = ['era_' grantag];
-% $$$ rtp_out_dir = '/home/sbuczko1/WorkingFiles/rtp_cris_uw_lowres';
-% $$$ 
-% $$$ % subset and output to rtp
-% $$$ for i = 1:length(asType)
-% $$$     % check for existence of output path and create it if necessary. This may become a source
-% $$$     % for filesystem collisions once we are running under slurm.
-% $$$     sPath = fullfile(rtp_out_dir,char(asType(i)),yearstr,doystr);
-% $$$     if exist(sPath) == 0
-% $$$         mkdir(sPath);
-% $$$     end
-% $$$ 
-% $$$     switch(char(asType(i)))
-% $$$       case 'random'
-% $$$ % $$$         obsfound = find(prof.iudef(1,:) == 8);
-% $$$         obsfound = irand;
-% $$$       case 'clear'
-% $$$         obsfound = find(prof.iudef(1,:) == 1);
-% $$$       case 'dcc'
-% $$$         obsfound   = find(prof.iudef(1,:) == 4);
-% $$$       case 'site'
-% $$$         obsfound  = find(prof.iudef(1,:) == 2);
-% $$$     end
-% $$$ 
-% $$$     if obsfound ~= 0
-% $$$         fprintf(1, '>> OUTPUT : Valid obs found :: %d', length(obsfound));
-% $$$         prof_out = rtp_sub_prof(prof,obsfound);
-% $$$ % $$$         prof_out = prof_rand;
-% $$$         rtp_out_fn = [rtp_out_fn_head '_' char(asType(i)) '.rtp'];
-% $$$         rtp_outname = fullfile(rtp_out_dir,char(asType(i)),yearstr, doystr, rtp_out_fn);
-% $$$         rtpwrite(rtp_outname,head,hattr,prof_out,pattr);
-% $$$     else
-% $$$         fprintf(1, '>> OUTPUT : No valid obs found for granule %s\n', ...
-% $$$                 fnCrisInput);
-% $$$     end
-% $$$     
-% $$$ end
-% $$$ 
-% $$$ fprintf(1, 'Done\n');
+
+
