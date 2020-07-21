@@ -1,11 +1,5 @@
 function run_UW_cris_rtp(cfg)
 
-addpath /home/sbuczko1/git/rtp_prod2_DEV/UW-cris
-addpath /home/sbuczko1/git/rtp_prod2_DEV/util
-addpath /home/sbuczko1/git/rtp_prod2_DEV/cris
-addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util
-addpath /asl/packages/time
-
 % granule names look like
 % SNDR.SNPP.CRIS.20160120T2312.m06.g233.L1B_NSR.std.v01_00_00.W.160311164050.nc
 %
