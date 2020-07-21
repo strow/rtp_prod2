@@ -1,3 +1,32 @@
+AIRS, CrIS, and IASI follow a fairly common foundation. IASI is still
+a bit different as I have not refactored Chris' original code to fully
+match the AIRS/CrIS paradigm (which itself isn't as fully one paradigm
+as I'd like). Where they are similar is in the use of a driver file to
+specify the paths to either granule files directly (for allfov) or to
+a day of granules for clear/random/site/dcc. So, the general flow for
+rtps is to build the required driver file and then kick off jobs on
+the cluster. Each individual cluster job can then pull in the
+appropriate path to get started. AIRS and CrIS have additionally moved
+on to having configuration files in which runtime options are
+specified. So, things like klayers/sarta executable paths are
+specified here, co2ppm overrides are specified here, etc. I keep these
+ini and driver files in a separate git repo (~/git/rtp_config) to help
+with traceability. Between commits and annotated tags, what was run
+and when is tracked. These could be tracked within rtp_prod2, I just
+found it cleaner for parsing the git histories to separate them out.
+
+I have also taken to keeping two working copies of the rtp_prod2 repo
+active. One is my /production/ repo and I try to run all production
+from it. the other is named rtp_prod2_DEV and is where I try to do all
+development. Trying to do development and production out of a single
+repo with rollback checkouts, branches, etc. just got unwieldy. I try
+to not use branches in the development repo but only because branch
+changes are not always as clean as one might hope. If I ever roll back
+the production repo, I always do it through a branch and then reset
+hard when reverting back to HEAD. My usual workflow is develop and
+test in rtp_prod2_DEV -> add/commit and push to github -> pull down to
+rtp_prod2 -> run production.
+
 * AIRS
 
 
