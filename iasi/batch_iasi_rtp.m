@@ -18,9 +18,10 @@ function batch_iasi_rtp(mondate,subset)
 % ------------------------------------------------
 % setup
 % ------------------------------------------------
-cd /home/sbuczko1/git/rtp_prod2/iasi/run/
-addpath /home/sbuczko1/git/rtp_prod2/iasi
-addpath /home/sbuczko1/git/rtp_prod2/iasi/readers
+iasiAddPaths
+
+iasihome = '/home/sbuczko1/git/rtp_prod2/iasi';
+logfilepath = '/home/sbuczko1/LOGS/sbatch';
 
 % ------------------------------------------------
 % Prep the requested jobs
@@ -36,9 +37,10 @@ njobs = endday;
 
 % define the driver file
 dfname = ['iasi1_rtp_' syr smo '_' subset '_drv.mat'];
+dname = fullfile('./run', dfname);
 
 % delete date file if already exists
-if(exist(dfname,'file') == 2) delete(dfname); end
+if(exist(dname,'file') == 2) delete(dname); end
 
 
 % generate a cell array of dates to pass to the parent script
@@ -48,24 +50,26 @@ for i = 1:endday
 end
 
 % save this structure for use by the parent script
-save(dfname,'cellDates');
+save(dname,'cellDates');
 
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
-batch = ['./batch_iasi1_' syr smo '_' subset '_rtp.slurm'];
+batch = ['./run/batch_iasi1_' syr smo '_' subset '_rtp.slurm'];
 FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
 fprintf(FH,'#SBATCH --job-name=iasiRTP\n');
-fprintf(FH,'#SBATCH --partition=batch\n');
-fprintf(FH,'#SBATCH --qos=normal+\n');
+fprintf(FH,'#SBATCH --partition=high_mem\n');
+fprintf(FH,'#SBATCH --qos=medium+\n');
 fprintf(FH,'#SBATCH --account=pi_strow\n');
-fprintf(FH,'#SBATCH --time=01:30:00\n');
+fprintf(FH,'#SBATCH --time=07:30:00\n');
 %%fprintf(FH,'#SBATCH --constraint=hpcf2013\n');
 fprintf(FH,'#SBATCH -N1\n');
-fprintf(FH,'#SBATCH --output=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.out\n');
-fprintf(FH,'#SBATCH --error=/home/sbuczko1/logs/sbatch/iasiRTP_slurm-%%N.%%A.%%a.err\n');
+fprintf(FH,'#SBATCH --output=%s/iasiRTP_slurm-%%N.%%A.%%a.out\n', ...
+                   logfilepath);
+fprintf(FH,'#SBATCH --error=%s/iasiRTP_slurm-%%N.%%A.%%a.err\n', ...
+                   logfilepath);
 fprintf(FH,'#SBATCH --mem=14000\n');
 fprintf(FH,'#SBATCH --cpus-per-task 1\n');
 fprintf(FH,'#SBATCH --array=1-%d\n\n',njobs);  %   -%d\n\n',njobs);         % was njobs
@@ -74,7 +78,7 @@ fprintf(FH,'MATLAB=''matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''/home/sbuczko1/git/rtp_prod2/iasi'');iasiAddPaths;run_iasi1_rtp(''%s'',''%s''); exit"',param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''%s'');iasiAddPaths;run_iasi1_rtp(''%s'',''%s'');exit"',iasihome,param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);

@@ -17,9 +17,7 @@ function run_iasi1_rtp(dateFile,subset)
 %-----------------------------------------------------------
 % prep the batch job from the dateFile.
 %-----------------------------------------------------------
-
-    cd /home/sbuczko1/git/rtp_prod2/iasi/run
-
+    
     ddc = load(dateFile);
 
 nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID'));

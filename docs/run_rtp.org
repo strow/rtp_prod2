@@ -1,0 +1,17 @@
+* AIRS
+
+
+* CrIS
+
+
+* IASI
+- batch_iasi_rtp('2018/01', 'clear')
+  - builds two files in ./run: 
+    - *.slurm  sbatch commands
+    - *_drv.mat  list of dates within month
+
+- sbatch batch_iasi1_201801_clear_rtp.slurm 
+  - sbatch --array=1-5 batch_iasi1_201801_clear_rtp.slurm   to run just a couple
+  - sbatch --array=1,2,6,7-9 batch_iasi1_201801_clear_rtp.slurm  to run fill-ins
+  - sbatch --time=09:00:00 batch_iasi1_201801_clear_rtp.slurm to adjust run time request
+  - rtp files output to /asl/rtp/rtp_iasi1 tree (path hardcoded in run_iasi1_rtp.m)
