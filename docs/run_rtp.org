@@ -63,3 +63,28 @@ rtp_prod2 -> run production.
   - sbatch --array=1,2,6,7-9 batch_iasi1_201801_clear_rtp.slurm  to run fill-ins
   - sbatch --time=09:00:00 batch_iasi1_201801_clear_rtp.slurm to adjust run time request
   - rtp files output to /asl/rtp/rtp_iasi1 tree (path hardcoded in run_iasi1_rtp.m)
+
+* future development
+After running through several permutations of trying to optimize
+runtimes and filesizes for different flavors of rtp production while trying to keep
+the codebase maintainable, I'd recommend the following for future growth:
+- have only one baseline rtp generation function: allfov
+  - all data gets processed the same way and there is no chance of
+    baseline processing changes NOT making it into one flavor or
+    another
+- ALL settable/editable parameters (sarta/klayers executable paths,
+  sarta options, etc) should be pulled out to the configuration files
+  and shoult NOT have default behavior in the code. If a configuration
+  key is not defined, processing should fail (hopefully with a note
+  indicating why).
+- clear/random/site/dcc are then filters atop allfov. Once this is
+  done, I would go one step further and just process all flavors in a
+  run (but could have a configuration key to select one or more but
+  not all). bitfields or an index list for each flavor separate out
+  the flavors for storage. This will make the filter code cleaner and
+  easier to maintain and test.
+- These changes are, I think, all very useful if the intermediate rtp
+  storage stage is to be eliminated. With allfov being run underneath,
+  running stats tallies will have the maximal information and will
+  consume a more minimal memory profile on the cluster during
+  processing.
