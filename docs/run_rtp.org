@@ -28,9 +28,28 @@ test in rtp_prod2_DEV -> add/commit and push to github -> pull down to
 rtp_prod2 -> run production.
 
 * AIRS
-
+- find (or build) appropriate ini file (see examples in
+  rtp_prod2/airs/config or rtp_config/rtp/airs)
+- build driver list of file paths
+  - for allfov, this is paths directly to each granule (e.g. ls -1
+    /asl/data/airs/L1C_v672/2018/012/*.hdf)
+  - for daily, paths to each doy (e.g. ls -1d /asl/data/airs/L1C_v672/2018/* for a year) 
+- in rtp_prod2/airs/scripts, run sbatch with the appropriate run*.sh
+  script (e.g. for clear: sbatch --array=0-N
+  run_airicrad_clear_day_batch.sh <path-to-ini-file> where 'N' is the
+  number of lines in the driver file-1)
 
 * CrIS
+- find (or build) appropriate ini file (see examples in
+  rtp_prod2/cris/config or rtp_config/rtp/cris)
+- build driver list of file paths
+  - for allfov, this is paths directly to each granule (e.g. ls -1
+    /asl/cris/ccast/sdr45_npp_HR/2018/104/*.mat)
+  - for daily, paths to each doy (e.g. ls -1d /asl/cris/ccast/sdr45_npp_HR/2018/* for a year) 
+- in rtp_prod2/cris/scripts, run sbatch with the appropriate run*.sh
+  script (e.g. for clear: sbatch --array=0-N
+  run_cris_hr_clear_day_batch.sh <path-to-ini-file> where 'N' is the
+  number of lines in the driver file-1)
 
 
 * IASI
