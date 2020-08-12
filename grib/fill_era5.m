@@ -20,7 +20,7 @@ end
 
 % Location of grib files
 % $$$ fhdr = '/asl/data/era5/';
-fhdr = '/umbc/hpcnfs1/strow/asl/data/era5/';
+fhdr = '/asl/models/era5';
 
 ename = '';  % This should be placed outside a rtp file loop
 mtime = tai2dnum(prof.rtime);

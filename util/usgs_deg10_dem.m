@@ -34,7 +34,7 @@ function [salti, landfrac] = usgs_deg10_dem(lat, lon, wgf);
 if(exist('wgf','var'))
   load(wgf)
 else
-  load /asl/data/usgs/world_grid_deg10_v2.mat
+  load /asl/models/usgs/world_grid_deg10_v2.mat
 end
 
 

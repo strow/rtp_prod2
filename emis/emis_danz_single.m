@@ -8,11 +8,11 @@ function [emis] = emis_danz_single(lat,lon,rtime,efreq);
 % danz interpolant is big, keep it around
 persistent danz
 if isempty(danz)
-   load /asl/data/iremis/danz/danz_interpolant.mat
+   load /asl/rta/iremis/danz/danz_interpolant.mat
 end
 
 % SVD basis vectors and mean 
-load /asl/data/iremis/danz/u_vector_global
+load /asl/rta/iremis/danz/u_vector_global
 
 % Pre-allocate u coefficients, nobs can be very large
 [~, nobs] = size(lat);
@@ -28,7 +28,7 @@ end
 
 % Expand with basis vectors u
 % First, find id's of IASI channels we will use; hard-code later?
-load /asl/data/iremis/danz/iasi_f
+load /asl/rta/iremis/danz/iasi_f
 [ichan, ~] = seq_match(fiasi,efreq);
 emis = u(ichan,:)*newc;
 

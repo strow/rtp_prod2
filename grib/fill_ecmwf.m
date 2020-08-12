@@ -20,7 +20,7 @@ if (nargin < 4) & (nargin ~= nargout)
 end
 
 % Location of grib files
-fhdr = '/asl/data/ecmwf/';
+fhdr = '/asl/models/ecmwf/';
 
 ename = '';  % This should be placed outside a rtp file loop
 

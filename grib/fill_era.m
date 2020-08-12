@@ -19,7 +19,7 @@ if nargin ~= nargout
 end
 
 % Location of grib files
-fhdr = '/asl/data/era/';
+fhdr = '/asl/models/era/';
 
 ename = '';  % This should be placed outside a rtp file loop
 mtime = tai2dnum(prof.rtime);

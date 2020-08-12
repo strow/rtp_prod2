@@ -23,9 +23,9 @@ function [h ha p pa] = rtpadd_usgs_10dem(h,ha,p,pa,root)
 % Breno Imbiriba - 2013.03.14
 
   if(~exist('root','var'))
-    wgf = '/asl/data/usgs/world_grid_deg10_v2.mat';
+    wgf = '/asl/models/usgs/world_grid_deg10_v2.mat';
   elseif(exist(root,'dir'))
-    wgf = [root '/data/usgs/world_grid_deg10_v2.mat'];
+    wgf = [root '/models/usgs/world_grid_deg10_v2.mat'];
   elseif(exist(root,'file'))
     wgf = root;
   else
