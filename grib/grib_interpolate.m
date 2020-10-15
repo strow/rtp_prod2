@@ -50,10 +50,9 @@ F.tcc.ig  = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s, ...
                                                   'tcc'))'),'linear');
 % need to check here for existence of ci vs si and read accordingly
 try
-    F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'ci',[1 ...
-                        1 hindex],[Inf Inf 1]))'),'linear');
+    F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'ci'))'),'linear');
 catch 
-    F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'siconc',[1 1 hindex],[Inf Inf 1]))'),'linear');
+    F.ci.ig   = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'siconc'))'),'linear');
 end
 
 F.tcwv.ig = griddedInterpolant(iX,iY,flipud(single(ncread(fn_s,'tcwv'))'),'linear');
