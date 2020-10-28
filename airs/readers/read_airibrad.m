@@ -49,14 +49,15 @@ f_default = f;
 
 % Open granule file
 file_name = fn;
-file_id   = hdfsw('open',file_name,'read');
-swath_id  = hdfsw('attach',file_id,'L1B_AIRS_Science');
+% $$$ file_id   = hdfsw('open',file_name,'read');
+% $$$ swath_id  = hdfsw('attach',file_id,'L1B_AIRS_Science');
 
 
 % Read "state" and find good FOVs
-[junk,s]=hdfsw('readfield',swath_id,'state',[],[],[]);
-if s == -1; disp('Error reading state');end;
-state = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'state',[],[],[]);
+% $$$ if s == -1; disp('Error reading state');end;
+junk = hdfread(file_name, 'state');
+state = reshape( double(junk'), 1,nobs);
 i0=find( state == 0);  % Indices of "good" FOVs
 % $$$ i0=find( state == 1);  % Indices of "good" FOVs (v6 'Special' processing)
 n0=length(i0);
@@ -64,39 +65,46 @@ n0=length(i0);
 clear state
 
 % Read latitude
-[junk,s]=hdfsw('readfield',swath_id,'Latitude',[],[],[]);
-if s == -1; disp('Error reading latitude');end;
-rlat = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'Latitude',[],[],[]);
+% $$$ if s == -1; disp('Error reading latitude');end;
+junk = hdfread(file_name, 'Latitude');
+rlat = reshape( double(junk'), 1,nobs);
 ii=find( rlat > -90.01);  % Indices of "good" FOVs
 i0=intersect(i0,ii);
 n0=length(i0);
 
 % Read CalChanSummary
-[junk,s]=hdfsw('readfield',swath_id,'CalChanSummary',[],[],[]);
-if s == -1; disp('Error reading CalChanSummary');end;
-calchansummary = reshape( double(junk), nchan,1);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'CalChanSummary',[],[],[]);
+% $$$ if s == -1; disp('Error reading CalChanSummary');end;
+junk = hdfread(file_name, 'CalChanSummary');
+calchansummary = double(junk{1}');
 
 % Read NeN
-[junk,s]=hdfsw('readfield',swath_id,'NeN',[],[],[]);
-if s == -1; disp('Error reading NeN');end;
-nen = reshape( double(junk), nchan,1);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'NeN',[],[],[]);
+% $$$ if s == -1; disp('Error reading NeN');end;
+junk = hdfread(file_name, 'NeN');
+nen = double(junk{1}');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (n0 > 0)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Read the date/time fields
-[junk,s]=hdfsw('readattr',swath_id,'start_Time');
-start_Time = double(junk(1));
+% $$$ [junk,s]=hdfsw('readattr',swath_id,'start_Time');
+junk = hdfread(file_name, 'start_Time');
+start_Time = double(junk{1}(1));
 %
-[junk,s]=hdfsw('readattr',swath_id,'end_Time');
-end_Time = double(junk(1));
+% $$$ [junk,s]=hdfsw('readattr',swath_id,'end_Time');
+junk = hdfread(file_name, 'end_Time');
+end_Time = double(junk{1}(1));
 %
-[junk,s]=hdfsw('readattr',swath_id,'granule_number');
-granule_number = double(junk(1));
+% $$$ [junk,s]=hdfsw('readattr',swath_id,'granule_number');
+junk = hdfread(file_name, 'granule_number');
+granule_number = double(junk{1}(1));
 %
-[junk,s]=hdfsw('readattr',swath_id,'eq_x_tai');
-eq_x_tai = double(junk(1));
+% $$$ [junk,s]=hdfsw('readattr',swath_id,'eq_x_tai');
+junk = hdfread(file_name, 'eq_x_tai');
+eq_x_tai = double(junk{1}(1));
 
 
 % Compute granule mean TAI
@@ -107,27 +115,32 @@ clear start_Time end_Time
 % Read per scanline fields; expand to per FOV later
 %
 % calflag (nchan x natrack); read but do not convert to double yet
-[raw_calflag,s]=hdfsw('readfield',swath_id,'CalFlag',[],[],[]);
-if s == -1; disp('Error reading CalFlag'); end;
+% $$$ [raw_calflag,s]=hdfsw('readfield',swath_id,'CalFlag',[],[],[]);
+% $$$ if s == -1; disp('Error reading CalFlag'); end;
+junk = hdfread(file_name, 'CalFlag');
+raw_calflag = junk';
 %
 % satheight (1 x natrack)
-[junk,s]=hdfsw('readfield',swath_id,'satheight',[],[],[]);
-if s == -1; disp('Error reading satheight'); end;
-satheight = double(junk'); %'
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'satheight',[],[],[]);
+% $$$ if s == -1; disp('Error reading satheight'); end;
+junk = hdfread(file_name, 'satheight');
+satheight = double(junk{1}'); 
 
 
 % Read in the channel freqs
-[junk,s]=hdfsw('readfield',swath_id,'spectral_freq',[],[],[]);
-if s == -1; disp('Error reading spectral_freq');end;
-f = double(junk);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'spectral_freq',[],[],[]);
+% $$$ if s == -1; disp('Error reading spectral_freq');end;
+junk = hdfread(file_name, 'spectral_freq');
+f = double(junk{1}');
 if (max(f) < -998)
    disp('WARNING! L1B file contains bad spectral_freq; using default')
    f = f_default;
 end
 %
-[junk,s]=hdfsw('readfield',swath_id,'nominal_freq',[],[],[]);
-if s == -1; disp('Error reading nominal_freq');end;
-nominal_freq = double(junk);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'nominal_freq',[],[],[]);
+% $$$ if s == -1; disp('Error reading nominal_freq');end;
+junk = hdfread(file_name, 'nominal_freq');
+nominal_freq = double(junk{1}');
 if (max(f) < -998)
    disp('WARNING! L1B file contains bad nominal_freq; using default')
    nominal_freq = f_default;
@@ -178,10 +191,11 @@ clear tmp_atrack tmp_xtrack tmp_zobs tmp_calflag
 % Read in observed radiance, reshape, and subset for state.
 % Note: this is a very large array!
 % observed radiance is stored as (nchan x nxtrack x natrack)
-[junk,s]=hdfsw('readfield',swath_id,'radiances',[],[],[]);
-if s == -1; disp('Error reading radiances');end;
-% reshape but do not convert to double yet
-junk2 = reshape(junk, nchan,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'radiances',[],[],[]); % (reads chan x FOV x scan)
+% $$$ if s == -1; disp('Error reading radiances');end;
+junk = hdfread(file_name, 'radiances'); % (reads scan x FOV x chan)
+% reshape but do not convert to double yet (want chans x obs array)
+junk2 = reshape(junk, nobs, nchan)';
 clear junk
 % subset and convert to double
 gdata.robs1=double( junk2(:,i0) );
@@ -192,61 +206,72 @@ clear junk2
 gdata.rlat = rlat(i0);
 clear rlat
 %
-[junk,s]=hdfsw('readfield',swath_id,'Longitude',[],[],[]);
-if s == -1; disp('Error reading longitude');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'Longitude',[],[],[]);
+% $$$ if s == -1; disp('Error reading longitude');end;
+junk = hdfread(file_name, 'Longitude');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.rlon = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'Time',[],[],[]);
-if s == -1; disp('Error reading rtime');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'Time',[],[],[]);
+% $$$ if s == -1; disp('Error reading rtime');end;
+junk = hdfread(file_name, 'Time');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.rtime = junk2(i0);
 gdata.rtime = gdata.rtime  + 12784 * 86400 + 27;
 
 %
-[junk,s]=hdfsw('readfield',swath_id,'scanang',[],[],[]);
-if s == -1; disp('Error reading scanang');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'scanang',[],[],[]);
+% $$$ if s == -1; disp('Error reading scanang');end;
+junk = hdfread(file_name, 'scanang');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.scanang = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'satzen',[],[],[]);
-if s == -1; disp('Error reading satzen');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'satzen',[],[],[]);
+% $$$ if s == -1; disp('Error reading satzen');end;
+junk = hdfread(file_name, 'satzen');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.satzen = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'satazi',[],[],[]);
-if s == -1; disp('Error reading satazi');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'satazi',[],[],[]);
+% $$$ if s == -1; disp('Error reading satazi');end;
+junk = hdfread(file_name, 'satazi');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.satazi = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'solzen',[],[],[]);
-if s == -1; disp('Error reading solzen');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'solzen',[],[],[]);
+% $$$ if s == -1; disp('Error reading solzen');end;
+junk = hdfread(file_name, 'solzen');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.solzen = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'solazi',[],[],[]);
-if s == -1; disp('Error reading solazi');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'solazi',[],[],[]);
+% $$$ if s == -1; disp('Error reading solazi');end;
+junk = hdfread(file_name, 'solazi');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.solazi = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'topog',[],[],[]);
-if s == -1; disp('Error reading topog');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'topog',[],[],[]);
+% $$$ if s == -1; disp('Error reading topog');end;
+junk = hdfread(file_name, 'topog');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.salti =junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'landFrac',[],[],[]);
-if s == -1; disp('Error reading landFrac');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'landFrac',[],[],[]);
+% $$$ if s == -1; disp('Error reading landFrac');end;
+junk = hdfread(file_name, 'landFrac');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.landfrac = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'scan_node_type',[],[],[]);
-if s == -1; disp('Error reading scan_node_type');end;
-junk2 = reshape( ones(90,1)*double(junk)', 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'scan_node_type',[],[],[]);
+% $$$ if s == -1; disp('Error reading scan_node_type');end;
+junk = hdfread(file_name, 'scan_node_type');
+junk2 = reshape( ones(90,1)*double(junk{1}), 1,nobs);
 gdata.iudef(4,:) = junk2(i0);
 %
-[junk,s]=hdfsw('readfield',swath_id,'dust_flag',[],[],[]);
-if s == -1; disp('Error reading dust_flag');end;
-junk2 = reshape( double(junk), 1,nobs);
+% $$$ [junk,s]=hdfsw('readfield',swath_id,'dust_flag',[],[],[]);
+% $$$ if s == -1; disp('Error reading dust_flag');end;
+junk = hdfread(file_name, 'dust_flag');
+junk2 = reshape( double(junk'), 1,nobs);
 gdata.iudef(3,:) = junk2(i0);
 %
 
@@ -254,10 +279,10 @@ clear junk junk2 i0
 
 
 % Close L1B granule file
-s = hdfsw('detach',swath_id);
-if s == -1; disp('Swatch detach error: L1b');end;   
-s = hdfsw('close',file_id);
-if s == -1; disp('File close error: L1b');end;
+% $$$ s = hdfsw('detach',swath_id);
+% $$$ if s == -1; disp('Swatch detach error: L1b');end;   
+% $$$ s = hdfsw('close',file_id);
+% $$$ if s == -1; disp('File close error: L1b');end;
 
 
 % Determine number of known imperfect channels for each FOV
