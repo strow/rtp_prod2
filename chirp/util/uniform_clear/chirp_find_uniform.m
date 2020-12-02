@@ -21,7 +21,7 @@ function  [clear_ind, amax_keep, amax] = chirp_find_uniform(head, prof, opt);
 % 
 % bt = rad2bt(1231,squeeze(d(:,:,1291)));
 
-wn = 1231;  % 1231 cm^-1 default
+wn = 961;  % 961 cm^-1 default
 threshold = 0.4;  % 0.4K FOV to FOV BT difference threshold
 scanlines = 135; % default number of CrIS scanlines per granule
 if nargin == 3 

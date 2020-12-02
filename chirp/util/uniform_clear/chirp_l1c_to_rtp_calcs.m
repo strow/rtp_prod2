@@ -1,4 +1,4 @@
-function [hd0, pd0] = chirp_l1c_to_rtp()
+function [hd0, pd0] = chirp_l1c_to_rtp_calcs()
 % chirp_l1c_to_rtp()
 
 
@@ -12,7 +12,7 @@ addpath /asl/matlib/aslutil                         % int2bits
 addpath /home/sbuczko1/git/rtp_prod2/grib           % fill_era
 addpath /home/sbuczko1/git/rtp_prod2/emis           % rtp_add_emis
 addpath /home/sbuczko1/git/rtp_prod2/util           % seq_match
-addpath /home/sbuczko1/git/rtp_prod2_DEV/chirp      % airs_find_{uniform,clear}
+addpath /home/sbuczko1/git/rtp_prod2_DEV/chirp/util/uniform_clear      % airs_find_{uniform,clear}
 
 
 d.home = '/asl/isilon/chirp/chirp_AQ_test3/2018/231/';
@@ -44,16 +44,20 @@ klayers_run = [run_sarta.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
 sarta_run = [run_sarta.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
     ' > /home/sbuczko1/LOGS/sarta/sarta_out.txt'];
 
-fprintf(1, '> focus to figure and clear figure\n')
-
 % Granule loop for the day
-for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
+for fn= 1:length(d.dir)  %[1:6 8:13 15 17:22 27:29 31:39] % 1:length(d.dir)
   disp(['fn: ' num2str(fn)])
 
   [s, a] = read_netcdf_h5([d.dir(fn).folder '/' d.dir(fn).name]);
   junk = strsplit(d.dir(fn).name,'.');
   gran.date = junk{4};
   gran.num  = junk{6};
+
+  % just pick a couple of channels for testing (i.e. 961.250 and
+  % 1232.500 (indices 499 and 741)
+% $$$   ichans = [499 741]';
+  ichans = [1:length(s.wnum)]';
+  vchans = s.wnum(ichans);
 
   % Assign Header variables
   head = struct;
@@ -65,9 +69,12 @@ for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
   head.pltfid  = -9999;
   head.ptype   = 0;    % levels
   head.ngas    = 0;
-  head.nchan   = length(s.wnum);
-  head.ichan   = [1:length(s.wnum)]';
-  head.vchan   = s.wnum;
+% $$$   head.nchan   = length(s.wnum);
+% $$$   head.ichan   = [1:length(s.wnum)]';
+% $$$   head.vchan   = s.wnum;
+  head.nchan = length(ichans);
+  head.ichan = ichans;
+  head.vchan = vchans;
   head.vcmax   = max(head.vchan);
   head.vcmin   = min(head.vchan);
 
@@ -86,7 +93,8 @@ for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
   prof.atrack    = single(s.atrack)';
   prof.xtrack    = single(s.xtrack)';
   %prof.zobs      = [];
-  prof.robs1     = s.rad;
+% $$$   prof.robs1     = s.rad;
+  prof.robs1     = s.rad(ichans, :);
   prof.rlat      = s.lat';
   prof.rlon      = s.lon';
   prof.rtime     = airs2tai(s.obs_time_tai93)';
@@ -130,16 +138,10 @@ for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
 
   [prof,pattr] = rtp_add_emis(prof,pattr);
 
-  % Save file and copy raw rtp data.
-  %rtpwrite(fn_rtp1,head,hattr,prof,pattr)
-
-  % ================ clear Subset ===================
-  % 1. Get uniform scene subset
-
   %[iuniform, amax_keep] = cris_find_uniform(head, prof, uniform_cfg);
-  [dbtun,  mbt, amax] = chirp_find_uniform(head, prof);
+  [iuniform,  mbt, amax] = chirp_find_uniform(head, prof, uniform_cfg);
 
-  iuniform = find(abs(mbt) < 1.0);
+% $$$   iuniform = find(abs(mbt) < 1.0);
   nuniform = length(iuniform);
   if 0 == nuniform
     fprintf(2,['>> No uniform FOVs found for granule %d. ' ...
@@ -149,7 +151,7 @@ for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
 
   fprintf(1, '>> Uniform obs found: %d/12150\n', nuniform);
   pdu = rtp_sub_prof(prof,iuniform);
-
+  clear prof
   rtpwrite(fn_rtp1,head,hattr,pdu,pattr)
 
   % Now run klayers
@@ -170,59 +172,63 @@ for fn=1:length(d.dir)   % [1:6 8:13 15 17:22 27:29 31:39]
 
   delete(fn_rtp1, fn_rtp2, fn_rtp3);
 
-  % save a copy for comparison later
-  %sav_dir = '/home/chepplew/data/rtp/chirp_AQ/clear/2018/';
-  %sav_fn  = ['era_chirp_' gran.date '_' gran.num '_clear.rtp'];
-  %rtpwrite([sav_dir sav_fn],hd3,hattr,pdu,pattr)
-
-  nobs = length(pdu.rtime);
-  %[iflagsc, bto1232, btc1232] = find_clear_cris_mr(head, prof, 1:nobs);
-  [iflagsc, bto1232, btc1232] = chirp_find_clear(hd3, pdu, 1:nobs);
-
-  iclear_all = find(iflagsc == 0);
-  iclear_sea = find(iflagsc == 0 & pdu.landfrac == 0);
-  iclear = iclear_sea;
-  nclear = length(iclear);
-  fprintf(1, '>>>> Total of %d clear & uniform obs passed test\n', nclear);
-  if 0 == nclear
-    fprintf(2,['>> No clear FOVs found for granule %d. ' ...
-              'SKIPPING\n'],fn)
-    continue;
-  end
-
-  prof_clr = rtp_sub_prof(pdu, iclear);
-
   if isfirst
-    pd0  = prof_clr;
+    pd0  = pdu;
     hd0  = hd3;
-    
-    % uniform only
-    pd1  = pdu;
-    hd1  = head;
 
   else
     % concatenate new random rtp data into running random rtp structure
-    pd0 = rtp_cat_prof(pd0, prof_clr);
-
-    % concatenate uniform only fovs for testing
-    pd1 = rtp_cat_prof(pd1, pdu);
+    pd0 = rtp_cat_prof(pd0, pdu);
   end
 
   isfirst = 0;
-  hdfml('closeall')
 
 end
 
+clear_cfg.clear_test_channel = 961;
+clear_cfg.clear_ocean_bt_threshold = 4;
+clear_cfg.clear_land_bt_threshold = 7;
+
+nobs = length(pd0.rtime);
+[iflagsc, bto, btc] = chirp_find_clear(hd3, pd0, clear_cfg);
+
+iclear_all = find(iflagsc == 0);
+iclear_sea = find(iflagsc == 0 & pd0.landfrac == 0);
+iclear = iclear_sea;
+nclear = length(iclear);
+fprintf(1, '>>>> Total of %d clear & uniform obs passed test\n', nclear);
+if 0 == nclear
+    fprintf(2,['>> No clear FOVs found for granule %d. ' ...
+               'SKIPPING\n'],fn)
+end
+
+prof_clr = rtp_sub_prof(pd0, iclear);
+
+% produce some plots of ocean clear distributions
+
+% 961 wn
+ch = 961;
+cind = find(hd0.vchan > ch,1);
+bto = real(rad2bt(hd0.vchan(cind), prof_clr.robs1(cind,:)));
+btc = real(rad2bt(hd0.vchan(cind), prof_clr.rclr(cind,:)));
+dbt = bto - btc;
+fprintf(1,'>> ch 961 min dbt=%f  max dbt=%f\n', min(abs(dbt)), max(abs(dbt)));
+figure
+simplemap(prof_clr.rlat, prof_clr.rlon, dbt)
+caxis([-4 4])
+title('2018/231 chirp clear 961wn ocean')
+
+% 1231 wn
+ch = 1231;
+cind = find(hd0.vchan > ch,1);
+bto = real(rad2bt(hd0.vchan(cind), prof_clr.robs1(cind,:)));
+btc = real(rad2bt(hd0.vchan(cind), prof_clr.rclr(cind,:)));
+dbt = bto - btc;
+fprintf(1,'>> ch 1231 min dbt=%f  max dbt=%f\n', min(abs(dbt)), max(abs(dbt)));
+figure
+simplemap(prof_clr.rlat, prof_clr.rlon, dbt)
+caxis([-4 4])
+title('2018/231 chirp clear 1231wn ocean')
+
 keyboard
 
-
-%{
-[ix,iy] = seq_match(fcris_mr,hdc.vchan);
-clf;plot(hdc.vchan, rad2bt(hdc.vchan, nanmean(pdc.robs1,2)),'.-')
-hold on; plot(fcris_mr(iy), rad2bt(fcris_mr(ix), nanmean(pdc.rclr(iy,:),2)),'.-')
-
-btc = rad2bt(fcris_mr(ix), nanmean(pdc.rclr(iy,:),2));
-bto = rad2bt(hdc.vchan, nanmean(pdc.robs1,2));
-btbias=bto(1:end-4) - btc(5:end);
-
-%}

@@ -1,4 +1,4 @@
-function [iflags, wbto, wbtc, wchan] = chirp_find_clear(head, prof, iobs2check);
+function [iflags, bto, btc] = chirp_find_clear(head, prof, opt);
 % AIRSFINDCLEAR flag clear AIRS FOVs
 %
 % Do clear tests for the specified FOV/profile indices and
@@ -22,19 +22,40 @@ function [iflags, wbto, wbtc, wchan] = chirp_find_clear(head, prof, iobs2check);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sFuncName = 'chirp_find_clear';
 
-% Test channels (wn) (note: must be sorted by ID)
-%          1       2       3       4        5        6     7       8        9
-ftest =[ 819.312;856.736;912.656;961.060;1043.863;1071.018;1083.364;1092.928;1232.368];
-ntest = length(ftest);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% $$$ % Test channels (wn) (note: must be sorted by ID)
+% $$$ %          1       2       3       4        5        6     7       8        9
+% $$$ ftest =[ 819.312;856.736;912.656;961.060;1043.863;1071.018;1083.364;1092.928;1232.368];
+% $$$ ntest = length(ftest);
+% $$$ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Find indices of idtest in head.ichan
-[indtest, deltas] = matchWN2Ind(ftest, head.vchan);
+% $$$ % Find indices of idtest in head.ichan
+% $$$ [indtest, deltas] = matchWN2Ind(ftest, head.vchan);
 
 % Check input %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (nargin < 2 | nargin > 3)
    error(sprintf('>>> %s: unexpected number of input arguments',sFuncName))
 end
+
+wn = 961;  % 961 cm^-1 default
+ocean_threshold = 4; 
+land_threshold = 7;
+scanlines = 135; % default number of CrIS scanlines per granule
+if nargin == 3 
+    if isfield(opt, 'clear_test_channel')
+        wn = opt.clear_test_channel;
+    end
+    if isfield(opt, 'clear_ocean_bt_threshold')
+        ocean_threshold = opt.clear_ocean_bt_threshold;
+    end
+    if isfield(opt, 'clear_land_bt_threshold')
+        threshold = opt.clear_land_bt_threshold;
+    end
+    if isfield(opt, 'scanlines')
+        scanlines = opt.scanlines;
+    end
+end
+
+ch = find(head.vchan > wn, 1);
 
 % REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % needed until renaming rcalc -> rclr is completed
@@ -69,46 +90,30 @@ for ii=1:length(preq)
     end 
 end 
 
-% Set default value for iobs2check as all available obs
-if (nargin == 2)
-   nobs = length(prof.rtime);
-   iobs2check = [1:nobs];
-end
-
 % Find sea and non-sea indices
-ncheck = length(iobs2check);
-isea = find(prof.landfrac(iobs2check) < 0.02);
-inot = setdiff(iobs2check, isea);
+sea_ind = prof.landfrac < 0.02;
+isea = find(sea_ind);
+iland = find(~sea_ind);
 
 % Declare output array
-iflags = zeros(1,ncheck);
+iflags = zeros(1,length(prof.rtime));
 
 % Compute BT of test channels in observed radiances
-r = prof.robs1(indtest,iobs2check);
+r = prof.robs1(ch,:);
 ibad = find(r < 1E-5);
 r(ibad) = 1E-5;
-bto = real(rad2bt(head.vchan(indtest), r));
+bto = real(rad2bt(head.vchan(ch), r));
 
 % Compute BT of test channels in observation sarta clear calcs
-r = prof.rclr(indtest, iobs2check);
+r = prof.rclr(ch,:);
 ibad = find(r < 1E-5);
 r(ibad) = 1E-5;
-btc = real(rad2bt(head.vchan(indtest), r));
+btc = real(rad2bt(head.vchan(ch), r));
 clear r ibad
 
-% Test #1 bitvalue=1: window channel dBT 
-% REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% which is preferred? 1232 or 961? Should this be externally
-% controllable?
-ix = 9; % ~1232 wn
-% $$$ ix = 4;  % ~961 wn
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-wchan = ftest(ix);
-wbto = bto(ix,:);
-wbtc = btc(ix,:);
-wdbt = wbto - wbtc;
-ii = isea( find(wdbt(isea) > 4 | wdbt(isea) < -3) );
+dbt = bto - btc;
+ii = isea( find(abs(dbt(isea) > ocean_threshold)));
 iflags(ii) = iflags(ii) + 1;
-ii = inot( find(wdbt(inot) > 7 | wdbt(inot) < -7) );
+ii = iland( find(abs(dbt(iland) > land_threshold)));
 iflags(ii) = iflags(ii) + 1;
 % % end of function %%%
