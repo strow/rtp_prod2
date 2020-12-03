@@ -56,6 +56,8 @@ if nargin == 3
 end
 
 ch = find(head.vchan > wn, 1);
+fprintf(1, '>> Clear test using channel %d : %7.3f\n', ch, ...
+        head.vchan(ch))
 
 % REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % needed until renaming rcalc -> rclr is completed
@@ -90,11 +92,6 @@ for ii=1:length(preq)
     end 
 end 
 
-% Find sea and non-sea indices
-sea_ind = prof.landfrac < 0.02;
-isea = find(sea_ind);
-iland = find(~sea_ind);
-
 % Declare output array
 iflags = zeros(1,length(prof.rtime));
 
@@ -111,9 +108,18 @@ r(ibad) = 1E-5;
 btc = real(rad2bt(head.vchan(ch), r));
 clear r ibad
 
+% Find sea and non-sea indices
+sea_ind = prof.landfrac < 0.02;
+% $$$ isea = find(sea_ind);
+% $$$ iland = find(~sea_ind);
+
 dbt = bto - btc;
-ii = isea( find(abs(dbt(isea) > ocean_threshold)));
+% $$$ ii = isea( find(abs(dbt(isea) > ocean_threshold)));
+iot = abs(dbt) > ocean_threshold;
+ii = find(sea_ind & iot);
 iflags(ii) = iflags(ii) + 1;
-ii = iland( find(abs(dbt(iland) > land_threshold)));
+% $$$ ii = iland( find(abs(dbt(iland) > land_threshold)));
+ilt = abs(dbt) > land_threshold;
+ii = find(~sea_ind & ilt);
 iflags(ii) = iflags(ii) + 1;
 % % end of function %%%

@@ -190,7 +190,7 @@ clear_cfg.clear_ocean_bt_threshold = 4;
 clear_cfg.clear_land_bt_threshold = 7;
 
 nobs = length(pd0.rtime);
-[iflagsc, bto, btc] = chirp_find_clear(hd3, pd0, clear_cfg);
+[iflagsc, bto, btc] = chirp_find_clear(hd0, pd0, clear_cfg);
 
 iclear_all = find(iflagsc == 0);
 iclear_sea = find(iflagsc == 0 & pd0.landfrac == 0);
@@ -207,8 +207,10 @@ prof_clr = rtp_sub_prof(pd0, iclear);
 % produce some plots of ocean clear distributions
 
 % 961 wn
+fprintf(1, '>> Plot 961wn dbt for clear subset\n')
 ch = 961;
 cind = find(hd0.vchan > ch,1);
+fprintf(1, '\t using chan %d : %7.3f\n', cind, hd0.vchan(cind));
 bto = real(rad2bt(hd0.vchan(cind), prof_clr.robs1(cind,:)));
 btc = real(rad2bt(hd0.vchan(cind), prof_clr.rclr(cind,:)));
 dbt = bto - btc;
@@ -219,8 +221,10 @@ caxis([-4 4])
 title('2018/231 chirp clear 961wn ocean')
 
 % 1231 wn
+fprintf(1, '>> Plot 961wn dbt for clear subset\n')
 ch = 1231;
 cind = find(hd0.vchan > ch,1);
+fprintf(1, '\t using chan %d : %7.3f\n', cind, hd0.vchan(cind));
 bto = real(rad2bt(hd0.vchan(cind), prof_clr.robs1(cind,:)));
 btc = real(rad2bt(hd0.vchan(cind), prof_clr.rclr(cind,:)));
 dbt = bto - btc;
