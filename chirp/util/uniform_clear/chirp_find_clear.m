@@ -1,35 +1,26 @@
 function [iflags, bto, btc] = chirp_find_clear(head, prof, opt);
-% AIRSFINDCLEAR flag clear AIRS FOVs
-%
+
 % Do clear tests for the specified FOV/profile indices and
 % return test results as bit flags. 
 %
 % Input:
 %    head - RTP header structure with fields ichan and vchan
-%    prof - RTP profiles structure with fields rcalc, robs1, landfrac
+%    prof - RTP profiles structure with fields rclr, robs1,
+%    landfrac. can contain only the obs selected as
+%    uniform. klayers/sarta needs to be run to have rclr field for
+%    at least the test window channel
 %    OPTIONAL:
-%    iobs2check - [1 x ncheck] obs indices to check (likely often all obs
-%    i.e. 1:length(prof.rtime) and this is its default value)
-%
+%    opt  - struct of configuration options for window channel and thresholds
+%%
 % Output: 
-%    iflags - [1 x ncheck] bit flags for the following tests: 1 =
-%             abs(BTobs-BTcal) at 1232 wn > threshold 2 = cirrus detected 4 =
-%             dust/ash detected 
-%    wbto - [1 x ncheck] BTobs of 1232 or 961 wn window 
-%    wbtc - [1 x ncheck] BTcal of 1232 or 961 wn window wchan -
-%           wavenumber of bto/btc window chan
-%    wchan - wavenumber of channel used in last two outputs
+%    iflags - [1 x nobs] bit flags for the following tests: 1 =
+%             abs(BTobs-BTcal) in window channel > threshold 
+%    bto - [1 x nobs] BTobs of window channel 
+%    btc - [1 x nobs] BTcal of window wchan 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sFuncName = 'chirp_find_clear';
 
-% $$$ % Test channels (wn) (note: must be sorted by ID)
-% $$$ %          1       2       3       4        5        6     7       8        9
-% $$$ ftest =[ 819.312;856.736;912.656;961.060;1043.863;1071.018;1083.364;1092.928;1232.368];
-% $$$ ntest = length(ftest);
-% $$$ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% $$$ % Find indices of idtest in head.ichan
-% $$$ [indtest, deltas] = matchWN2Ind(ftest, head.vchan);
 
 % Check input %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (nargin < 2 | nargin > 3)

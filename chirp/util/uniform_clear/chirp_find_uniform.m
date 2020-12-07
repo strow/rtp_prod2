@@ -1,25 +1,16 @@
 function  [clear_ind, amax_keep, amax] = chirp_find_uniform(head, prof, opt);
 %
-% airs_uniform_clear
+% chirp_uniform_clear
 %
 % inputs
-%   bt: A 135 by 90 granule of AIRS B(T) for a single channel
-%     threshold: Max value of differences between neighbors
-%   output: amax_keep: A 135 by 90 matrix with max BT differences between
-%     neighboring scenes if below threshold, otherwise = NaN
-% 
-% If you want to match CrIS clear, for example, then
-%    amax_keep = amax_keep(2:3:134,2:3:89);
-%    ie we only use each FOR once.  Use outside of this subroutine.
+%     head: rtp header struct
+%     prof: rtp prof struct (needs robs1 field, does not require
+%     klayers or sarta to have been run)
+%     opt: struct of configuration options for channel and
+%     threshold (optional)
 %
 % Mfile testing code
-%
-% cd /asl/data/airs/AIRIBRAD/2012/044
-% fn = 'AIRS.2012.02.13.003.L1B.AIRS_Rad.v5.0.0.0.G12044121659.hdf';
-%  
-% d = hdfread(fn,'radiances');
-% 
-% bt = rad2bt(1231,squeeze(d(:,:,1291)));
+% see chirp_l1c_to_rtp_calcs.m in this repo
 
 wn = 961;  % 961 cm^-1 default
 threshold = 0.4;  % 0.4K FOV to FOV BT difference threshold
