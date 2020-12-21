@@ -13,10 +13,12 @@ addpath /home/sbuczko1/git/rtp_prod2/grib           % fill_era
 addpath /home/sbuczko1/git/rtp_prod2/emis           % rtp_add_emis
 addpath /home/sbuczko1/git/rtp_prod2/util           % seq_match
 addpath /home/sbuczko1/git/rtp_prod2_DEV/chirp/util/uniform_clear      % airs_find_{uniform,clear}
+addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util/uniform_clear % create_airs_scan_from_cris
 
-
-d.home = '/asl/isilon/chirp/chirp_AQ_test3/2018/231/';
+d.home = '/asl/isilon/chirp/chirp_AQ_test4/2018/231/';
 d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_AQ.std.v02_20.U.*.nc']);
+% $$$ d.home = '/asl/isilon/chirp/chirp_J1_test3/2018/231/';
+% $$$ d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_J1.std.v02_20.U.*.nc']);
 
 % Initialize
 [sID, sTempPath] = genscratchpath();
@@ -30,9 +32,8 @@ cfg.model = 'era';
 uniform_cfg = struct;
 uniform_cfg.uniform_test_channel = 961;   % ??? 900 or 1213 cm-1
 uniform_cfg.uniform_bt_threshold = 0.4;
-
-% used for concatenating RTP
-isfirst = 1;
+uniform_cfg.cscanlines = 45;
+uniform_cfg.ascanlines = 135;
 
 % assign executables
 run_sarta.klayers_exec  = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
@@ -45,6 +46,8 @@ sarta_run = [run_sarta.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
     ' > /home/sbuczko1/LOGS/sarta/sarta_out.txt'];
 
 % Granule loop for the day
+% used for concatenating RTP
+isfirst = 1;
 for fn= 1:length(d.dir)  %[1:6 8:13 15 17:22 27:29 31:39] % 1:length(d.dir)
   disp(['fn: ' num2str(fn)])
 
@@ -52,6 +55,13 @@ for fn= 1:length(d.dir)  %[1:6 8:13 15 17:22 27:29 31:39] % 1:length(d.dir)
   junk = strsplit(d.dir(fn).name,'.');
   gran.date = junk{4};
   gran.num  = junk{6};
+
+  % determine source instrument from attributes
+  if contains(a.input_file_types, 'CrIS_L1B')
+      uniform_cfg.source_instrument = 'cris';
+  elseif contains(a.input_file_types, 'AIRS_L1C')
+          uniform_cfg.source_instrument = 'airs';
+  end
 
   % just pick a couple of channels for testing (i.e. 961.250 and
   % 1232.500 (indices 499 and 741)
@@ -175,13 +185,13 @@ for fn= 1:length(d.dir)  %[1:6 8:13 15 17:22 27:29 31:39] % 1:length(d.dir)
   if isfirst
     pd0  = pdu;
     hd0  = hd3;
+    isfirst = 0;
 
   else
     % concatenate new random rtp data into running random rtp structure
     pd0 = rtp_cat_prof(pd0, pdu);
   end
 
-  isfirst = 0;
 
 end
 
