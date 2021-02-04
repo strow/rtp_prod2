@@ -32,7 +32,7 @@ if strcmp(infilepath, '')
     return;
 end
     % process netcdf file to rtp
-    [h,ha,p,pa] = create_rtp_climcaps(fnCrisInput,cfg);
+    [h,ha,p,pa] = create_rtp_climcaps(infilepath,cfg);
 
 % build output file path and name
 C = strsplit(files(1).name, '.');
