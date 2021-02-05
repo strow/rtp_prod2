@@ -11,13 +11,14 @@ function [head, hattr, prof, pattr] = create_rtp_climcaps(fnCrisInput, ...
 fprintf(1, '>> Running create_rtp_climcaps for input: %s\n', ...
         fnCrisInput);
 
-[sID, sTempPath] = genscratchpath();
-sID = getenv('SLURM_ARRAY_TASK_ID');
+%[sID, sTempPath] = genscratchpath();
+sID = getenv('SLURM_ARRAY_TASK_ID')
+sTempPath = sprintf('/scratch/%s', getenv('SLURM_JOB_ID'))
 
 % read in configuration options from 'cfg'
 fprintf(1, '>>> Configuring default and runtime options\n');
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-sarta_exec = '/home/chepplew/gitLib/sarta/bin/crisg4_oct16_aug20';
+sartaclr_exec = '/home/chepplew/gitLib/sarta/bin/crisg4_oct16_aug20';
 
 model = 'era';
 nguard = 2;  % number of guard channels
@@ -29,8 +30,8 @@ if nargin == 2
     if isfield(cfg, 'klayers_exec')
         klayers_exec = cfg.klayers_exec;
     end
-    if isfield(cfg, 'sarta_exec')
-        sarta_exec = cfg.sarta_exec;
+    if isfield(cfg, 'sartaclr_exec')
+        sartaclr_exec = cfg.sartaclr_exec;
     end
     if isfield(cfg, 'sartacld_exec')
         sartacld_exec = cfg.sartacld_exec;
@@ -104,7 +105,7 @@ for i=1:gran_stride:numel(fnLst1)
     % to stay within that as an absolute limit. Further, we
     % currently restrict obs count in random to ~20k to match
     % historical AIRXBCAL processing
-    limit = 20000;  % number of obs to keep
+    limit = 80000;  % number of obs to keep
     nswath = 45;  % length of ccast granules
     ngrans = 240;  % number of granules per day
     nfovs = 1;  % number of FOVs per FOR
@@ -190,7 +191,7 @@ end % end loop over granules
 
     % Run sarta
     fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
-    run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+    run_sarta = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
                  sTempPath '/sarta_' sID '_stdout.txt'];
     fprintf(1, '>>> Running sarta: %s ...', run_sarta);
     unix(run_sarta);
