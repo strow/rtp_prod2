@@ -60,6 +60,10 @@ for i=1:n
       F(2) = grib_interpolate_era(fn_sfc,fn_lev,2);
       F(3) = grib_interpolate_era(fn_sfc,fn_lev,3);
       F(4) = grib_interpolate_era(fn_sfc,fn_lev,4);
+      F(5) = grib_interpolate_era(fn_sfc,fn_lev,5);
+      F(6) = grib_interpolate_era(fn_sfc,fn_lev,6);
+      F(7) = grib_interpolate_era(fn_sfc,fn_lev,7);
+      F(8) = grib_interpolate_era(fn_sfc,fn_lev,8);
       ename = fn;
    end   
 % Fill rtp fields
@@ -110,8 +114,8 @@ for i=1:n
             prof.ciwc(l,k)  = F(fhi).ciwc(j(l)).ig(rlat,rlon);
          end
 % Only want pressure levels in grib file, in order
-% $$$          xtemp = p137_ecmwf(prof.spres(k));  % all 137 pressure levels
-         xtemp = p60_era5(prof.spres(k));  % attempt at selecting
+         xtemp = p137_ecmwf(prof.spres(k));  % all 137 pressure levels
+% $$$          xtemp = p60_era5(prof.spres(k));  % attempt at selecting
                                            % 137 levels nearest the
                                            % ecmwf 60 level model levels
 

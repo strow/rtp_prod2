@@ -184,6 +184,14 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
 
         % build sub-satellite lat point
         [p_gran, pa_gran] = build_satlat(p_gran, pa_gran);
+        % sarta puts limits on satzen/satang (satzen comes out in
+        % the
+        % profiles form ccast2rtp) so, filter to remove profiles
+        % outside this range to keep sarta from failing.
+        inrange = find(p_gran.satzen >= 0.0 & p_gran.satzen < ...
+                       63.0);
+        p_gran = rtp_sub_prof(p_gran, inrange);
+        clear inrange;
 
         % Add p_granile data
         switch cfg.model

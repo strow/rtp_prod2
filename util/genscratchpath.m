@@ -1,4 +1,4 @@
-function [sNodeID, sTempPath] = genscratchpath()
+function [sJobId, sTempPath] = genscratchpath()
 % GENSCRATCHPATH  Generate path to scratch/temp file space
 %
 % Takes into account differences in behavior between slurm and
@@ -7,14 +7,17 @@ function [sNodeID, sTempPath] = genscratchpath()
 % head node/non-cluster machines
 %
 
-sNodeID = getenv('SLURM_PROCID');
-sScratchPath = getenv('JOB_SCRATCH_DIR');
-if ~isempty(sNodeID) && ~isempty(sScratchPath)
-    sTempPath = sScratchPath;
-else
-    sTempPath = '/scratch';
+sJobId = getenv('SLURM_JOB_ID');
+
+% if not a cluster node under slurm control, make random directory
+if isempty(sJobId)
     rng('shuffle', 'twister');
-    sNodeID = sprintf('%08d', randi(99999999));
+    sJobId = sprintf('%08d', randi(99999999));
 end
 
+sTempPath = sprintf('/scratch/%s',sJobId);
+
+if exist(sTempPath) == 0
+    fprintf(1, '>>>> %s does not exist. Creating\n', sTempPath);
+    mkdir(sTempPath);
 end

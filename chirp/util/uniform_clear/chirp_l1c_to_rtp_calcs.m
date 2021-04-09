@@ -15,10 +15,10 @@ addpath /home/sbuczko1/git/rtp_prod2/util           % seq_match
 addpath /home/sbuczko1/git/rtp_prod2_DEV/chirp/util/uniform_clear      % airs_find_{uniform,clear}
 addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util/uniform_clear % create_airs_scan_from_cris
 
-d.home = '/asl/isilon/chirp/chirp_AQ_test4/2018/231/';
-d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_AQ.std.v02_20.U.*.nc']);
-% $$$ d.home = '/asl/isilon/chirp/chirp_J1_test3/2018/231/';
-% $$$ d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_J1.std.v02_20.U.*.nc']);
+% $$$ d.home = '/asl/isilon/chirp/chirp_AQ_test4/2018/231/';
+% $$$ d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_AQ.std.v02_20.U.*.nc']);
+d.home = '/asl/isilon/chirp/chirp_J1_test3/2018/231/';
+d.dir = dir([d.home 'SNDR.SS1330.CHIRP.20180819T*.m06.g*.L1_J1.std.v02_20.U.*.nc']);
 
 % Initialize
 [sID, sTempPath] = genscratchpath();

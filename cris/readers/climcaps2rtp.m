@@ -88,20 +88,34 @@ nout = nLW + nMW + nSW + 6 * dg;
 
 % initialize radiance output
 prof.robs1 = ones(nout, nobs, 'single') * NaN;
+prof.rqc = ones(nout, nobs, 'single') * NaN;
+prof.rerr = ones(nout, nobs, 'int8') * -999;
 
 [si, di] = guard_ind(sg, dg, nLW);
 rtmp = reshape(s.rad_lw, vLW, nobs);
 prof.robs1(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_lw_err, vLW, nobs);
+prof.rerr(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_lw_qc, vLW, nobs);
+prof.rqc(di, :) = single(rtmp(si, :));
 
 [si, di] = guard_ind(sg, dg, nMW);
 di = nLW + 2 * dg + di;
 rtmp = reshape(s.rad_mw, vMW, nobs);
 prof.robs1(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_mw_err, vMW, nobs);
+prof.rerr(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_mw_qc, vMW, nobs);
+prof.rqc(di, :) = single(rtmp(si, :));
 
 [si, di] = guard_ind(sg, dg, nSW);
 di = nLW + nMW + 4 * dg + di;
 rtmp = reshape(s.rad_sw, vSW, nobs);
 prof.robs1(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_sw_err, vSW, nobs);
+prof.rerr(di, :) = single(rtmp(si, :));
+rtmp = reshape(s.rad_sw_qc, vSW, nobs);
+prof.rqc(di, :) = single(rtmp(si, :));
 
 % set to 1, for now
 prof.robsqual = zeros(1, nobs, 'single');

@@ -13,10 +13,12 @@ function [head, hattr, prof, pattr] = create_airicrad_random_emis_day_rtp(inpath
 % DISCUSSION (TBD)
 func_name = 'create_airicrad_random_emis_day_rtp';
 
+tStart = tic;
+
 % establish local directory structure
 currentFilePath = mfilename('fullpath');
 [cfpath, cfname, cfext] = fileparts(currentFilePath);
-fprintf(1,'> Executing routine: %s\n', currentFilePath);
+fprintf(1,'> %s :: Executing routine: %s\n', datetime('now'), currentFilePath);
 
 %*************************************************
 % Build configuration ****************************
@@ -36,6 +38,11 @@ RunDate = char(datetime('now','TimeZone','local','Format', ...
                               'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         RunDate, ghash);
+
+[sID, sTempPath] = genscratchpath();
+fprintf(1, '> Scratch dir: %s\n', sTempPath);
+fprintf(1, '> Job ID: %s\n', sID);
+fprintf(1, '> get_sarta_clear: %s\n', which('get_sarta_clear'));
 %*************************************************
 
 load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
@@ -49,7 +56,8 @@ files = dir(fullfile(inpath, '*.hdf'));
 for i=1:length(files)
     % Read the AIRICRAD file
     infile = fullfile(inpath, files(i).name);
-    fprintf(1, '>>> Reading input file: %s   ', infile);
+    fprintf(1, '>>> %s :: Reading input file: %s   ', datetime('now'), ...
+            infile);
     try
         [eq_x_tai, freq, prof0, pattr] = read_airicrad(infile);
     catch
@@ -114,9 +122,16 @@ clear prof0 p;
 %*************************************************
 % decimate spectral content. Keep only 4-5 channels
 % specified above
+% *** Since I can find this documented nowhere else: in order to
+% *** modify the the spectral space and then run klayers/sarta, one
+% *** must modify the spectral arrays and then adjust the spectral
+% *** information in the head struct. ichan/vchan, nchan, and chan
+% *** max/min boundaries must match or klayers/sarta may do strange
+% *** things 
 prof.robs1 = prof.robs1(keepchaninds,:);
 head.vchan = head.vchan(keepchaninds);
 head.ichan = head.ichan(keepchaninds);
+head.nchan = length(keepchaninds);
 head.vcmax = max(head.vchan);
 head.vcmin = min(head.vchan);
 % also decimate spectral content in the l1c quality flags
@@ -177,9 +192,8 @@ prof.co2ppm = cfg.co2ppm * ones(size(prof.stemp));
 
 %*************************************************
 % Save the rtp file ******************************
-fprintf(1, '>>> Saving first rtp file... ');
-[sID, sTempPath] = genscratchpath();
-fn_rtp1 = fullfile(sTempPath, ['airs_random' sID '_1.rtp']);
+fn_rtp1 = fullfile(sTempPath, ['airs_random_' sID '_1.rtp']);
+fprintf(1, '>>> Saving first rtp file: %s\n ', fn_rtp1);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
 
@@ -199,6 +213,7 @@ run_sarta.co2ppm = cfg.co2ppm;
 % NEED ERROR CHECKING
 
 % pull calcs out of prof0 and stuff into pre-klayers prof
+fprintf(1, '>> Pulling out radiance calcs post-sarta\n');
 [~,~,prof,~] = rtpread(fn_rtp1);
 prof.rclr = prof0.rclr;
 prof.rcld = prof0.rcld;

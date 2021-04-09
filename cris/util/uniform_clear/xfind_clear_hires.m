@@ -61,7 +61,8 @@ clear r ibad
 
 
 % Test #1 bitvalue=1: window channel dBT
-ix1232 = 9; % ~1232 wn
+% $$$ ix1232 = 9; % ~1232 wn
+ix1232 = 4;  % 961
 %
 bto1232 = bto(ix1232,:);
 btc1232 = btc(ix1232,:);

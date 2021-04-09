@@ -1,13 +1,9 @@
-function run_airicrad_random_emis_day_batch(cfg)
+function run_cris_ccast_hi2lowres_dcc_day_batch(cfg)
 
-% read day file path from specified file list, pass to create_*_rtp
-% function and write resulting rtp data to <cfg.outputpath>/year/doy
+addpath ..;  % look one level up for create_* functions
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-
-% offset slurmindex to bypass MaxArraySize boundary
-%slurmindex = slurmindex + 19999
 
 chunk = cfg.chunk;
 for i = 1:chunk
@@ -30,38 +26,46 @@ for i = 1:chunk
     end
 
     % call the processing function
-    [head, hattr, prof, pattr] = create_airicrad_random_emis_day_rtp(infile, ...
-                                                      cfg);
-    % for jpss-1 testing
+    [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_dcc_day_rtp(infile, cfg);
+
+        % use fnCrisOutput to generate year and doy strings
+    % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
+    % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+% $$$     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(infile, '/');
-    airs_yearstr = C{5};
-    airs_doystr = C{6};
+    cris_yearstr = C{6};
+    year = int32(str2num(cris_yearstr));
+    cris_doystr = C{7};
+    doy = int32(str2num(cris_doystr));
     % Make directory if needed
     % cris hires data will be stored in
-    % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
+    % /asl/rtp/rtp_cris_ccast_hires/{dcc,dcc,site,random}/<year>/<doy>
     %
-    asType = {'random_stdemis'};
+    asType = {'dcc'};
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir, char(asType(i)), airs_yearstr);
-        fprintf(1, '>>> Writing output rtp to directory %s\n', sPath);
+        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr);
         if exist(sPath) == 0
-            fprintf(1, '>>>> %s does not exist. Creating\n', sPath);
             mkdir(sPath);
         end
+        fprintf(1,'>> output will go to %s\n', sPath);
         
         % Now save the four types of cris files
-        fprintf(1, '>>> writing output rtp file... ');
+        dt = int32(yyyymmdd(datetime(year,01,01) + caldays(doy-1)));
+% $$$         C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_airicrad_day%s_%s.rtp', cfg.model, airs_doystr, asType{i});
-        fprintf(1, '%s\n', fname);
+% $$$         fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+% $$$                         C{2}, C{3});
+        fname = sprintf('%s_rtp_d%d_%s.rtp', cfg.model, dt, asType{i});
+% $$$         fname = sprintf('%s_%s_%s_%s_d%d.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+% $$$                         dt);  % changed for cris2 cal testing
+        fprintf(1, '>> writing output rtp file %s\n ', fname);
         rtp_outname = fullfile(sPath, fname);
+        fprintf(1, '>> Writing output to %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
     end
 
-
-
-end
+end    

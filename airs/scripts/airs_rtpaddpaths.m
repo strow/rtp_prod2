@@ -4,10 +4,10 @@ REPOBASEPATH = '/home/sbuczko1/git/';
 % $$$ REPOBASEPATH = '/asl/packages/';
 
 % rtp_prod2
-addpath(sprintf('%s/rtp_prod2/util', REPOBASEPATH));
-addpath(sprintf('%s/rtp_prod2/grib', REPOBASEPATH));
-addpath(sprintf('%s/rtp_prod2/emis', REPOBASEPATH));
-addpath(genpath(sprintf('%s/rtp_prod2/airs', REPOBASEPATH)));
+addpath(sprintf('%s/rtp_prod2_DEV/util', REPOBASEPATH));
+addpath(sprintf('%s/rtp_prod2_DEV/grib', REPOBASEPATH));
+addpath(sprintf('%s/rtp_prod2_DEV/emis', REPOBASEPATH));
+addpath(genpath(sprintf('%s/rtp_prod2_DEV/airs', REPOBASEPATH)));
 
 % swutils (will move under matlib soon)
 addpath(sprintf('%s/swutils', REPOBASEPATH));

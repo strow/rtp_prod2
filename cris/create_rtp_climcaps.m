@@ -105,7 +105,7 @@ for i=1:gran_stride:numel(fnLst1)
     % to stay within that as an absolute limit. Further, we
     % currently restrict obs count in random to ~20k to match
     % historical AIRXBCAL processing
-    limit = 80000;  % number of obs to keep
+    limit = 40000;  % number of obs to keep
     nswath = 45;  % length of ccast granules
     ngrans = 240;  % number of granules per day
     nfovs = 1;  % number of FOVs per FOR

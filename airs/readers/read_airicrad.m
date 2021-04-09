@@ -26,7 +26,7 @@ function [eq_x_tai, f, gdata, attr, opt] = read_airicrad(fn);
 % establish local directory structure
 currentFilePath = mfilename('fullpath');
 [cfpath, cfname, cfext] = fileparts(currentFilePath);
-fprintf(2, '>> Using file: %s\n', currentFilePath);
+% $$$ fprintf(2, '>> Using file: %s\n', currentFilePath);
 
 % Granule dimensions
 nchan=2645;
