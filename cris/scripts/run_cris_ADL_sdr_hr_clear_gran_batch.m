@@ -27,25 +27,21 @@ for i = 1:chunk
 
     % call the processing function
     [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_clear_gran_rtp(infile, cfg);
-    if length(prof) == 0
-        fprintf(2, '>> No clear obs found. Exiting.\n');
-        continue
+    if isempty(prof)
+        fprintf(2, '>>> No clear obs found in granule %d.\n', i);
+        exit
     end
-    %/asl/data/UW_CrIS_PL/h5_SDR_J01_FSR_PLon/2019/002/SCRIF_j01_d20190102_t2357039_e2357337_b05826_c20190205014148823988_ADu_ops_gz.h5    
-        % use fnCrisOutput to generate year and doy strings
-    % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
-    % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+
+    % use fnCrisOutput to generate year and doy strings
+    %/asl/data/UW_CrIS_PL/h5_SDR_J01_FSR_PLon/2019/002/SCRIF_j01_d20190102_t2357039_e2357337_b05826_c20190205014148823988_ADu_ops_gz.h5
+    %/asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
+    %/asl/data/cris/ccast/test1/2017/091 %% for jpss-1 testing
+    %/asl/s1/strow/cris_sdr04/2021-05-21/SCRIF/SCRIF_npp_d20210521_t2345439_e2346137_b49565_c20210524164654344018_ADu_ops.h5
     [gpath, gname, ext] = fileparts(infile);
-    C = strsplit(gpath, '/');
-% $$$     tstamp = C{end};
-% $$$     dt = datetime(tstamp, 'InputFormat', 'yyyyMMdd');
-% $$$     iYear = year(dt);
-% $$$     iDay = day(dt, 'dayofmonth');
-% $$$     iDoy = day(dt, 'dayofyear');    
-% $$$     cris_yearstr = sprintf('%4d', iYear);;
-% $$$     cris_doystr = sprintf('%03d', iDoy);
-    cris_yearstr = C{8};
-    cris_doystr = C{9};
+    C = strsplit(gname, '_');
+    tstamp = C{3};
+    cris_yearstr = tstamp(2:5);
+    cris_daystr = tstamp(6:9);
 
     % Make directory if needed
     % cris hires data will be stored in
@@ -55,17 +51,16 @@ for i = 1:chunk
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr,cris_doystr);
+        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr,cris_daystr);
         if exist(sPath) == 0
             mkdir(sPath);
         end
         
         % Now save the four types of cris files
         fprintf(1, '>>> writing output rtp file... ');
-        C = strsplit(gname, '_');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model_cfg.model, cfg.rta_cfg.rta, asType{i}, ...
                         C{3}, C{4}, C{5});
         rtp_outname = fullfile(sPath, fname);
         fprintf(1, '>> Writing output to file: %s\n', rtp_outname);

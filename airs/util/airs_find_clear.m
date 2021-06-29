@@ -100,8 +100,8 @@ clear r ibad
 % REVISITME: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % which is preferred? 1232 or 961? Should this be externally
 % controllable?
-% $$$ ix = 9; % ~1232 wn
-ix = 4;  % ~961 wn
+ix = 9; % ~1232 wn
+% $$$ ix = 4;  % ~961 wn
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 wchan = ftest(ix);
 wbto = bto(ix,:);

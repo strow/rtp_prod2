@@ -25,8 +25,8 @@ fhdr = '/asl/models/ecmwf/';
 ename = '';  % This should be placed outside a rtp file loop
 
 offset = 0;
-if (nargin == 4) & isfield(cfg, 'ecmwf_offset')
-    offset = cfg.ecmwf_offset;  % offset time for CrIS2
+if (nargin == 4) & isfield(cfg, 'offset')
+    offset = cfg.offset;  % offset time for CrIS2
                                 % cal testing (ECMWF lag)
 end
 mtime = tai2dnum(prof.rtime) - offset;  

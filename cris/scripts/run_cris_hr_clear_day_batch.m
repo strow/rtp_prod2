@@ -29,14 +29,20 @@ for i = 1:chunk
     fprintf(1, '> Processing day %s\n', infile)
     [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(infile, cfg);
 
+    MAXOBS = 40000;
+    if length(prof.rtime) > MAXOBS
+        prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
+    end
+
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+    % /asl/cris/ccast/sdr45_npp_HR/2021/088
 % $$$     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(infile, '/');
-    cris_yearstr = C{9};
+    cris_yearstr = C{6};
     year = int32(str2num(cris_yearstr));
-    cris_doystr = C{10};
+    cris_doystr = C{7};
     doy = int32(str2num(cris_doystr));
     % Make directory if needed
     % cris hires data will be stored in

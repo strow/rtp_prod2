@@ -2,38 +2,9 @@ function [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_clear_gran_rtp(f
 % PROCESS_CRIS_HIRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
+funcname = 'create_cris_ADL_sdr_hires_clear_gran_rtp';
 
-fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
-        fnCrisInput);
-
-
-% read in configuration options from 'cfg'
-klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
-if isfield(cfg, 'klayers_exec')
-    klayers_exec = cfg.klayers_exec;
-end
-
-sartaclr_exec = '/asl/bin/crisg4_oct16'; 
-if isfield(cfg, 'sartaclr_exec')
-    sartaclr_exec = cfg.sartaclr_exec;
-end
-
-nguard = 2;  % number of guard channels
-if isfield(cfg, 'nguard')
-    nguard = cfg.nguard;
-end
-
-nsarta = 4;  % number of sarta guard channels
-if isfield(cfg, 'nsarta')
-    nsarta = cfg.nsarta;
-end
-
-% check for validity of guard channel specifications
-if nguard > nsarta
-    fprintf(2, ['*** Too many guard channels requested/specified ' ...
-                '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
-    return
-end
+fprintf(1, '>> Running %s for input: %s\n', funcname, fnCrisInput);
 
 addpath(genpath('/asl/matlib'));
 % Need these two paths to use iasi2cris.m in iasi_decon
@@ -59,7 +30,21 @@ addpath /home/sbuczko1/git/rtp_prod2_DEV/cris/util/uniform_clear
 
 [sID, sTempPath] = genscratchpath();
 
+cfg.sID = sID;
+cfg.sTempPath = sTempPath;
+
+% check for validity of guard channel specifications
+nguard = cfg.nguard;
+nsarta = cfg.nsarta;
+if nguard > nsarta
+    fprintf(2, ['*** Too many guard channels requested/specified ' ...
+                '(nguard/nsarta = %d/%d)***\n'], nguard, nsarta);
+    return
+end
+
+
 % Load up rtp
+fprintf(1, '> Reading in granule file %s\n', fnCrisInput);
 [prof, pattr] = readsdr_rtp(fnCrisInput);
 
 % load up profile attributes
@@ -103,31 +88,31 @@ hattr = {{'header', 'instid', 'CrIS'}, ...
 gnans = isnan(prof.rtime);
 nnans = sum(gnans);
 nobs = length(prof.rtime);
-if nnans | nobs ~= 16200        % for 60 scan files, 12150 for 45 scan files
+gobs = 30*9*cfg.uniform_cfg.scanlines;
+if nnans | nobs ~= gobs        % 1080 for 4 scan files, 16200 for 60
+                                % scan files, 12150 for 45 scan files
     fprintf(2,'>> Granule %d contains NaNs or is wrong size. SKIPPING\n',i);
 % $$$             nan_inds = find(~gnans);
 % $$$             p_gran = rtp_sub_prof(p_gran,nan_inds);
+    prof=[];
     return;
 end
 
 % check pixel uniformity. If no FOR/FOVs satisfy
 % uniformity, no point in continuing to process this
 % granule
-uniform_cfg = struct;
-uniform_cfg.uniform_test_channel = 961;
-uniform_cfg.uniform_bt_threshold = 0.4; 
-uniform_cfg.scanlines = 60;
-[iuniform, amax_keep] = cris_find_uniform(head, prof, uniform_cfg);
+[iuniform, amax_keep] = cris_find_uniform(head, prof, cfg.uniform_cfg);
 
 % subset out non-uniform FOVs
 nuniform = length(iuniform);
 if 0 == nuniform
     fprintf(2,['>> No uniform FOVs found for granule %d. ' ...
                'SKIPPING\n'],i)
+    prof=[];
     return;
 end
 
-fprintf(1, '>> Uniform obs found: %d/12150\n', nuniform);
+fprintf(1, '>> Uniform obs found: %d/%d\n', nuniform, gobs);
 prof = rtp_sub_prof(prof,iuniform);
 
 % check that [iv]chan are column vectors
@@ -147,9 +132,9 @@ ichan_ccast = head.ichan;
 [prof, pattr] = build_satlat(prof, pattr);
 
 % Add profile data
-switch cfg.model
+switch cfg.model_cfg.model
   case 'ecmwf'
-    [prof,head,pattr]=fill_ecmwf(prof,head,pattr,cfg);
+    [prof,head,pattr]=fill_ecmwf(prof,head,pattr,cfg.model_cfg);
   case 'era'
     [prof,head,pattr]=fill_era(prof,head,pattr);
   case 'merra'
@@ -178,7 +163,7 @@ fprintf(1, 'Done\n');
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr);
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
-unix([klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
+unix([cfg.klayers_cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 
 % scale gas concentrations, if requested in config
 if isfield(cfg, 'scaleco2') | isfield(cfg, 'scalech4')
@@ -199,7 +184,7 @@ end
 % run sarta
     fprintf(1, '>>> Running sarta... ');
     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-    sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+    sarta_run = [cfg.rta_cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                  ' > ' sTempPath '/sartaout.txt'];
     unix(sarta_run);
     % read in sarta results to capture rcalc

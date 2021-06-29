@@ -1,13 +1,9 @@
-function run_airicrad_random_day_batch(cfg)
+function run_cris_ccast_hires_allfov_batch(cfg)
 
-% read day file path from specified file list, pass to create_*_rtp
-% function and write resulting rtp data to <cfg.outputpath>/year/doy
+addpath ..;  % look one level up for create_* functions
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
-
-% offset slurmindex to bypass MaxArraySize boundary
-%slurmindex = slurmindex + 19999
 
 chunk = cfg.chunk;
 for i = 1:chunk
@@ -30,24 +26,33 @@ for i = 1:chunk
     end
 
     % call the processing function
-    [head, hattr, prof, pattr] = create_airicrad_random_day_rtp(infile, ...
-                                                      cfg);
-    % for jpss-1 testing
-    C = strsplit(infile, '/');
-    airs_yearstr = C{5};
-    airs_doystr = C{6};
+    [head, hattr, prof, pattr] = create_cris_ccast_hires_allfov_rtp(infile, cfg);
+    if isempty(prof)
+        fprintf(2, '>>> No obs found in granule %d.\n', i);
+        exit
+    end
+
+    % use fnCrisOutput to generate year and doy strings
+    %/asl/data/UW_CrIS_PL/h5_SDR_J01_FSR_PLon/2019/002/SCRIF_j01_d20190102_t2357039_e2357337_b05826_c20190205014148823988_ADu_ops_gz.h5
+    %/asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
+    %/asl/data/cris/ccast/test1/2017/091 %% for jpss-1 testing
+    %/asl/s1/strow/cris_sdr04/2021-05-21/SCRIF/SCRIF_npp_d20210521_t2345439_e2346137_b49565_c20210524164654344018_ADu_ops.h5
+    [gpath, gname, ext] = fileparts(infile);
+    C = strsplit(gpath, '/');
+    cris_yearstr = C{6};
+    cris_daystr = C{7};
+    C = strsplit(gname, '_');
+
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
     %
-    asType = {'random'};
+    asType = {'allfov'};
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir, char(asType(i)), airs_yearstr);
-        fprintf(1, '>>> Writing output rtp to directory %s\n', sPath);
+        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr,cris_daystr);
         if exist(sPath) == 0
-            fprintf(1, '>>>> %s does not exist. Creating\n', sPath);
             mkdir(sPath);
         end
         
@@ -55,13 +60,13 @@ for i = 1:chunk
         fprintf(1, '>>> writing output rtp file... ');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_airicrad_day%s_%s.rtp', cfg.model, airs_doystr, asType{i});
-        fprintf(1, '%s\n', fname);
+        % cris_sdr_ecmwf_csarta_allfov_npp_s45_d20210329.rtp
+        fname = sprintf('%s_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model_cfg.model, cfg.rta_cfg.rta, asType{i}, ...
+                        C{5}, C{6}, C{7});
         rtp_outname = fullfile(sPath, fname);
+        fprintf(1, '>> Writing output to file: %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
     end
 
-
-
-end
+end    

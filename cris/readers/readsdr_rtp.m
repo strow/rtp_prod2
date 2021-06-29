@@ -59,10 +59,11 @@ end
 % $$$   f = dir(regexprep(pdfile,{'sdr' 'SCRIS' '_c[0-9]+'},{'geo' 'GCRSO' '*'}));
 % $$$   geodir = regexprep(sdrdir, {'sdr'},{'geo'});
   
-  C = strsplit(sdrdir, '/');
-  geodir = sprintf('/asl/cris/geo60_npp/%s/%s', C{8},C{9});
-  geoname = [regexprep(sdrname,{'SCRIF' '_c[0-9]+'},{'GCRSO' '*'}) sdrext];
-  f = dir(fullfile(geodir, geoname));
+% $$$   C = strsplit(sdrdir, '/');
+% $$$   geodir = sprintf('/asl/cris/geo60_npp/%s/%s', C{8},C{9});
+% $$$   geodir = '/asl/s1/strow/cris_sdr04/2021-05-22/GCRSO';
+  geopath = regexprep(pdfile,{'SCRIF' '_c[0-9]+'},{'GCRSO' '_c*'});
+  f = dir(fullfile(geopath));
 
   if(numel(f)>1)
     fdates=[f.datenum];

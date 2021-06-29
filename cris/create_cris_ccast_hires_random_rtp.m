@@ -24,6 +24,7 @@ addpath /home/sbuczko1/git/matlib/clouds/sarta  %
                                                 % driver_cloud... (version
                                                 % in /asl/matlib
                                                 % has typos)
+addpath /home/sbuczko1/git/rtp_prod2/util  % genscratchpath
 
 [sID, sTempPath] = genscratchpath();
 

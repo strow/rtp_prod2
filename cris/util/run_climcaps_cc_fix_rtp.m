@@ -1,4 +1,4 @@
-function run_climcaps_get_err_qc(driverfile)
+function run_climcaps_cc_fix_rtp(driverfile)
 
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -12,11 +12,5 @@ if strcmp(infilepath, '')
     return;
 end
 
-% parse line from driver file to retrieve year, month, day
-C = strsplit(infilepath, '/');
-year = str2num(C{8});
-month = str2num(C{9});
-day = str2num(C{10});
-
-climcaps_get_err_qc(year, month, day)
+climcaps_cc_fix_rtp(infilepath)
 

@@ -163,7 +163,8 @@ prof.iudef(5,:) = t2(:)';
 % get good data index
 % iok = find(~L1b_err(:)');
   [eLW, eMW, eSW] = fixmyQC(L1a_err, L1b_stat);
-  etmp = eLW | eMW | eSW;
+% $$$   etmp = eLW | eMW | eSW;
+  etmp = eMW | eSW;
   iok = find(~etmp(:)');
 
 prof.rlat   = prof.rlat(:, iok);

@@ -21,7 +21,8 @@ sFuncName = 'airs_find_uniform';
 
 % Test channels (wn) (chosen as closest to corresponding channels in cris uniform clear
 %           1       2
-ftest = [819.312;961.060];
+% $$$ ftest = [819.312;961.060];
+ftest = 1232.368
 ntest = length(ftest);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -62,7 +63,8 @@ end
 r = prof.robs1(indtest,:);
 ibad = find(r < 1E-6);
 r(ibad)=1E-6;
-mbt = mean(real(rad2bt(ftest,r))); % [1 x nobs]
+% $$$ mbt = mean(real(rad2bt(ftest,r))); % [1 x nobs]
+mbt = real(rad2bt(ftest,r));
 clear r
 
 % Determine unique scanlines (as findex*200 + atrack) and their mean
