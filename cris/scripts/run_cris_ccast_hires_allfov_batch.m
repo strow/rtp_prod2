@@ -61,8 +61,9 @@ for i = 1:chunk
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
         % cris_sdr_ecmwf_csarta_allfov_npp_s45_d20210329.rtp
-        fname = sprintf('%s_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model_cfg.model, cfg.rta_cfg.rta, asType{i}, ...
-                        C{5}, C{6}, C{7});
+        fname = sprintf('%s_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, ...
+                        cfg.model_cfg.model, cfg.rta_cfg.rta, ...
+                        asType{i}, C{5}, C{6}, C{7});
         rtp_outname = fullfile(sPath, fname);
         fprintf(1, '>> Writing output to file: %s\n', rtp_outname);
         rtpwrite(rtp_outname,head,hattr,prof,pattr);

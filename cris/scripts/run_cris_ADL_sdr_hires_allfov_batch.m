@@ -39,9 +39,11 @@ for i = 1:chunk
     %/asl/s1/strow/cris_sdr04/2021-05-21/SCRIF/SCRIF_npp_d20210521_t2345439_e2346137_b49565_c20210524164654344018_ADu_ops.h5
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gname, '_');
-    tstamp = C{3};
-    cris_yearstr = tstamp(2:5);
-    cris_daystr = tstamp(6:9);
+    dt = datetime(C{3}(2:end), 'InputFormat', 'yyyyMMdd');
+    dt.Format='DDD';   % convert time representation to day of year
+    doy = char(dt);
+    dt.Format = 'yyyy'; % convert time representation to year
+    year = char(dt);
 
     % Make directory if needed
     % cris hires data will be stored in
@@ -51,7 +53,7 @@ for i = 1:chunk
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr,cris_daystr);
+        sPath = fullfile(cfg.outputdir,char(asType(i)),year,doy);
         if exist(sPath) == 0
             mkdir(sPath);
         end
@@ -60,7 +62,7 @@ for i = 1:chunk
         fprintf(1, '>>> writing output rtp file... ');
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model_cfg.model, cfg.rta_cfg.rta, asType{i}, ...
+        fname = sprintf('%s_sdr_%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
                         C{3}, C{4}, C{5});
         rtp_outname = fullfile(sPath, fname);
         fprintf(1, '>> Writing output to file: %s\n', rtp_outname);

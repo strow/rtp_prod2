@@ -15,9 +15,14 @@ fprintf(1, '>> Found %d files to concatenate\n', nfiles);
 
 % Need number of obs per file for indexing
 for i=1:nfiles
-   rlat = hdfread(fullfile(fdir,a(i).name),'profiles','Fields','rlat');
-   ns = size(rlat{1});
-   n(i) = ns(2);
+    S = hdfinfo(fullfile(fdir, a(i).name));
+    if S.Vdata(2).NumRecords == 0
+        fprintf(2, '%d :: rtp file contains no obs\n', i)
+        continue
+    end
+    rlat = hdfread(fullfile(fdir,a(i).name),'profiles','Fields','rlat');
+    ns = size(rlat{1});
+    n(i) = ns(2);
 end
 
 % Indices for each file into daily file
@@ -40,6 +45,11 @@ end
 
 % Now fill arrays, looping over files and fieldnames
 for i=1:nfiles
+    S = hdfinfo(fullfile(fdir, a(i).name));
+    if S.Vdata(2).NumRecords == 0
+        fprintf(2, '%d :: rtp file contains no obs\n', i)
+        continue
+    end
    [hx,hax,px,pax] = rtpread(fullfile(fdir,a(i).name));
    for j=1:m
       p.(pf{j})(:,i1(i):i2(i)) = px.(pf{j});

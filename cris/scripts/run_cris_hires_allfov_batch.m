@@ -61,7 +61,7 @@ for i = 1:chunk
         % CrIS_SDR_npp_s45_d20190625_t0424080_g045_v20a.mat
         % output naming convention:
         % <inst>_<model>_<rta>_<filter>_<date>_<time>.rtp
-        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
+        fname = sprintf('%s_%s_%s_%s_%s_%s.rtp', cfg.inst, cfg.model_cfg.model, cfg.rta_cfg.rta, asType{i}, ...
                         C{5}, C{6});
         rtp_outname = fullfile(sPath, fname);
         fprintf(1, '>>> Writing output file: %s\n', rtp_outname);

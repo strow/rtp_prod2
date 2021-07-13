@@ -36,7 +36,7 @@ for ii=1:nfields
     eval(['pd_file_a.' fname '=info.GroupHierarchy.Attributes(ii).Value.Data;'])
 end
 
-% Read Groups(1).Groups.Datasets
+% Read Groups(1).Groups(1).Datasets
 % All data, main pd structure
 nfields = length(info.GroupHierarchy.Groups(1).Groups(1).Datasets);
 for ii=1:nfields
@@ -44,48 +44,48 @@ for ii=1:nfields
    eval(['pd.' fname '=hdf5read(info.GroupHierarchy.Groups(1).Groups(1).Datasets(ii));'])
 end
 
-% Read in Groups(2).Groups.Attributes
+% Read in Groups(2).Groups(1).Attributes
 % Data product attributes cris-sdr
-nfields = length(info.GroupHierarchy.Groups(2).Groups.Attributes);
+nfields = length(info.GroupHierarchy.Groups(2).Groups(1).Attributes);
 for ii=1:nfields
-   fname = basename(info.GroupHierarchy.Groups(2).Groups.Attributes(ii).Name);
-   if strcmp(class(info.GroupHierarchy.Groups(2).Groups.Attributes(ii).Value),'hdf5.h5string')==1
-      nh5str=length(info.GroupHierarchy.Groups(2).Groups.Attributes(ii).Value);
+   fname = basename(info.GroupHierarchy.Groups(2).Groups(1).Attributes(ii).Name);
+   if strcmp(class(info.GroupHierarchy.Groups(2).Groups(1).Attributes(ii).Value),'hdf5.h5string')==1
+      nh5str=length(info.GroupHierarchy.Groups(2).Groups(1).Attributes(ii).Value);
       for jj=1:nh5str
-         eval(['pd_sdr_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups.Attributes(ii).Value(jj).Data);'])
+         eval(['pd_sdr_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups(1).Attributes(ii).Value(jj).Data);'])
       end
    else
-      eval(['pd_sdr_a.' fname '=(info.GroupHierarchy.Groups(2).Groups.Attributes(ii).Value);'])
+      eval(['pd_sdr_a.' fname '=(info.GroupHierarchy.Groups(2).Groups(1).Attributes(ii).Value);'])
    end
 end
 
-% Read in Groups(2).Groups.Datasets(1).Attributes
+% Read in Groups(2).Groups(1).Datasets(1).Attributes
 % CrIS-SDR_Aggr attributes
-nfields = length(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes);
+nfields = length(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes);
 for ii=1:nfields
-   fname = basename(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes(ii).Name);
-   if strcmp(class(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes(ii).Value),'hdf5.h5string')==1
-      nh5str=length(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes(ii).Value);
+   fname = basename(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes(ii).Name);
+   if strcmp(class(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes(ii).Value),'hdf5.h5string')==1
+      nh5str=length(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes(ii).Value);
       for jj=1:nh5str
-         eval(['pd_aggr_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes(ii).Value(jj).Data);'])
+         eval(['pd_aggr_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes(ii).Value(jj).Data);'])
       end
    else
-      eval(['pd_aggr_a.' fname '=(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes(ii).Value);'])
+      eval(['pd_aggr_a.' fname '=(info.GroupHierarchy.Groups(2).Groups(1).Datasets(1).Attributes(ii).Value);'])
    end
 end
 
-% Read in Groups(2).Groups.Datasets(2).Attributes
+% Read in Groups(2).Groups(1).Datasets(2).Attributes
 % CrIS-SDR_Gran_0 info (assuming 1 granule??)
-nfields = length(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes);
+nfields = length(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes);
 for ii=1:nfields
-   fname = basename(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes(ii).Name);
+   fname = basename(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes(ii).Name);
    fname= strrep(fname,'-','_');
-   if strcmp(class(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes(ii).Value),'hdf5.h5string')==1
-      nh5str=length(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes(ii).Value);
+   if strcmp(class(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes(ii).Value),'hdf5.h5string')==1
+      nh5str=length(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes(ii).Value);
       for jj=1:nh5str
-         eval(['pd_gran0_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes(ii).Value(jj).Data);'])
+         eval(['pd_gran0_a.' fname '{jj}=(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes(ii).Value(jj).Data);'])
       end
    else
-      eval(['pd_gran0_a.' fname '=(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes(ii).Value);'])
+      eval(['pd_gran0_a.' fname '=(info.GroupHierarchy.Groups(2).Groups(1).Datasets(2).Attributes(ii).Value);'])
    end
 end

@@ -62,7 +62,7 @@ end
 % $$$   C = strsplit(sdrdir, '/');
 % $$$   geodir = sprintf('/asl/cris/geo60_npp/%s/%s', C{8},C{9});
 % $$$   geodir = '/asl/s1/strow/cris_sdr04/2021-05-22/GCRSO';
-  geopath = regexprep(pdfile,{'SCRIF' '_c[0-9]+'},{'GCRSO' '_c*'});
+  geopath = regexprep(pdfile,{'GCRSO-SCRIF' '_c[0-9]+'},{'GCRSO' '_c*'});
   f = dir(fullfile(geopath));
 
   if(numel(f)>1)
@@ -186,7 +186,8 @@ if (isfield(pd,'ES_RealLW'))
    if (nobs_pd ~= nobs)
       error('Product_Data and Geolocation data have different nobs')
    end
-   prof.robs1 = zeros(nchan,nobs,'single');
+% $$$    prof.robs1 = zeros(nchan,nobs,'single');
+   prof.robs1 = nan(nchan,nobs,'single');
    ic = 1:nchanLW;
    prof.robs1(ic,:) = reshape(junk,nchanLW,nobs);
 else
@@ -200,7 +201,7 @@ if (isfield(pd,'ES_RealMW'))
       error('unexpected number of MW channels')
    end
    ic = nchanLW + (1:nchanMW);
-   prof.robs1(ic,:) = reshape(junk,nchanMW,nobs);
+% $$$    prof.robs1(ic,:) = reshape(junk,nchanMW,nobs);
 else
    error('Missing required field ES_RealMW')
 end

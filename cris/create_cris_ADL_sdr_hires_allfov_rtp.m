@@ -110,11 +110,11 @@ ichan_ccast = head.ichan;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Add profile data
-model = cfg.model_cfg.model;
+model = cfg.model;
 fprintf(1, '>>> Add model: %s...', model)
 switch model
   case 'ecmwf'
-    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr,cfg.model_cfg);
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr,cfg);
   case 'era'
     [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'merra'
@@ -147,7 +147,7 @@ fprintf(1, '>>> Writing klayers input temp file %s ...', fn_rtp1);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n')
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
-unix([cfg.klayers_cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+unix([cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
       '/klayers_' sID '_stdout'])
 fprintf(1, 'Done\n');
 
@@ -179,12 +179,12 @@ fprintf(1, 'Done\n');
     
 % $$$ 
 % $$$ % run driver_sarta_cloud to handle klayers and sarta runs
-    sarta_cfg.clear=cfg.rta_cfg.clear;
-    sarta_cfg.cloud=cfg.rta_cfg.cloud;
-    sarta_cfg.cumsum=cfg.rta_cfg.cumsum;
-    sarta_cfg.klayers_code = cfg.klayers_cfg.klayers_exec;
-    sarta_cfg.sartaclear_code = cfg.rta_cfg.sartaclr_exec;
-    sarta_cfg.sartacloud_code = cfg.rta_cfg.sartacld_exec;
+    sarta_cfg.clear=cfg.clear;
+    sarta_cfg.cloud=cfg.cloud;
+    sarta_cfg.cumsum=cfg.cumsum;
+    sarta_cfg.klayers_code = cfg.klayers_exec;
+    sarta_cfg.sartaclear_code = cfg.sartaclr_exec;
+    sarta_cfg.sartacloud_code = cfg.sartacld_exec;
     
     prof = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
                                   sarta_cfg);

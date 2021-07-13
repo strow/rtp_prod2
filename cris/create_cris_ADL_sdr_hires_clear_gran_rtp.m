@@ -88,7 +88,7 @@ hattr = {{'header', 'instid', 'CrIS'}, ...
 gnans = isnan(prof.rtime);
 nnans = sum(gnans);
 nobs = length(prof.rtime);
-gobs = 30*9*cfg.uniform_cfg.scanlines;
+gobs = 30*9*cfg.scanlines;
 if nnans | nobs ~= gobs        % 1080 for 4 scan files, 16200 for 60
                                 % scan files, 12150 for 45 scan files
     fprintf(2,'>> Granule %d contains NaNs or is wrong size. SKIPPING\n',i);
@@ -101,7 +101,7 @@ end
 % check pixel uniformity. If no FOR/FOVs satisfy
 % uniformity, no point in continuing to process this
 % granule
-[iuniform, amax_keep] = cris_find_uniform(head, prof, cfg.uniform_cfg);
+[iuniform, amax_keep] = cris_find_uniform(head, prof, cfg);
 
 % subset out non-uniform FOVs
 nuniform = length(iuniform);
@@ -132,9 +132,9 @@ ichan_ccast = head.ichan;
 [prof, pattr] = build_satlat(prof, pattr);
 
 % Add profile data
-switch cfg.model_cfg.model
+switch cfg.model
   case 'ecmwf'
-    [prof,head,pattr]=fill_ecmwf(prof,head,pattr,cfg.model_cfg);
+    [prof,head,pattr]=fill_ecmwf(prof,head,pattr,cfg);
   case 'era'
     [prof,head,pattr]=fill_era(prof,head,pattr);
   case 'merra'
@@ -163,7 +163,7 @@ fprintf(1, 'Done\n');
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr);
 fn_rtp2 = fullfile(sTempPath, ['cris_' sID '_2.rtp']);
-unix([cfg.klayers_cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
+unix([cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath '/klayers_stdout'])
 
 % scale gas concentrations, if requested in config
 if isfield(cfg, 'scaleco2') | isfield(cfg, 'scalech4')
@@ -184,7 +184,7 @@ end
 % run sarta
     fprintf(1, '>>> Running sarta... ');
     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-    sarta_run = [cfg.rta_cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+    sarta_run = [cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                  ' > ' sTempPath '/sartaout.txt'];
     unix(sarta_run);
     % read in sarta results to capture rcalc
@@ -192,16 +192,19 @@ end
     prof.rclr = p.rcalc;
     clear p;
 
-        % now that we have calcs, find clear FOVs
-        iobs2check = 1:length(prof.rtime);
-        [iflagsc, bto1232, btc1232] = xfind_clear_hires(head, prof, iobs2check);
-        iclear_sea    = find(iflagsc == 0 & prof.landfrac <= 0.01);
-        iclear_notsea = find(iflagsc == 0 & prof.landfrac >  0.01);
-% $$$         iclear = union(iclear_sea, iclear_notsea);
-        iclear = iclear_sea;
-        nclear = length(iclear);
-        fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
-        prof = rtp_sub_prof(prof, iclear);
+    % now that we have calcs, find clear FOVs
+    wntest = cfg.clearchan;
+    wnindex = find(head.vchan > wntest,1);
+    fprintf(1, '>> Clear determination using index=%d, wn=%.1f\n', ...
+            wnindex, head.vchan(wnindex));
+    bto = rad2bt(head.vchan(wnindex),prof.robs1(wnindex,: ...
+                                                    ));
+    btc = rad2bt(head.vchan(wnindex),prof.rclr(wnindex,:));
+    iclear = find(bto-btc > -4 & prof.landfrac <= 0.01);
+    nclear = length(iclear);
+    fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
+    prof = rtp_sub_prof(prof, iclear);
+
 
     fprintf(1, 'Done\n');
 
