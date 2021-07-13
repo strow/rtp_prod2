@@ -156,29 +156,7 @@ fprintf(1, 'Done\n');
     % below for clear,site,etc?) make call to external shell script to
     % run 'N' copies of sarta backgrounded
     fprintf(1, '>>> Running sarta... ');
-% $$$     fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
-% $$$     run_sarta = [cfg.rta_cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
-% $$$                  sTempPath '/sarta_' sID '_stdout.txt'];
-% $$$     fprintf(1, '>>> Running sarta: %s ...', run_sarta);
-% $$$     unix(run_sarta);
-% $$$     fprintf(1, 'Done\n');
-% $$$     
-% $$$     % Read in new rcalcs and insert into origin prof field
-% $$$ % $$$ stFileInfo = dir(fn_rtp3);
-% $$$ % $$$ fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-% $$$ % $$$             '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
-% $$$     fprintf(1, '>>> Reading sarta output... ');
-% $$$     [h,ha,p,pa] = rtpread(fn_rtp3);
-% $$$     fprintf(1, 'Done\n');
-% $$$     
-% $$$     % Go get output from klayers, which is what we want except for rcalc
-% $$$ % $$$ [head, hattr, prof, pattr] = rtpread(fn_rtp2);
-% $$$ % Insert rcalc for CrIS derived from IASI SARTA
-% $$$     prof.rclr = p.rcalc;
-% $$$     head.pfields = 7;
-    
-% $$$ 
-% $$$ % run driver_sarta_cloud to handle klayers and sarta runs
+% run driver_sarta_cloud to handle klayers and sarta runs
     sarta_cfg.clear=cfg.clear;
     sarta_cfg.cloud=cfg.cloud;
     sarta_cfg.cumsum=cfg.cumsum;

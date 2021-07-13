@@ -33,10 +33,6 @@ for i = 1:chunk
     end
 
     % use fnCrisOutput to generate year and doy strings
-    %/asl/data/UW_CrIS_PL/h5_SDR_J01_FSR_PLon/2019/002/SCRIF_j01_d20190102_t2357039_e2357337_b05826_c20190205014148823988_ADu_ops_gz.h5
-    %/asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
-    %/asl/data/cris/ccast/test1/2017/091 %% for jpss-1 testing
-    %/asl/s1/strow/cris_sdr04/2021-05-21/SCRIF/SCRIF_npp_d20210521_t2345439_e2346137_b49565_c20210524164654344018_ADu_ops.h5
     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(gname, '_'); 
     dt = datetime(C{3}(2:end), 'InputFormat', 'yyyyMMdd');
