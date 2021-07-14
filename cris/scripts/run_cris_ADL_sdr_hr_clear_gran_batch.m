@@ -29,7 +29,7 @@ for i = 1:chunk
     [head, hattr, prof, pattr] = create_cris_ADL_sdr_hires_clear_gran_rtp(infile, cfg);
     if isempty(prof)
         fprintf(2, '>>> No clear obs found in granule %d.\n', i);
-        exit
+        continue
     end
 
     % use fnCrisOutput to generate year and doy strings
