@@ -153,7 +153,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         % uniformity, no point in continuing to process this
         % granule
         uniform_cfg = struct;
-        uniform_cfg.uniform_test_channel = 1231;
+        uniform_cfg.uniform_test_channel = 961;
         uniform_cfg.uniform_bt_threshold = 0.4; 
         [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
         
@@ -220,28 +220,6 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         [p_gran,pa_gran] = rtp_add_emis_single(p_gran,pa_gran);
         fprintf(1, 'Done\n');
         
-% $$$         %%%% ADDED TO TEST AIRS/CRIS CLEAR DIFFERENCES
-% $$$         % remove any obs with stemp < 273
-% $$$         iGoodStemps = find(p_gran.stemp >= 273);
-% $$$         lGoodStemps = length(iGoodStemps);
-% $$$         fprintf(1, ['>>> Filtering out low stemp obs: of %d ' ...
-% $$$                     'initial obs, keeping %d\n'], length(p_gran.stemp), ...
-% $$$                 lGoodStemps);
-% $$$         % if all obs flagged for stemp removal, just discard
-% $$$         % granule and move on
-% $$$         if lGoodStemps == 0
-% $$$             fprintf(1, ['>>> All obs miss stemp threshold. ' ...
-% $$$                         'Discarding granule\n']);
-% $$$             continue;
-% $$$         end
-% $$$         
-% $$$         if lGoodStemps > 0 & lGoodStemps < length(p_gran.stemp) 
-% $$$             p_gran = rtp_sub_prof(p_gran, iGoodStemps);
-% $$$         end
-% $$$         fprintf(1, ['>>> Saved %d obs after filter. Min stemp ' ...
-% $$$                     'in prof: %.1f\n'], length(p_gran.stemp), ...
-% $$$                 min(p_gran.stemp));
-% $$$         %%%%
 
         % run klayers
         MAXOBS = 60000;
@@ -296,7 +274,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         
         % now that we have calcs, find clear FOVs
 % $$$         iobs2check = 1:length(p_gran.rtime);
-        wntest = 1232;
+        wntest = 961;
         wnindex = find(h_gran.vchan > wntest,1);
         fprintf(1, '>> Clear determination using index=%d, wn=%.1f\n', ...
                 wnindex, h_gran.vchan(wnindex));
@@ -304,11 +282,6 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
                                                         ));
         btc = rad2bt(h_gran.vchan(wnindex),p_gran.rclr(wnindex,:));
         iclear = find(bto-btc > -4 & p_gran.landfrac <= 0.01);
-% $$$         [iflagsc, bto1232, btc1232] = xfind_clear_hires(h_gran, p_gran, iobs2check);
-% $$$         iclear_sea    = find(iflagsc == 0 & p_gran.landfrac <= 0.01);
-% $$$         iclear_notsea = find(iflagsc == 0 & p_gran.landfrac >  0.01);
-% $$$         iclear = union(iclear_sea, iclear_notsea);
-% $$$         iclear = iclear_sea;
         nclear = length(iclear);
         fprintf(1, '>>>> Total of %d uniform obs passed clear test\n', nclear);
         p_gran = rtp_sub_prof(p_gran, iclear);
