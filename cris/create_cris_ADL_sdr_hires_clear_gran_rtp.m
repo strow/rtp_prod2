@@ -185,7 +185,7 @@ end
 if strcmp('csarta', cfg.rta)
     fprintf(1, '>>> Running CrIS sarta... ');
     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-    sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+    sarta_run = [cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                  ' > ' sTempPath '/sartaout.txt'];
     unix(sarta_run);
     
