@@ -182,15 +182,37 @@ if isfield(cfg, 'scaleco2') | isfield(cfg, 'scalech4')
 end
 
 % run sarta
-    fprintf(1, '>>> Running sarta... ');
+if strcmp('csarta', cfg.rta)
+    fprintf(1, '>>> Running CrIS sarta... ');
     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
-    sarta_run = [cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+    sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
                  ' > ' sTempPath '/sartaout.txt'];
     unix(sarta_run);
+    
     % read in sarta results to capture rcalc
-    [~,~,p,~] = rtpread(fn_rtp3);
-    prof.rclr = p.rcalc;
-    clear p;
+    [~,~,pp,~] = rtpread(fn_rtp3);
+    prof.rclr = pp.rcalc;
+    clear pp;
+    fprintf(1, 'Done\n');
+elseif strcmp('isarta', cfg.rta)
+        fprintf(1, '>>> Running IASI sarta... ');
+        cfg.fn_rtp2 = fn_rtp2;
+        [hh,hha,pp,ppa] = rtpread(fn_rtp2);
+        [~, ~, p, ~] = run_sarta_iasi(hh,hha,pp,ppa,cfg);
+        prof.rclr = p.rclr;
+        clear p pp;
+        fprintf(1, 'Done\n');
+end
+
+
+% $$$     fprintf(1, '>>> Running sarta... ');
+% $$$     fn_rtp3 = fullfile(sTempPath, [sID '_3.rtp']);
+% $$$     sarta_run = [cfg.sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+% $$$                  ' > ' sTempPath '/sartaout.txt'];
+% $$$     unix(sarta_run);
+% $$$     % read in sarta results to capture rcalc
+% $$$     [~,~,p,~] = rtpread(fn_rtp3);
+% $$$     prof.rclr = p.rcalc;
 
     % now that we have calcs, find clear FOVs
     wntest = cfg.clearchan;

@@ -32,8 +32,8 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
     addpath('/asl/matlib/aslutil');
     
 % $$$ % Need these two paths to use iasi2cris.m in iasi_decon
-% $$$ addpath /asl/packages/iasi_decon   % seq_match?
-% $$$ addpath /asl/packages/ccast/source  % fixmyQC?
+addpath /asl/packages/iasi_decon   % seq_match?
+addpath /asl/packages/ccast/source  % fixmyQC?
 
     % ************************************************
 
@@ -193,7 +193,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         p_gran = rtp_sub_prof(p_gran, inrange);
         clear inrange;
 
-        % Add p_granile data
+        % Add p_gran profile data
         switch cfg.model
           case 'ecmwf'
             [p_gran,h_gran,pa_gran]=fill_ecmwf(p_gran,h_gran,pa_gran,cfg);
@@ -203,7 +203,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
             [p_gran,h_gran,pa_gran]=fill_merra(p_gran,h_gran,pa_gran);    
         end
 
-        % rtp now has p_granile and obs data ==> 5
+        % rtp now has p_gran and obs data ==> 5
         h_gran.pfields = 5;
         [nchan,nobs] = size(p_gran.robs1);
         h_gran.nchan = nchan;
@@ -274,7 +274,7 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpa
         
         % now that we have calcs, find clear FOVs
 % $$$         iobs2check = 1:length(p_gran.rtime);
-        wntest = 961;
+        wntest = cfg.clearchan;
         wnindex = find(h_gran.vchan > wntest,1);
         fprintf(1, '>> Clear determination using index=%d, wn=%.1f\n', ...
                 wnindex, h_gran.vchan(wnindex));
