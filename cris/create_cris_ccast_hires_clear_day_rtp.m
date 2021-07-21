@@ -111,7 +111,7 @@ addpath /asl/packages/ccast/source  % fixmyQC?
     fprintf(1, '>>> Found %d granule files to be read\n', ...
             length(files));
 
-    for i=1:5:length(files)
+    for i=1:length(files)
         % Read ccast granule file
         infile = fullfile(inpath, files(i).name);
         fprintf(1, '>>> Reading input file: %s  ', infile);

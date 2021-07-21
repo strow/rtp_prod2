@@ -37,6 +37,9 @@ if nargin == 3
 end
 
 ch = find(head.vchan > wn, 1);
+fprintf(1, '>> Uniform determination using index=%d, wn=%.1f\n', ...
+        ch, head.vchan(ch));
+
 bt_rtp = rad2bt(head.vchan(ch), prof.robs1(ch,:));
 
 bt_cris = reshape(bt_rtp, 9,30,scanlines);
