@@ -1,4 +1,4 @@
-function run_iasi1_rtp(dateFile,subset)
+function run_iasi3_rtp(dateFile,subset)
 
 % This version designed for use with batch_iasi_rtp.m
 %   takes a file of days to process, assigning one day to one slurm array.
@@ -37,7 +37,7 @@ sdate = ddc.(cellName){nslurm};
 
 % construct source path and get granule list for IASI-1.
 clear inPath;
-inPathbase = '/asl/iasi/iasi1/l1c';
+inPathbase = '/asl/iasi/iasi3/l1c';
 dt = datetime(sdate, 'InputFormat', 'yyyy/MM/dd')
 dt.Format='DDD';
 doy = char(dt);
@@ -55,7 +55,7 @@ inPath = sprintf('%s/%s/%s/', inPathbase, syr, doy);
 % statement and parsing results in its place. Here use ls(). Pass
 % '-1' to system to make an easily parsable string (elements
 % separated by \n newline, strip trailing spaces and split
-fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M02*'), '-1');  % use only
+fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M03*'), '-1');  % use only
                                                            % gzipped
                                                            % granules
 fnLst1stripped = strsplit(strtrim(fnLst1),'\n');
@@ -118,14 +118,14 @@ end
 clear prof;
 
 % Save the hourly/daily RTP file
-outpath = '/asl/rtp/iasi/iasi1';
+outpath = '/asl/rtp/iasi/iasi3';
 savPath = fullfile(outpath, subset, syr);
 
 if ~exist(savPath)
     mkdir(savPath)
 end
 
-  savFil  = ['iasi1_ecmwf_d' syr smo sdy '_' subset '.rtp'];
+  savFil  = ['iasi3_ecmwf_d' syr smo sdy '_' subset '.rtp'];
   savF    = fullfile(savPath, savFil);
 
   fprintf(1, '>>> Writing to output file: %s\n', savF);

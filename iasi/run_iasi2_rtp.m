@@ -17,20 +17,10 @@ function run_iasi2_rtp(dateFile,subset)
 %-----------------------------------------------------------
 % prep the batch job from the dateFile.
 %-----------------------------------------------------------
+    
+    ddc = load(dateFile);
 
-    cd /home/sbuczko1/git/rtp_prod2/iasi/run
-    addpath /asl/packages/rtp_prod2/emis
-    addpath /asl/packages/rtp_prod2/util
-    addpath /asl/packages/rtp_prod2/grib
-addpath /home/sbuczko1/git/rtp_prod2/iasi
-addpath /asl/packages/rtp_prod2/iasi/readers
-addpath /asl/matlib_2015/aslutil  % for utc2tai2000 (replace this
-                                  % with new time commands)
-addpath /asl/matlib/aslutil
-
-ddc = load(dateFile);
-
-nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID')) + 1;
 %%%%%nslurm = [];
 ncompute = getenv('SLURM_NODELIST');
 
@@ -45,18 +35,20 @@ sdate = ddc.(cellName){nslurm};
 
 % ---------------------------------------------------- %
 
-% sanity check of date.
-mydnum = datenum(sdate,'yyyy/mm/dd');
-if(mydnum < 733043) fprintf(1,'Date too early\n'); return; end  % no early 2007/07.
-today = datenum(date);
-if(mydnum > today) fprintf(1,'Date is in the future!\n'); return; end;
-
 % construct source path and get granule list for IASI-1.
 clear inPath;
-inPath = '/asl/data/IASI/L1C/';
-syr = sdate(1:4);   smo = sdate(6:7); sdy = sdate(9:10);
-jdy = datenum(syr,'yyyy') - mydnum + 1;
-inPath = [inPath syr '/' smo '/' sdy '/'];
+inPathbase = '/asl/iasi/iasi2/l1c';
+dt = datetime(sdate, 'InputFormat', 'yyyy/MM/dd')
+dt.Format='DDD';
+doy = char(dt);
+dt.Format='yyyy';
+syr = char(dt);
+dt.Format='MM';
+smo = char(dt);
+dt.Format='dd';
+sdy = char(dt);
+
+inPath = sprintf('%s/%s/%s/', inPathbase, syr, doy);
 
 % dir is causing headaches on the lustre filesystem so we are
 % moving toward using ls(), or running ls/find within a system
@@ -112,19 +104,21 @@ clear all_profs;
 % limitations and hdfvs() failures during rtp write/read
 % later). Keeps dcc, site and random obs intact and reduces number
 % of clear obs to meet threshold limit
-lmax = 50000;
+lmax = 34000;
 fprintf(1, '>>> *** %d pre-subset obs ***\n', length(prof.rtime));
 if length(prof.rtime) > lmax
     fprintf(1, '>>>*** nobs > %d. subsetting clear... ', lmax);
     sav_profs = rtp_sub_prof(prof, randperm(length(prof.rtime), ...
                                             lmax));
-    clear prof
     fprintf(1, 'Done ***\n');
     fprintf(1, '>>> *** %d subset obs ***\n', length(sav_profs.rtime));
+else
+    sav_profs = prof;
 end
+clear prof;
 
 % Save the hourly/daily RTP file
-outpath = '/asl/rtp/rtp_iasi2';
+outpath = '/asl/rtp/iasi/iasi2';
 savPath = fullfile(outpath, subset, syr);
 
 if ~exist(savPath)

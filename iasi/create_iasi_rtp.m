@@ -94,10 +94,10 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
-fprintf(1, '>> Add model: era...');
-[pd, hd, pa] = fill_era(pd, hd, pa);
-% $$$ fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
-% $$$ [pd, hd, pa] = fill_ecmwf(pd, hd, pa);
+% $$$ fprintf(1, '>> Add model: era...');
+% $$$ [pd, hd, pa] = fill_era(pd, hd, pa);
+fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
+[pd, hd, pa] = fill_ecmwf(pd, hd, pa);
 
 % check for empty prof struct after fill_ecmwf
 if isempty(fieldnames(pd))
@@ -308,7 +308,7 @@ if(~SKIP)
   fprintf(1,'Running klayers and sarta\n');
   %disp(hd);
   % trap bad observations if there are no good ones return:
-  qgood   = find(pd.robsqual == 0);
+  qgood   = find(pd.robsqual == 0 & abs(pd.rlat) < 90);
   if(numel(qgood) == 0)
     fprintf(1,'>>> Trapped zero good profiles before RTA calc\n');
     head.N ='NULL'; hattr.N='NULL';prof.N='NULL';pattr.N='NULL';
@@ -321,12 +321,16 @@ if(~SKIP)
       qgood = qgood2;
       clear qgood2
   end
+  fprintf(1, '** nobs = %d\n', length(pd.rlat))
+  
   [hd pd] = subset_rtp(hd, pd, [], [], qgood);
+  fprintf(1, '** nobs = %d\n', length(pd.rlat))
 
   % first split the spectrum & save a copy of each half
 
 % $$$   [~,tmp] = genscratchpath();
   [~, sScratchPath] = genscratchpath();
+% $$$   sScratchPath = '/home/sbuczko1/Work/scratch';
   tmp = [sScratchPath '/iasi1'];
   fprintf(1,'>> Scratch dir: %s\n', tmp);
   outfiles = rtpwrite_12(tmp,hd,ha,pd,pa);
@@ -335,28 +339,28 @@ if(~SKIP)
   ofn_1 = [tmp '.kla_1'];  ofn_2 = [tmp '.kla_2'];
   ofn_3 = [tmp '.sar_1'];  ofn_4 = [tmp '.sar_2'];
   
-  fprintf(1, '\nofn_1=%s\nofn_2=%s\nofn_3=%s\nofn_4=%n', ofn_1, ofn_2, ...
+  fprintf(1, '\nifn_1=%s\nifn_2=%s\nofn_1=%s\nofn_2=%s\nofn_3=%s\nofn_4=%s\n', ifn_1, ifn_2, ofn_1, ofn_2, ...
           ofn_3, ofn_4);
 
   % run klayers on first half
+  fprintf(1, '** Run klayers on first half\n')
   %unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > ' s1Path '/klayers_stdout']);
-  unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > /dev/null']);
+  unix([klayers_exec ' fin=' ifn_1 ' fout=' ofn_1 ' > ' tmp 'k1']);
 
   % run sarta on first half
+  fprintf(1, '** Run sarta on first half\n')
   %eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > sartastdout1.txt']);
-  eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > /dev/null']);
+  eval(['! ' sarta_exec ' fin=' ofn_1 ' fout=' ofn_3 ' > ' tmp 's1']);
 
   % run klayers on second half
+  fprintf(1, '** Run klayers on second half\n')
   %unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' s1Path '/klayers_stdout']);
-  unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > /dev/null']);
+  unix([klayers_exec ' fin=' ifn_2 ' fout=' ofn_2 ' > ' tmp 'k2']);
 
   % run sarta on second half
+  fprintf(1, '** Run sarta on second half\n')
   %eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > sartastdout1.txt']);
-  eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > /dev/null']);
-
-  % read the results files back in
-  cfin = [tmp '.sar'];
-  cfin = [tmp '.kla'];
+  eval(['! ' sarta_exec ' fin=' ofn_2 ' fout=' ofn_4 ' > ' tmp 's2']);
 
   % read in sarta output to grab calcs
   [~,~,ptemp,~] = rtpread_12(ofn_3);

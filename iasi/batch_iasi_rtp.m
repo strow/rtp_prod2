@@ -30,13 +30,13 @@ logfilepath = '/home/sbuczko1/LOGS/sbatch';
 if (length(mondate) ~= 7) fprintf(1,'Error in date format\n'); return; end;
 syr = mondate(1:4);      smo = mondate(6:7);
 nyr = str2num(syr);      nmo = str2num(smo);
-if( nyr < 2007 | nyr > 2019 ) fprintf(1,'Error: year out of range\n'); return; end;
+if( nyr < 2007 | nyr > 2021 ) fprintf(1,'Error: year out of range\n'); return; end;
 if( nmo < 1 | nmo > 12 ) fprintf(1,'Error: month out of range\n'); return; end;
 endday = eomday(nyr, nmo);   
 njobs = endday;
 
 % define the driver file
-dfname = ['iasi1_rtp_' syr smo '_' subset '_drv.mat'];
+dfname = ['iasi3_rtp_' syr smo '_' subset '_drv.mat'];
 dname = fullfile('./run', dfname);
 
 % delete date file if already exists
@@ -55,7 +55,7 @@ save(dname,'cellDates');
 % -----------------------------
 % write the slurm batch script
 % -----------------------------
-batch = ['./run/batch_iasi1_' syr smo '_' subset '_rtp.slurm'];
+batch = ['./run/batch_iasi3_' syr smo '_' subset '_rtp.slurm'];
 FH = fopen(batch,'w');
 fprintf(FH,'#!/bin/bash\n\n');
 
@@ -78,7 +78,7 @@ fprintf(FH,'MATLAB=''matlab''\n');
 fprintf(FH,'MATOPTS='' -nodisplay -nojvm -nosplash''\n\n');
 
 param = {dfname,subset};
-junk = sprintf('$MATLAB $MATOPTS -r "addpath(''%s'');iasiAddPaths;run_iasi1_rtp(''%s'',''%s'');exit"',iasihome,param{:});
+junk = sprintf('$MATLAB $MATOPTS -r "addpath(''%s'');iasiAddPaths;run_iasi3_rtp(''%s'',''%s'');exit"',iasihome,param{:});
 fprintf(FH,'%s\n',junk);
 
 fclose(FH);
