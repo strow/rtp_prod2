@@ -76,7 +76,7 @@ lmix = (prof.landfrac > 0 & prof.landfrac < 1 );
 for ifov = find(lmix)
   lf = prof.landfrac(ifov);
   of = 1-lf;
-  sea_emis_on_landgrid = interp1(efreq,prof.emis(:,ifov),efreq,'linear');
+  sea_emis_on_landgrid = interp1(sea_efreq,prof.emis(1:sea_nemis,ifov),efreq,'linear');
   prof.emis(:, ifov) = single(of*sea_emis_on_landgrid + lf*prof.emis(:,ifov));
 end
 
