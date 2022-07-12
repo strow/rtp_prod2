@@ -1,4 +1,4 @@
-function [uflag, btall, btsub, nall, nsub, stdall, stdsub] = imager_uniformity(sfile);
+function [uflag, btall, btsub, nall, nsub, stdall, stdsub] = imager_uniformity(IASI_Image);
 
 % function [uflag, btall, btsub, nall, nsub, stdall, stdsub]=imager_uniform(...
 %   IASI_Image, drnoise, dbtmaxall, dbtmaxsub, nminall, nminsub, stdmaxall, ...
@@ -72,15 +72,17 @@ rtiny = ttorad(fimager,150);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % load the granule
-data = readl1c_epsflip_all(sfile);
+%data = readl1c_epsflip_all(sfile);
 
-d = size(data.IASI_Image);
+%d = size(data.IASI_Image);
+d = size(IASI_Image);
 if (length(d) ~= 2 | d(2) ~= nimager)
    error('unexpected dimensions for IASI_Image data')
 end
 nax = d(1);
 
-IASI_Image = data.IASI_Image;
+%IASI_Image = data.IASI_Image;
+
 
 % Declare empty output variables
 uflag  = zeros(nax,npixfov);

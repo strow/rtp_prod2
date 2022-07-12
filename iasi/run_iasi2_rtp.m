@@ -1,4 +1,4 @@
-function run_iasi2_rtp(dateFile,subset)
+function run_iasi2_rtp(dateFile,subset, model)
 
 % This version designed for use with batch_iasi_rtp.m
 %   takes a file of days to process, assigning one day to one slurm array.
@@ -20,7 +20,7 @@ function run_iasi2_rtp(dateFile,subset)
     
     ddc = load(dateFile);
 
-nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID')) + 1;
+nslurm   = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 %%%%%nslurm = [];
 ncompute = getenv('SLURM_NODELIST');
 
@@ -72,7 +72,7 @@ for ifn = 1:numel(fnLst1stripped)  % 56:61   %
     if(fnLst.bytes > 2E7)                     % avoid deficient granules
         fprintf(1,'Processing %d\t %s\n',ifn, infile);
 
-        [hdx, hax, pdx, pax] = create_iasi_rtp(infile,subset);
+        [hdx, hax, pdx, pax] = create_iasi_rtp(infile,subset,model);
 %    if (strcmp(class(hdx), 'char')) 
 %      if(strcmp(pdx,'NULL'))
 %        fprintf(1,'Continue to next granule\n'); 
@@ -125,7 +125,7 @@ if ~exist(savPath)
     mkdir(savPath)
 end
 
-  savFil  = ['iasi2_ecmwf_d' syr smo sdy '_' subset '.rtp'];
+  savFil  = ['iasi2_' model '_d' syr smo sdy '_' subset '.rtp'];
   savF    = fullfile(savPath, savFil);
 
   fprintf(1, '>>> Writing to output file: %s\n', savF);

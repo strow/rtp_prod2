@@ -1,4 +1,4 @@
-function run_iasi3_rtp(dateFile,subset, model)
+function run_iasi1_cdr_rtp(dateFile,subset,model)
 
 % This version designed for use with batch_iasi_rtp.m
 %   takes a file of days to process, assigning one day to one slurm array.
@@ -37,7 +37,7 @@ sdate = ddc.(cellName){nslurm};
 
 % construct source path and get granule list for IASI-1.
 clear inPath;
-inPathbase = '/asl/iasi/iasi3/l1c';
+inPathbase = '/asl/iasi/iasi1/cdr';
 dt = datetime(sdate, 'InputFormat', 'yyyy/MM/dd')
 dt.Format='DDD';
 doy = char(dt);
@@ -48,14 +48,15 @@ smo = char(dt);
 dt.Format='dd';
 sdy = char(dt);
 
-inPath = sprintf('%s/%s/%s/', inPathbase, syr, doy);
+% $$$ inPath = sprintf('%s/%s/%s/', inPathbase, syr, doy);
+inPath = sprintf('%s/%s/%s/%s/', inPathbase,syr,smo,sdy);
 
 % dir is causing headaches on the lustre filesystem so we are
 % moving toward using ls(), or running ls/find within a system
 % statement and parsing results in its place. Here use ls(). Pass
 % '-1' to system to make an easily parsable string (elements
 % separated by \n newline, strip trailing spaces and split
-fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M03*'), '-1');  % use only
+fnLst1 = ls(strcat(inPath, 'IASI_xxx_1C_M02*'), '-1');  % use only
                                                            % gzipped
                                                            % granules
 fnLst1stripped = strsplit(strtrim(fnLst1),'\n');
@@ -118,15 +119,15 @@ end
 clear prof;
 
 % Save the hourly/daily RTP file
-outpath = '/asl/rtp/iasi/iasi3';
-savPath = fullfile(outpath, subset, syr);
+outpath = '/asl/rtp/iasi/iasi1';
+% $$$ outpath = '/home/sbuczko1/Work/IASI/IASI-CDR';
+savPath = fullfile(outpath, sprintf('%s-cdr',subset), syr);
 
 if ~exist(savPath)
     mkdir(savPath)
 end
 
-
-  savFil  = ['iasi3_' model '_d' syr smo sdy '_' subset '.rtp'];
+  savFil  = ['iasi1_' model '_d' syr smo sdy '_' subset '.rtp'];
   savF    = fullfile(savPath, savFil);
 
   fprintf(1, '>>> Writing to output file: %s\n', savF);

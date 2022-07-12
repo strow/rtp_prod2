@@ -1,5 +1,5 @@
 function [cflag, retsst, dbtq, dbt820, dbt960, dbtsst] = spectral_clear( ...
-   sfile, lsea, modsst, sflag, dbtqmin, dbt820max, dbt960max, dbtsstmax)
+   IASI_Radiances, Satellite_Zenith, lsea, modsst, sflag, dbtqmin, dbt820max, dbt960max, dbtsstmax)
 
 % function [cflag, retsst, dbtq, dbt820, dbt960, dbtsst] = spectral_clear(...
 %    IASI_Radiances, Satellite_Zenith, lsea, modsst, sflag, dbtmaxq, ...
@@ -139,16 +139,17 @@ nodata = -999;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % load the granule
-data = readl1c_epsflip_all(sfile);
+% $$$ data = readl1c_epsflip_all(sfile);
 
-d = size(data.IASI_Radiances);
+% $$$ d = size(data.IASI_Radiances);
+d = size(IASI_Radiances);
 if (length(d) ~= 3 | d(2) ~= npixfov | d(3) ~= nchan)
    error('unexpected dimension of IASI_Radiances')
 end
 nax = d(1);
-IASI_Radiances   = data.IASI_Radiances;
-Satellite_Zenith = data.Satellite_Zenith;
-clear data;
+% $$$ IASI_Radiances   = data.IASI_Radiances;
+% $$$ Satellite_Zenith = data.Satellite_Zenith;
+
 
 d = size(Satellite_Zenith);
 if (length(d) ~= 2 | d(1) ~= nax | d(2) ~= npixfov)

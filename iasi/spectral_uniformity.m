@@ -1,5 +1,5 @@
 function [sflag, dbt757, dbt820, dbt960, dbt1231, dbt2140] = ...
-   spectral_uniformity( sfile, uflag)
+   spectral_uniformity( IASI_Radiances, uflag)
 
 % function [sflag, dbt757, dbt820, dbt960, dbt1231, dbt2140] = ...
 %    spectral_uniform( IASI_Radiances, uflag, dbtmax757, dbtmax820, ...
@@ -83,15 +83,14 @@ nodata = -999;
 
 
 % load the granule
-data = readl1c_epsflip_all(sfile);
+% $$$ data = readl1c_epsflip_all(sfile);
 
-d = size(data.IASI_Radiances);
+% $$$ d = size(data.IASI_Radiances);
+d = size(IASI_Radiances);
 if (length(d) ~= 3 | d(2) ~= npixfov | d(3) ~= nchan)
    error('unexpected dimensions for IASI_Radiances')
 end
 nax = d(1);
-IASI_Radiances = data.IASI_Radiances;
-clear data;
 
 % Declare empty output variables
 sflag   = zeros(nax,npixfov);

@@ -1,4 +1,5 @@
-function [head, hattr, prof, pattr] = create_iasi_rtp(fnIasiIn, subset)
+function [head, hattr, prof, pattr] = create_iasi_rtp(fnIasiIn, ...
+                                                      subset, model)
 
 % NAME
 %   
@@ -65,7 +66,7 @@ SKIP = 0;                                     % in case no profiles after subset
 % with trap for error in readl1c_epsflip_all returned variables are set to 'NULL'
 
 %%%fprintf(1,'call iasi2rtp\n');
-[hd ha pd pa] = iasi2rtp(fnIasiIn);
+[hd, ha, pd, pa, IASI_Radiances, IASI_Image, Satellite_Zenith] = iasi2rtp(fnIasiIn);
 %if (strcmp(class(hd), 'char')) 
 %  if(strcmp(hd,'NULL')) 
 %    fprintf(1,'Returning from create_iasi_rtp for next granule\n');
@@ -94,10 +95,14 @@ nax  = cell2mat(ha{4}(3));
 nobs = nax * 4;
 
 % Add model data
-% $$$ fprintf(1, '>> Add model: era...');
-% $$$ [pd, hd, pa] = fill_era(pd, hd, pa);
-fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
-[pd, hd, pa] = fill_ecmwf(pd, hd, pa);
+switch model
+  case 'era'
+    fprintf(1, '>> Add model: era... %s\n', which ('fill_era'));
+    [pd, hd, pa] = fill_era(pd, hd, pa);
+  case 'ecmwf'
+    fprintf(1, '>> Add model: ecmwf... %s\n', which('fill_ecmwf'));
+    [pd, hd, pa] = fill_ecmwf(pd, hd, pa);
+end
 
 % check for empty prof struct after fill_ecmwf
 if isempty(fieldnames(pd))
@@ -211,7 +216,7 @@ if(strcmp(subset,'clear'))
 
   % Test image & spectral uniformity first (these can be done b4 sarta calculations):
   % Imager uniformity:
-  [timageunflag btall btsub nall nsub stdall stdsub] = imager_uniformity(fnIasiIn);
+  [timageunflag btall btsub nall nsub stdall stdsub] = imager_uniformity(IASI_Image);
   fprintf(2, '>*** Bypassing imager uniformity check***\n');
   imageunflag = ones(size(timageunflag));
   pd.udef(10,:) = reshape(imageunflag,[],nobs);
@@ -220,7 +225,7 @@ if(strcmp(subset,'clear'))
   
   % Spectral uniformity:
   [spectunflag dbt757u dbt820u dbt960u dbt1231u dbt2140u] = spectral_uniformity(...
-      fnIasiIn, imageunflag);
+      IASI_Radiances, imageunflag);
   pd.udef(11,:) = reshape(spectunflag,[],nobs);
   pa = set_attr(pa,'udef(11,:)','Spectral uniformity flag (1=uniform)');
   % ispecun = find(spectunflag == 1);
@@ -238,7 +243,7 @@ if(strcmp(subset,'clear'))
   dbt960max  = 1.6;
   dbtsstmax  = 5.0;
 
-  [clearflag retsst dbtq dbt820 dbt960 dbtsst] = spectral_clarity(fnIasiIn,...
+  [clearflag retsst dbtq dbt820 dbt960 dbtsst] = spectral_clarity(IASI_Radiances, Satellite_Zenith,...
      isea, modstemp, spectunflag, dbtqmin, dbt820max, dbt960max, dbtsstmax);
   pd.udef(12,:) = reshape(clearflag,[],nobs);
   pa = set_attr(pa,'udef(12,:)','Spectral clarity flag (1=passed all tests)');

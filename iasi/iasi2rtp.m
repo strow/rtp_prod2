@@ -24,11 +24,12 @@
 %   b. remote files:
 %      /asl/matlib/aslutil/ {mktemp.m, unlink.m}
 
-function [head, hattr, prof, pattr] = iasi2rtp(sfile);
+function [head, hattr, prof, pattr, IASI_Radiances, IASI_Image, Satellite_Zenith] = iasi2rtp(sfile);
 
 % establish dependency paths
 addpath /asl/matlib/aslutil/                    % mktemp.m unlink.m
 
+fprintf(2, '*** Using newly update function calls *** \n')
 
 % Initializations/defaults
 % IASI channel info
@@ -134,7 +135,12 @@ prof.atrack   = single(reshape(data.Scan_Line,1,nobs));
 prof.xtrack   = single(reshape(data.AMSU_FOV,1,nobs));
       % Note: IASI has no granule number (findex)
 prof.ifov     = single(reshape(data.IASI_FOV,1,nobs)); % pixel number
-prof.robs1    = single(reshape(data.IASI_Radiances,nobs,nchan)'); %'
+prof.robs1    = single(reshape(data.IASI_Radiances,nobs,nchan)');
+%'
+IASI_Radiances = data.IASI_Radiances;
+Satellite_Zenith = data.Satellite_Zenith;
+IASI_Image = data.IASI_Image;
+
 % observer pressures
 prof.pobs = zeros(1,nobs,'single');
 % upwelling radiances
