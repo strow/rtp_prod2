@@ -21,4 +21,9 @@ if size(prof.robs1,2) ~= size(prof.gas_1,2)
     prof = struct();
     return;
 end
+
+% set status info
 head.pfields = 5;  % robs, model
+                
+% set attribute describing model
+set_attr('profiles' 'model' cfg.model)

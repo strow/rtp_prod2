@@ -1,0 +1,419 @@
+#+TITLE: Instrument agnostic rtp generation: allfov
+#+PROPERTY: header-args :tangle yes :exports code
+
+* Notes
+Allfov processing, regardless of instrument, is a matter of reading in
+a granule into rtp structures, adding model and emissivity fields,
+running all obs through klayers and then through both clear and cloudy
+sartas. Sanity checks need to be done along the way which may differ
+by instrument or even by the granule contruction (CrIS can come in
+different numbers of scanlines per granule...)
+
+
+
+* create_allfov
+** Function header
+ All rtp creation will follow this model. Either a granule filepath or
+ a path to a directory of granules gets passed in along with
+ configuration settings and rtp structures will get passed back. Rtp
+ structures will be initialised to empty such that a test of isempty(~)
+ returns 1 if valid data has not been written in.
+
+ p = struct([]);
+ h = struct([]);
+ ha = {};
+ pa = {};
+
+ #+BEGIN_SRC matlab
+ function [head, hattr, prof, pattr, trace] = rtp_create_allfov_gran(granfile, cfg)
+ #+END_SRC
+
+** Description 
+ #+BEGIN_SRC matlab
+ %
+ % NAME
+ %    rtp_create_allfov_gran
+ %
+ % SYNOPSIS
+ %    [head,hattr,prof,pattr,trace] = rtp_create_allfov_gran(granfile,cfg);
+ %
+ % INPUTS
+ %    granfile : full path to granule file to process
+ %    cfg : config struct containing all processing information and
+ %          instrument-specific settings
+ %
+ % OUTPUTS
+ %    head : RTP head structure conforming to RTP V2.01 spec
+ %    (https://asl.umbc.edu/helppages/packages/rtpspec201/)
+ %    hattr : RTP V2.01 header attributes cell array
+ %    prof : RTP V2.01 struct of profiles
+ %    pattr : RTP V2.01 profile attributes cell array
+ %    trace : struct of traceability information for run
+ %
+ % S. Buczkowski 2021-06-29
+ %    Based on previous work by L. Strow, S. Hannon, H. Motteler,
+ %    P. Schou, and S. DeSouza-Machado
+ %
+ % DISCUSSION (TBD)
+ #+END_SRC
+
+** Run-time setup and traceability
+ #+BEGIN_SRC matlab
+   trace = build_trace(granfile, cfg)
+ #+END_SRC
+
+** Validate config
+** Read in a granule
+ #+BEGIN_SRC matlab
+   %*************************************************
+   % Read the granule file *************************
+
+   % initialize rtp structs to empty sets
+   prof = struct([]);
+   head = struct([]);
+   pattr = {}; hattr={};
+
+   fprintf(1, '** Reading input granule file: %s...   ', granfile);
+   [head,hattr,prof,pattr] = rtp_read_granule(granfile, cfg.inst);
+   if isempty(prof)
+       fprintf(1, 'FAILED\n');
+       return
+   end
+% build up run attributes for traceability
+hattr = set_attr(hattr, 'instlev', cfg.instsub);
+hattr = set_attr(hattr, 'githash', trace.githash);
+hattr = set_attr(hattr, 'rundate', trace.RunDate);
+hattr = set_attr(hattr, 'jobid', trace.jobid);
+
+
+   % what sanity checks can we (should we) define before arbitrarily
+   % declaring success on the basis of a non-empty prof struct?
+   fprintf(1, 'SUCCEEDED\n');
+   %*************************************************
+ #+END_SRC
+
+** Add Met model
+ #+BEGIN_SRC matlab
+ %*************************************************
+ % Add in model data ******************************
+ fprintf(1, '** Add model: %s...', cfg.model)
+ [head, hattr, prof, pattr] = rtp_add_model(head, hattr, prof, pattr, ...
+                                            cfg.metmodel);
+ if isempty(fieldnames(prof))
+     fprintf(1, 'FAILED\n');
+     return
+ end
+ fprintf(1, 'SUCCEEDED\n');
+ %*************************************************
+ #+END_SRC
+
+** Add surface model
+ #+BEGIN_SRC matlab
+ %*************************************************
+ % Add DEM surface model **************************
+ fprintf(1, '** Running rtp_add_dem...');
+ [head, hattr, prof, pattr] = rtp_add_dem(head,hattr,prof, pattr, cfg.dem);
+ % Are there any failure modes likely in this section?
+ fprintf(1, 'SUCCEEDED\n');
+ %*************************************************
+ #+END_SRC
+
+** Add surface emissivity
+ #+BEGIN_SRC matlab
+ %*************************************************
+ % Add surface emissivity *************************
+ % Dan Zhou's one-year climatology for land surface emissivity and
+ % standard routine for sea surface emissivity
+ fprintf(1, '** Running rtp_add_emis...');
+ [head, hattr, prof, pattr] = rtp_add_emis(head, hattr,prof,pattr, cfg.emis);
+ % Are there any failure modes likely in this section?
+ fprintf(1, 'SUCCEEDED\n');
+ %*************************************************
+ #+END_SRC
+
+** Run klayers
+ #+BEGIN_SRC matlab
+ %*************************************************
+ % Run klayers and sarta (both clear and cloudy)
+ % 
+ fprintf(1, '** Running klayers...');
+ [head,hattr,prof,pattr] = rtp_run_klayers(head,hattr,prof,pattr, ...
+                                                 cfg.klayers);
+ if isempty(fieldnames(prof))
+     fprintf(1, 'FAILED\n');
+     return
+ end
+ fprintf(1, 'SUCCEEDED\n');
+ %*************************************************
+ #+END_SRC
+** Run sarta (clear and cloudy, full spectrum)
+ #+BEGIN_SRC matlab
+ %*************************************************
+ % Run sarta (both clear and cloudy)
+ % 
+ fprintf(1, '** Running sarta clear...');
+ [head,hattr,prof,pattr] = rtp_run_sarta_clear(head,hattr,prof,pattr, ...
+                                                 cfg.sarta);
+ if isempty(fieldnames(prof))
+     fprintf(1, 'FAILED\n');
+     return
+ end
+ fprintf(1, 'SUCCEEDED\n');
+ fprintf(1, '** Running sarta cloudy...');
+ [head,hattr,prof,pattr] = rtp_run_sarta_cloudy(head,hattr,prof,pattr, ...
+                                                 cfg.sarta);
+ if isempty(fieldnames(prof))
+     fprintf(1, 'FAILED\n');
+     return
+ end
+ fprintf(1, 'SUCCEEDED\n');
+ %*************************************************
+ #+END_SRC
+
+** Post-run cleanup and return to caller
+ #+BEGIN_SRC matlab
+ fprintf(1. '* Run terminated successfully %s\n', ...
+         char(datetime('now','TimeZone','local','Format',
+                          'd-MMM-y HH:mm:ss Z'));
+ #+END_SRC
+
+
+
+* Subroutines
+** is_valid_config
+#+BEGIN_SRC matlab
+function is_valid = is_valid_config(cfg)
+
+
+#+END_SRC
+** build_trace
+#+BEGIN_SRC matlab
+ % establish local directory structure
+ currentFilePath = mfilename('fullpath');
+ [cfpath, cfname, cfext] = fileparts(currentFilePath);
+ fprintf(1,'* Executing routine: %s\n', currentFilePath);
+
+ trace.job_id = str2num(getenv('SLURM_ARRAY_TASK_ID'));
+
+ %*************************************************
+ % Build traceability info ************************
+ trace.klayers = cfg.klayers_exec;
+ trace.sartaclr = cfg.sartaclr_exec;
+ trace.sartacld = cfg.sartacld_exec;
+ [status, trace.githash] = githash();
+ trace.RunDate = char(datetime('now','TimeZone','local','Format', ...
+                          'd-MMM-y HH:mm:ss Z'));
+ fprintf(1, '* Run executed %s with git hash %s\n', ...
+         trace.RunDate, trace.githash);
+ %*************************************************
+#+END_SRC
+** rtp_read_granule
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_read_granule(granfile, ...
+                                                  cfg)
+% select instrument and any substyle of granule
+
+switch cfg.instname
+  case 'airs'
+  [head, hattr, prof, pattr] = read_airs(granfile, cfg, trace);
+
+  case 'cris'
+  [head, hattr, prof, pattr] = read_cris(granfile, cfg, trace);
+
+  case 'iasi'
+  [head, hattr, prof, pattr] = read_iasi(granfile, cfg, trace);
+end
+
+% hattr
+hattr = set_attr(hattr, 'pltfid', cfg.pltfid);
+hattr = set_attr(hattr, 'instid', cfg.instid);
+pattr = set_attr(pattr, 'robs1', granfile);
+pattr = set_attr(pattr, 'rtime', 'TAI:1958');
+
+
+% sarta puts limits on satzen/satang (satzen comes out in the
+% profiles form ccast2rtp) so, filter to remove profiles
+% outside this range to keep sarta from failing.
+inrange = find(prof.satzen >= 0.0 & prof.satzen < 63.0);
+p2 = rtp_sub_prof(prof, inrange);
+prof=p2;
+clear p2 inrange;
+
+% build sub satellite lat point
+[prof, pattr] = build_satlat(prof,pattr);
+
+
+#+END_SRC
+
+** rtp_add_model
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_add_model(head, hattr, prof, pattr, cfg, trace)
+
+#+END_SRC
+** rtp_add_dem
+Add USGS DEM values for landfrac and salti to profiles in the
+presented prof struct.
+
+AIRS l1b and l1c include salti and landfrac in
+initial granule read. Routine is currently configured to return
+immediately as a NOOP if the instrument is AIRS. The alternative would
+be to let even AIRS run through rtpadd_usgs_10dem and get updated(?)
+values. Values in the AIRS granules may also derive from usgs_10dem in
+which case, even replacing values would, ultimately, be a NOOP.
+
+#+BEGIN_SRC matlab
+% Add landfrac, etc.
+function [head, hattr, prof, pattr] = rtp_add_dem(head, hattr, prof, pattr, cfg, trace)
+
+if AIRS
+return
+else
+   % [head, hattr, prof, pattr] = rtpadd_usgs_10dem(head, hattr, prof, pattr);
+end
+
+#+END_SRC
+** rtp_add_emissivity
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_add_emissivity(head, hattr, prof, pattr, cfg, trace)
+            %*************************************************
+            % Add surface emissivity *************************
+            % Dan Zhou's one-year climatology for land surface emissivity and
+            % standard routine for sea surface emissivity
+            fprintf(1, '>>> Running rtp_add_emis...');
+            [p,pattr] = rtp_add_emis(p,pattr);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+#+END_SRC
+** rtp_run_klayers
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_run_klayers(head, hattr, prof, pattr, cfg, trace)
+            %*************************************************
+            % run klayers ************************************
+            fprintf(1, '>>> running klayers... ');
+            fn_rtp2 = fullfile(sTempPath, ['airs_' sID '_2.rtp']);
+            klayers_run = [klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' ...
+                           sTempPath '/kout.txt'];
+            unix(klayers_run);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+#+END_SRC
+** rtp_run_sarta_clear
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_run_sarta_clear(head, hattr, prof, pattr, cfg, trace)
+            %*************************************************
+            % Run sarta **************************************
+            fprintf(1, '>>> Running sarta... ');
+            fn_rtp3 = fullfile(sTempPath, ['airs_' sID '_3.rtp']);
+            sarta_run = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ...
+                         ' > ' sTempPath '/sartaout.txt'];
+            unix(sarta_run);
+            fprintf(1, 'Done\n');
+            %*************************************************
+
+#+END_SRC
+** rtp_run_sarta_cloudy
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = rtp_run_sarta_cloudy(head, hattr, prof, pattr, cfg, trace)
+
+#+END_SRC
+
+** read_airs
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = read_airs(granfile, cfg, trace)
+
+% initialize rtp structs and cell arrays to empty sets
+prof = struct([]); head = struct([]);
+hattr = {}; pattr = {};
+
+switch cfg.instsub
+case 'l1c'
+[eq_x_tai, freq, prof, pattr] = read_airicrad(granfile);
+% check for non-empty rtp structs as error check
+if isempty(prof)
+return
+end
+
+% load override file for airicrad ichan list
+load(fullfile(cfpath, 'static/sarta_chans_for_l1c.mat'));
+vchan = freq;
+
+case 'l1b'
+[eq_x_tai, freq, prof, pattr] = read_airibrad(granfile);
+% check for non-empty rtp structs as error check
+if isempty(prof)
+return
+end
+
+nchan = size(prof.robs1,1);
+ichan = (1:nchan)';
+vchan = freq;
+end
+
+% Header 
+head.pfields = 4;  % robs1, no calcs in file
+head.ptype = 0;    % levels
+head.ngas = 0;
+%head.instid = 800; % AIRS 
+%head.pltfid = -9999;
+head.nchan = length(ichan); % was chani
+head.ichan = ichan;  % was chani
+head.vchan = vchan; % was vchan(chani)
+head.vcmax = max(head.vchan);
+head.vcmin = min(head.vchan);
+
+#+END_SRC
+** read_cris
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = read_cris(granfile, cfg, trace)
+switch cfg.instsub
+case {'ccast-hr', 'ccast-lr'}
+fprintf(1, '> Reading in granule file %s\n', granfile);
+[head, hattr, prof, pattr] = ccast2rtp(granfile, nguard, nsarta);
+
+
+case 'ccast-hi2lo'
+fprintf(1, '>>> Granule %d\n', i);
+
+head, hattr, prof, pattr] = ccast2rtp_hi2lo(granfile, nguard, nsarta);
+
+case 'uw-sdr'
+case 'nasa-sdr'
+end
+
+% override ccast asc/desc flag with solzen values, if set in config
+if cfg.override_ad_flag == true
+prof.iudef(4,:) = (prof.solzen < 90.0);
+end
+
+% check ichan index order (to avoid problems with rtpwrite)
+temp = size(head.ichan);
+if temp(2) > 1
+    head.ichan = head.ichan';
+end
+temp = size(head.vchan);
+if temp(2) > 1
+    head.vchan = head.vchan';
+end
+
+
+#+END_SRC
+** read_iasi
+#+BEGIN_SRC matlab
+function [head, hattr, prof, pattr] = read_iasi(granfile, cfg, trace)
+switch cfg.instsub
+case 'l1c'
+[head, hattr, prof, pattr] = iasi2rtp(granfile);
+% trap bad granule data using quality flag
+qbad = find(prof.robsqual > 0);
+if(qbad) 
+  fprintf(1,'\t %d bad obs trapped\n',numel(qbad));
+%  [hd pd] = subset_rtp(hd, pd, [], [], qgood);
+end
+
+case 'pcc'
+% for future development
+end
+#+END_SRC
+
