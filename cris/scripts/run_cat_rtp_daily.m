@@ -43,9 +43,10 @@ for i = 1:chunk
     % generate output file name and path (presently to be
     % /asl/data/rtp_cris_ccast_lowres/clear_daily/<year>/rtp_d<date>_clear.rtp)
     % /home/WorkingFiles/rtp_cris_ccast_lowres/random/YYYY/DOY/cris_lr_era_d20150831_t2323522_random.rtp
+    % /asl/rtp/cris/npp_dec6/clear/2021/339
     C = strsplit(indir, '/');
-    sYear = C{6};  % changed to fit local diectory structure
-    sDoy = C{7};
+    sYear = C{7};  % changed to fit local diectory structure
+    sDoy = C{8};
     outpath = fullfile(cfg.outpath, cfg.type, sYear);
 
     % read in filenames in indir to build output filename
@@ -53,7 +54,7 @@ for i = 1:chunk
 
     [path, name, ext] = fileparts(mfiles(1).name);
     C = strsplit(name, '_');
-    outfile = fullfile(outpath, sprintf('%s_%s.rtp', cfg.filebase, C{5}));
+    outfile = fullfile(outpath, sprintf('%s_%s.rtp', cfg.filebase, C{6}));
 
 
     fprintf(1, '>>> Output to: %s\n', outfile);

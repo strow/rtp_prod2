@@ -1,8 +1,8 @@
-function [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(inpath, cfg)
+function [head, hattr, prof, pattr] = create_cris_nc_hires_clear_day_rtp(inpath, cfg)
 % PROCESS_CRIS_HIRES process one granule of CrIS data
 %
 % Process a single CrIS .mat granule file.
-    func_name = 'create_cris_ccast_hires_clear_day_rtp';
+    func_name = 'create_cris_nc_hires_clear_day_rtp';
     
 % Execute user-defined paths *********************
     REPOBASEPATH = '/home/sbuczko1/git/';
@@ -37,7 +37,7 @@ addpath /asl/packages/ccast/source  % fixmyQC?
 
     % ************************************************
 
-    fprintf(1, '>> Running create_cris_ccast_hires_rtp for input: %s\n', ...
+    fprintf(1, '>> Running create_cris_nc_hires_rtp for input: %s\n', ...
             inpath);
 
     % ************************************************
@@ -102,7 +102,7 @@ addpath /asl/packages/ccast/source  % fixmyQC?
                                                 % of failure
 
     % build list of hdf granule files for the day
-    files = dir(fullfile(inpath, '*.mat'));
+    files = dir(fullfile(inpath, 'SNDR.*.nc'));
     if isempty(files)
         fprintf(2, ['>> ERROR :: No granule files found in %s.\n>> ' ...
                     'EXITING\n'], inpath);
@@ -111,24 +111,28 @@ addpath /asl/packages/ccast/source  % fixmyQC?
     fprintf(1, '>>> Found %d granule files to be read\n', ...
             length(files));
 
-    stride=1;
-    for i=1:stride:length(files)
+    for i=1:length(files)
         % Read ccast granule file
         infile = fullfile(inpath, files(i).name);
         fprintf(1, '>>> Reading input file: %s  ', infile);
         
-        try
-            [h_gran, ha_gran, p_gran, pa_gran] = ccast2rtp(infile, nguard, nsarta);
+% $$$         try
+            [h_gran, ha_gran, p_gran, pa_gran] = uwnc2rtp(infile, cfg);
             %%** second parameter sets up the use of 4 CrIS guard
             %%channels. Looking at h_gran.ichan and h_gran.vchan shows some
             %%similarity to the cris channel description in
             %%https://hyperearth.wordpress.com/2013/07/09/cris-rtp-formats/, at
             %%least for the first set of guard channels
-        catch
-            fprintf(2, ['>>> ERROR: failure in ccast2rtp for granule %s. ' ...
-                        'Skipping.\n'], infile);
-            continue
-        end
+% $$$         catch
+% $$$             fprintf(2, ['>>> ERROR: failure in ccast2rtp for granule %s. ' ...
+% $$$                         'Skipping.\n'], infile);
+% $$$             continue
+% $$$         end
+            if ~isfield(p_gran, 'robs1')
+                fprintf(2, '>> Granule %d has no robs. SKIPPING\n', ...
+                        i)
+                continue
+            end
         fprintf(1, 'Done.\n');
 
         %*********
@@ -203,13 +207,14 @@ addpath /asl/packages/ccast/source  % fixmyQC?
           case 'merra'
             [p_gran,h_gran,pa_gran]=fill_merra(p_gran,h_gran,pa_gran);    
         end
-        
-        % on to next granule if p_gran is empty after model
-        % (missing model files, typically)
-        if isempty(fieldnames(p_gran))
+
+        % check that we didn't drop all obs due to missing model
+        % files
+        if ~isfield(p_gran, 'robs1')
+            fprintf(2, ['>> All obs dropped in model application. ' ...
+                        'SKIPPING granule\n']);
             continue
         end
-        
         % rtp now has p_gran and obs data ==> 5
         h_gran.pfields = 5;
         [nchan,nobs] = size(p_gran.robs1);
@@ -246,11 +251,11 @@ addpath /asl/packages/ccast/source  % fixmyQC?
             delete fn_rtp2
             if isfield(cfg, 'scaleco2')
                 pp.gas_2 = pp.gas_2 * cfg.scaleco2;
-                pattr{end+1} = {'p_graniles' 'scaleCO2' sprintf('%f', cfg.scaleco2)};
+                pattr{end+1} = {'p_granules' 'scaleCO2' sprintf('%f', cfg.scaleco2)};
             end
             if isfield(cfg, 'scalech4')
                 pp.gas_6 = pp.gas_6 * cfg.scalech4;
-                pattr{end+1} = {'p_graniles' 'scaleCH4' sprintf('%f', cfg.scalech4)};        
+                pattr{end+1} = {'p_granules' 'scaleCH4' sprintf('%f', cfg.scalech4)};        
             end
             rtpwrite(fn_rtp2,hh,hha,pp,ppa)
         end

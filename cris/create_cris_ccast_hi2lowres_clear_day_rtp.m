@@ -205,6 +205,12 @@ function [head, hattr, prof, pattr] = create_cris_ccast_hi2lowres_clear_day_rtp(
             [p_gran,h_gran,pa_gran]=fill_merra(p_gran,h_gran,pa_gran);    
         end
 
+        % on to next granule if p_gran is empty after model
+        % (missing model files, typically)
+        if isempty(fieldnames(p_gran))
+            continue
+        end
+        
         % rtp now has p_granile and obs data ==> 5
         h_gran.pfields = 5;
         [nchan,nobs] = size(p_gran.robs1);

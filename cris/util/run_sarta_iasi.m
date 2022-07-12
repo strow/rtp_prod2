@@ -2,11 +2,7 @@ function [head, hattr, prof, pattr] = run_sarta_iasi(head, hattr, prof, pattr, c
 funcname = 'run_sarta_iasi';
 fprintf(1, '>> Running %s \n', funcname);
 
-sarta_exec  = ['/asl/packages/sartaV108/BinV201/' ...
-               'sarta_iasi_may09_wcon_nte'];
-if isfield(cfg, 'sarta_exec')
-    sarta_exec = cfg.sarta_exec;
-end
+sartaclr_exec = cfg.sartaclr_exec;
 
 ichan_ccast = head.ichan;
 
@@ -53,9 +49,8 @@ fn_rtpi = fullfile(sTempPath, ['cris_' sID '_rtpi.rtp']);
 rtpwrite(fn_rtpi,head,hattr,prof,pattr);
 fn_rtprad = fullfile(sTempPath, ['cris_' sID '_rtprad.rtp']);
 disp('running SARTA for IASI channels 1-4231')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
+eval(['! ' sartaclr_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
       sTempPath '/sartastdout1.txt']);
-%psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
 [head, hattr, prof, pattr] = rtpread(fn_rtprad);
 rad_pt1 = prof.rcalc;
 % Second half of IASI
@@ -64,9 +59,8 @@ head.ichan = (4232:8461)';
 head.vchan = fiasi(4232:8461);
 rtpwrite(fn_rtpi,head,hattr,prof,pattr);
 disp('running SARTA for IASI channels 4232-8461')
-eval(['! ' sarta_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
+eval(['! ' sartaclr_exec ' fin=' fn_rtpi ' fout=' fn_rtprad ' > ' ...
       sTempPath '/sartastdout2.txt' ]);
-%psarta_run(fn_rtpi, fn_rtprad, sarta_exec);
 [head, hattr, prof, pattr] = rtpread(fn_rtprad);
 rad_pt2 = prof.rcalc;
 

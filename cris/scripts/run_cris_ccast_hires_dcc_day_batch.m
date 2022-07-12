@@ -28,6 +28,10 @@ for i = 1:chunk
     % call the processing function
     [head, hattr, prof, pattr] = create_cris_ccast_hires_dcc_day_rtp(infile, cfg);
 
+    if isempty(prof)
+        fprintf(1, 'No dcc obs found in %s\n', infile);
+        return
+    end
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing

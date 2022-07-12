@@ -50,6 +50,10 @@ end
 
 bFirstGranRead = false;
 
+prof = struct([]);
+head = struct([]);
+pattr = {}; hattr={};
+
 filestride=1; % default is to read every granule
 if isfield(cfg, 'filestride')
     filestride = cfg.filestride;  % cfg overrides stride for faster
@@ -133,6 +137,11 @@ for i=1:filestride:length(fnLst1)
     end
     
 end  % end loop over mat files
+
+if isempty(prof)
+    fprintf(1, '*** No dcc obs found for day\n');
+    return
+end
 
 fprintf(1, '>>> Found %d dcc obs\n', ...
         length(prof.rtime));

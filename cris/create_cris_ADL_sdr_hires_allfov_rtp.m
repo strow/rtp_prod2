@@ -112,6 +112,16 @@ ichan_ccast = head.ichan;
 % Add profile data
 model = cfg.model;
 fprintf(1, '>>> Add model: %s...', model)
+
+RTIMESHIFTED = false;
+if (isfield(cfg,'modelshift') & cfg.modelshift ~= 0)
+    RTIMESHIFTED = true;
+    fprintf(1, '** Shifting rtime by %d seconds\n', cfg.modelshift)
+    rtime = prof.rtime + cfg.modelshift;
+    prof.rtime = rtime;
+    clear rtime
+end
+
 switch model
   case 'ecmwf'
     [prof,head,pattr]  = fill_ecmwf(prof,head,pattr,cfg);
@@ -119,6 +129,13 @@ switch model
     [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'merra'
     [prof,head,pattr]  = fill_merra(prof,head,pattr);
+end
+
+if RTIMESHIFTED
+    RTIMESHIFTED = false;
+    rtime = prof.rtime - cfg.modelshift;
+    prof.rtime = rtime;
+    clear rtime
 end
 
 % rtp now has profile and obs data ==> 5

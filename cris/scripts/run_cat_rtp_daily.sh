@@ -7,9 +7,9 @@
 # sbatch options
 #SBATCH --job-name=RUN_CAT_RTP_DAILY
 # partition = dev/batch
-#SBATCH --partition=prod
+#SBATCH --partition=high_mem
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=normal
+#SBATCH --qos=normal+
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem=12000
@@ -18,13 +18,8 @@
 
 #SBATCH --requeue
 
-#SBATCH --mail-user=sbuczko1@umbc.edu
-#SBATCH --mail-type=FAIL
-#SBATCH --mail-type=REQUEUE
-#SBATCH --mail-type=TIME_LIMIT_50
-
-#SBATCH -o /home/sbuczko1/logs/sbatch/run_cat_rtp_daily-%A_%a.out
-#SBATCH -e /home/sbuczko1/logs/sbatch/run_cat_rtp_daily-%A_%a.err
+#SBATCH -o /home/sbuczko1/LOGS/sbatch/run_cat_rtp_daily-%A_%a.out
+#SBATCH -e /home/sbuczko1/LOGS/sbatch/run_cat_rtp_daily-%A_%a.err
 
 # matlab options
 MATLAB=/usr/cluster/matlab/current/bin/matlab
