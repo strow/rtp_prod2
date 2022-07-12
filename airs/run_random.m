@@ -17,6 +17,6 @@ cfg.klayers_exec='/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 cfg.sartaclr_exec='/home/chepplew/gitLib/sarta/bin/airs_l1c_2834_may19_prod';
 cfg.sartacld_exec='/home/chepplew/gitLib/sarta/bin/airs_l1c_2834_cloudy_may19_prod';
 
-inpath='/asl/data/airs/L1C_v672/2019/018';
+inpath='/asl/airs/l1c_v672/2019/018';
 
 [h,ha,p,pa] = create_airicrad_random_day_rtp(inpath,cfg);

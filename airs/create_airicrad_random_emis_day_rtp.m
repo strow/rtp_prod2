@@ -177,13 +177,7 @@ fprintf(1, 'Done\n');
 % Dan Zhou's one-year climatology for land surface emissivity and
 % standard routine for sea surface emissivity
 fprintf(1, '>>> Running rtp_add_emis...');
-try
-    [prof,pattr] = rtp_add_emis(prof,pattr);
-catch
-    fprintf(2, '>>> ERROR: rtp_add_emis failure for %s/%s\n', sYear, ...
-            sDoy);
-    return;
-end
+[prof,pattr] = rtp_add_emis(prof,pattr);
 fprintf(1, 'Done\n');
 %*************************************************
 

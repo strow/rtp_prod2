@@ -48,8 +48,8 @@ for i = 1:chunk
     [gpath, gname, ext] = fileparts(inpath);
     
     C = strsplit(gpath, '/');
-    airs_yearstr = C{6};
-    airs_doystr = C{7};
+    airs_yearstr = C{5};
+    airs_doystr = C{6};
 
     C = strsplit(gname, '.');
     granstr = C{5};

@@ -34,8 +34,8 @@ for i = 1:chunk
                                                       cfg);
     % for jpss-1 testing
     C = strsplit(infile, '/');
-    airs_yearstr = C{6};
-    airs_doystr = C{7};
+    airs_yearstr = C{5};
+    airs_doystr = C{6};
     % Make directory if needed
     % cris hires data will be stored in
     % /asl/rtp/rtp_cris_ccast_hires/{clear,dcc,site,random}/<year>/<doy>
