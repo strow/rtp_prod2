@@ -54,7 +54,7 @@ for i=1:n
 % If the filename has changed, re-load F   
    if ~strcmp(ename,fn) 
       clear F  % Probably not needed
-%      disp('New file'); for debugging
+      disp('New file'); % for debugging
       F(1) = grib_interpolate_era(fn_sfc,fn_lev,1);
       F(2) = grib_interpolate_era(fn_sfc,fn_lev,2);
       F(3) = grib_interpolate_era(fn_sfc,fn_lev,3);
