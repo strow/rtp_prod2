@@ -5,7 +5,7 @@ addpath ..;  % look one level up for create_* functions
 % grab the slurm array index for this process
 slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
 if isempty(slurmindex)
-    slurmindex=1;
+    slurmindex=0;
 end
 
 chunk = cfg.chunk;
@@ -46,7 +46,8 @@ for i = 1:chunk
     for i=1:ngranules
         fprintf(1, '>> processing granule %d/%d\n',i,ngranules)
         % build path to individual granule files
-        granfile = fullfile(granules(i).folder,granules(i).name);
+        %        granfile = fullfile(granules(i).folder,granules(i).name);
+        granfile = fullfile(srcpath,granules(i).name);
 
         % call the processing function
         [h0, ha0, p0, pa0] = create_cris_ADL_sdr_hires_clear_gran_rtp(granfile, cfg);

@@ -159,6 +159,10 @@ fprintf(1, '>>> Running rtp_ad_emis...');
 fprintf(1, 'Done\n');
 
 
+inrange = find(prof.satzen >= 0.0 & prof.satzen < 63.0);
+prof = rtp_sub_prof(prof, inrange);
+clear inrange;
+
 % run klayers
 fn_rtp1 = fullfile(sTempPath, ['cris_' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr);

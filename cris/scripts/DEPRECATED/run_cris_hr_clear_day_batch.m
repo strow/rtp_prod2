@@ -1,4 +1,4 @@
-function run_cris_nc_hr_clear_day_batch(cfg)
+function run_cris_hr_clear_day_batch(cfg)
 
 addpath ..;  % look one level up for create_* functions
 
@@ -26,16 +26,23 @@ for i = 1:chunk
     end
 
     % call the processing function
-    [head, hattr, prof, pattr] = create_cris_nc_hires_clear_day_rtp(infile, cfg);
+    fprintf(1, '> Processing day %s\n', infile)
+    [head, hattr, prof, pattr] = create_cris_ccast_hires_clear_day_rtp(infile, cfg);
+
+    MAXOBS = 80000;
+    if length(prof.rtime) > MAXOBS
+        prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
+    end
 
         % use fnCrisOutput to generate year and doy strings
     % /asl/data/cris/ccast/sdr60_hr/2016/163/SDR_d20160611_t0837285.mat
     % /asl/data/cris/ccast/test1/2017/091    %% for jpss-1 testing
+    % /asl/cris/ccast/sdr45_npp_HR/2021/088
 % $$$     [gpath, gname, ext] = fileparts(infile);
     C = strsplit(infile, '/');
-    cris_yearstr = C{8};
+    cris_yearstr = C{6};
     year = int32(str2num(cris_yearstr));
-    cris_doystr = C{9};
+    cris_doystr = C{7};
     doy = int32(str2num(cris_doystr));
     % Make directory if needed
     % cris hires data will be stored in
@@ -45,7 +52,7 @@ for i = 1:chunk
     for i = 1:length(asType)
         % check for existence of output path and create it if necessary. This may become a source
         % for filesystem collisions once we are running under slurm.
-        sPath = fullfile(cfg.outputdir,cris_yearstr, char(asType(i)));
+        sPath = fullfile(cfg.outputdir,char(asType(i)),cris_yearstr);
         if exist(sPath) == 0
             mkdir(sPath);
         end
@@ -61,7 +68,6 @@ for i = 1:chunk
         fname = sprintf('%s_%s_%s_%s_d%d.rtp', cfg.inst, cfg.model, cfg.rta, asType{i}, ...
                         dt);  % changed for cris2 cal testing
         rtp_outname = fullfile(sPath, fname);
-        fprintf(1, '>>>> output file: %s\n', rtp_outname)
         rtpwrite(rtp_outname,head,hattr,prof,pattr);
         fprintf(1, 'Done\n');
     end

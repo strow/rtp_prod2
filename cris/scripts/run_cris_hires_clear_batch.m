@@ -1,4 +1,4 @@
-function run_cris_hires_dcc_batch(cfg)
+function run_cris_hires_clear_batch(cfg)
 
 % grab the slurm array index for this process
     slurmindex = str2num(getenv('SLURM_ARRAY_TASK_ID'));
@@ -25,7 +25,7 @@ function run_cris_hires_dcc_batch(cfg)
 
         % build output directory and make sure it exists and/or is
         % creatable before the heavy time sink of actual processing
-        asType = 'dcc';
+        asType = 'clear';
 
         % pull year and doy from source path string (which is different
         % for each source and likely to change as we have no truly set
@@ -74,10 +74,9 @@ function run_cris_hires_dcc_batch(cfg)
         
         % call the processing function
         fprintf(1, '> Processing day %s\n', infile)
-        [head, hattr, prof, pattr] = create_cris_hires_dcc_rtp(infile, ...
-                                                      cfg);
+        [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(infile, cfg);
 
-        MAXOBS = 65000;
+        MAXOBS = 80000;
         if length(prof.rtime) > MAXOBS
             prof = rtp_sub_prof(prof, randperm(length(prof.rtime), MAXOBS));
         end

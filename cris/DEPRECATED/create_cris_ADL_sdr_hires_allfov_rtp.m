@@ -180,7 +180,8 @@ fprintf(1, 'Done\n');
     sarta_cfg.klayers_code = cfg.klayers_exec;
     sarta_cfg.sartaclear_code = cfg.sartaclr_exec;
     sarta_cfg.sartacloud_code = cfg.sartacld_exec;
-    
+
+    which driver_sarta_cloud_rtp
     prof = driver_sarta_cloud_rtp(head, hattr, prof, pattr, ...
                                   sarta_cfg);
 

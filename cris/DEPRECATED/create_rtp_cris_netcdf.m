@@ -24,7 +24,7 @@ nguard = 2;  % number of guard channels
 
 % Load up rtp
 opt.resmode = cfg.resmode;;
-[head, hattr, p, pattr] = uwnc2rtp(fnCrisInput, opt);
+[head, hattr, prof, pattr] = uwnc2rtp(fnCrisInput, opt);
 
 temp = size(head.ichan)
 if temp(2) > 1
@@ -54,13 +54,13 @@ ichan_ccast = head.ichan;
 fprintf(1, '>>> Add model: %s...', cfg.model)
 switch cfg.model
   case 'ecmwf'
-    [p,head,pattr]  = fill_ecmwf(p,head,pattr);
+    [prof,head,pattr]  = fill_ecmwf(prof,head,pattr);
   case 'era'
-    [p,head,pattr]  = fill_era(p,head,pattr);
+    [prof,head,pattr]  = fill_era(prof,head,pattr);
   case 'era5'
-    [p,head,pattr]  = fill_era5(p,head,pattr);
+    [prof,head,pattr]  = fill_era5(prof,head,pattr);
   case 'merra'
-    [p,head,pattr]  = fill_merra(p,head,pattr);
+    [prof,head,pattr]  = fill_merra(prof,head,pattr);
 end
 
 head.pfields = 5;  % robs, model
@@ -106,7 +106,7 @@ fprintf(1, 'Done\n');
 
 % Run sarta
 fn_rtp3 = fullfile(sTempPath, ['cris_' sID '_3.rtp']);
-run_sarta = [sarta_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
+run_sarta = [sartaclr_exec ' fin=' fn_rtp2 ' fout=' fn_rtp3 ' > ' ...
              sTempPath '/sarta_' sID '_stdout.txt'];
 fprintf(1, '>>> Running sarta: %s ...', run_sarta);
 unix(run_sarta);

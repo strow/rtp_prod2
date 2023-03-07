@@ -31,7 +31,7 @@ end
 % Run IASI SARTA
 %%** fiasi is a LUT for the IASI frequency space channel
 %%allocations
-ltemp = load('/asl/data/iremis/danz/iasi_f', 'fiasi'); % load fiasi
+ltemp = load('/home/sbuczko1/git/rtp_prod2_DEV/cris/static/iasi_f', 'fiasi'); % load fiasi
 fiasi = ltemp.fiasi;
 clear ltemp;
 
