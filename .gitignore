@@ -2,6 +2,7 @@
 *.old
 run/
 
+*/config
 #
 # ccast git ignore file
 #
