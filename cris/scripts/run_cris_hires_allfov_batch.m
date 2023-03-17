@@ -38,11 +38,11 @@ function run_cris_hires_allfov_batch(cfg)
         C = strsplit(inpath, '/');
         switch cfg.sourcedata
           case {'ccast', 'nasa'}
-            year = C{6};
-            doy = C{7};
+            year = C{end-1};
+            doy = C{end};
           case 'noaa'
-            year = C{5};
-            doy = C{6};
+            year = C{end-1};
+            doy = C{end};
         end
         
         % check for existence of output path and create it if necessary. This may become a source
