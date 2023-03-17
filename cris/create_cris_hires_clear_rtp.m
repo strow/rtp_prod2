@@ -36,6 +36,9 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
                                                 % return even in event
                                                 % of failure
 
+    % calculate nobs per granule
+    granobs = cfg.scanlines * cfg.nxtrack * cfg.nfov;
+
     % build list of hdf granule files for the day
     switch cfg.sourcedata
       case 'ccast'
@@ -117,7 +120,7 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
         gnans = isnan(p_gran.rtime);
         nnans = sum(gnans);
         nobs = length(p_gran.rtime);
-        if nnans | nobs ~= 12150
+        if nnans | nobs ~= granobs
             fprintf(2,'>> Granule %d contains NaNs or is wrong size. SKIPPING\n',i);
 % $$$             nan_inds = find(~gnans);
 % $$$             p_gran = rtp_sub_prof(p_gran,nan_inds);
@@ -140,7 +143,7 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
             continue;
         end
         
-        fprintf(1, '>> Uniform obs found: %d/12150\n', nuniform);
+        fprintf(1, '>> Uniform obs found: %d/%d\n', nuniform, granobs);
         p_gran = rtp_sub_prof(p_gran,iuniform);
 
         % check that [iv]chan are column vectors
