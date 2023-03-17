@@ -130,10 +130,7 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
         % check pixel uniformity. If no FOR/FOVs satisfy
         % uniformity, no point in continuing to process this
         % granule
-        uniform_cfg = struct;
-        uniform_cfg.uniform_test_channel = 961;
-        uniform_cfg.uniform_bt_threshold = 0.4; 
-        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, uniform_cfg);
+        [iuniform, amax_keep] = cris_find_uniform(h_gran, p_gran, cfg);
         
         % subset out non-uniform FOVs
         nuniform = length(iuniform);
