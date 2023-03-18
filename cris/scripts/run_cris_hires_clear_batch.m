@@ -59,7 +59,7 @@ function run_cris_hires_clear_batch(cfg)
           case 'ccast'
             fname = sprintf('%s_%s_%s_%s_d%d.rtp', cfg.inst, cfg.model, cfg.rta, asType, dt);
 
-          case 'noaa'
+          case {'noaa', 'noaa4'}
             fname = sprintf('%s_%s_%s_%s_d%d.rtp', cfg.inst, cfg.model, cfg.rta, asType, dt);
 
           case 'nasa'
