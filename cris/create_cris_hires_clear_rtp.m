@@ -4,6 +4,7 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
 % Process a single CrIS .mat granule file.
     mfilepath = mfilename('fullpath');
     mp = fileparts(mfilepath);
+    cfg.mp = mp;
     fprintf(1, '>> Running %s for input: %s\n', mfilepath, inpath);
 
     [sID, sTempPath] = genscratchpath();
@@ -39,6 +40,8 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
     % calculate nobs per granule
     granobs = cfg.scanlines * cfg.nxtrack * cfg.nfov;
 
+    stride = 1;
+    
     % build list of hdf granule files for the day
     switch cfg.sourcedata
       case 'ccast'
@@ -47,6 +50,9 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
         files = dir(fullfile(inpath, '*.nc'));
       case 'noaa'
         files = dir(fullfile(inpath, '*.h5'));
+      case 'noaa4'
+        files = dir(fullfile(inpath, '*.h5'));
+        stride = 15;
     end
 
     if isempty(files)
@@ -57,11 +63,11 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
     fprintf(1, '>>> Found %d granule files to be read\n', ...
             length(files));
 
-    stride=1;
+
     FIRSTGRAN=true;
     for i=1:stride:length(files)
         % Read ccast granule file
-        infile = fullfile(inpath, files(i).name);
+        infile = fullfile(files(i).folder, files(i).name);
         fprintf(1, '>>> Reading input file: %s  ', infile);
         
         try
@@ -71,24 +77,9 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
               case 'nasa'
                 [h_gran, ha_gran, p_gran, pa_gran] = uwnc2rtp(infile,cfg);
               case 'noaa'
-                [p_gran, pa_gran] = readsdr_rtp(infile);
-                %-------------------
-                % set header values
-                %-------------------
-                h_gran = struct;
-                load(fullfile(mp, 'static', 'CrIS_ancillary'));
-                h_gran.nchan = nchan;
-                h_gran.ichan = ichan;
-                h_gran.vchan = vchan;
-                h_gran.pfields = 4; % 4 = IR obs
-
-                %-----------------------
-                % set header attributes
-                %-----------------------
-                ha_gran = {{'header', 'instid', 'CrIS'}, ...
-                           {'header', 'reader', 'readsdr_rtp'}, ...
-                          };
-
+                [h_gran, ha_gran, p_gran, pa_gran] = sdr2rtp(infile, cfg);
+              case 'noaa4'
+                [h_gran, ha_gran, p_gran, pa_gran] = sdr42rtp(files, i, cfg);
               case 'climcaps'
                 [h_gran, ha_gran, p_gran, pa_gran] = climcaps2rtp(infile, cfg);
               case 'ccast_hi2lo'
