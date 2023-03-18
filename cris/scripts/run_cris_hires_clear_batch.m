@@ -39,7 +39,7 @@ function run_cris_hires_clear_batch(cfg)
           case {'ccast', 'nasa'}
             year = C{end-1};
             doy = C{end};
-          case 'noaa'
+          case {'noaa', 'noaa4'}
             year = C{end-1};
             doy = C{end};
         end
