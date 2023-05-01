@@ -1,33 +1,34 @@
-function [head, hattr, prof, pattr] = read_iasi_pch(granfile, cfg)
+function [head, hattr, prof, pattr] = read_iasi_pch(granfilepath, cfg)
 
+    mfilepath = mfilename('fullpath');
+    mp = fileparts(mfilepath);
+    
     head = struct;
     hattr = {};
     prof = struct;
     pattr = {};
 
 
-    load(fullfile(basedir, 'iasi_freq'));
-
-    PCCBasisFile1 = fullfile(cfg.pc_basedir, h5readatt(granfile, '/band_1', 'PCC_BasisFile'));
-    PCCBasisFile2 = fullfile(cfg.pc_basedir, h5readatt(granfile, '/band_2', 'PCC_BasisFile'));
-    PCCBasisFile3 = fullfile(cfg.pc_basedir, h5readatt(granfile, '/band_3', 'PCC_BasisFile'));
+    PCCBasisFile1 = fullfile(cfg.pc_basedir, h5readatt(granfilepath, '/band_1', 'PCC_BasisFile'));
+    PCCBasisFile2 = fullfile(cfg.pc_basedir, h5readatt(granfilepath, '/band_2', 'PCC_BasisFile'));
+    PCCBasisFile3 = fullfile(cfg.pc_basedir, h5readatt(granfilepath, '/band_3', 'PCC_BasisFile'));
 
     R1 = h5read(PCCBasisFile1, '/ReconstructionOperator');
     R2 = h5read(PCCBasisFile2, '/ReconstructionOperator');
     R3 = h5read(PCCBasisFile3, '/ReconstructionOperator');
 
-    scale_factor = 0.5; % should read this from granfile in case things change
-    p1 = scale_factor * double(h5read(granfile, '/band_1/p'));
-    p2 = scale_factor * double(h5read(granfile, '/band_2/p'));
-    p3 = scale_factor * double(h5read(granfile, '/band_3/p'));
+    scale_factor = 0.5; % should read this from granfilepath in case things change
+    p1 = scale_factor * double(h5read(granfilepath, '/band_1/p'));
+    p2 = scale_factor * double(h5read(granfilepath, '/band_2/p'));
+    p3 = scale_factor * double(h5read(granfilepath, '/band_3/p'));
 
-    p_local1 = scale_factor * double(h5read(granfile, '/band_1/p_local'));
-    p_local2 = scale_factor * double(h5read(granfile, '/band_2/p_local'));
-    p_local3 = scale_factor * double(h5read(granfile, '/band_3/p_local'));
+    p_local1 = scale_factor * double(h5read(granfilepath, '/band_1/p_local'));
+    p_local2 = scale_factor * double(h5read(granfilepath, '/band_2/p_local'));
+    p_local3 = scale_factor * double(h5read(granfilepath, '/band_3/p_local'));
 
-    R_local1 = h5read(granfile, '/band_1/R_local');
-    R_local2 = h5read(granfile, '/band_2/R_local');
-    R_local3 = h5read(granfile, '/band_3/R_local');
+    R_local1 = h5read(granfilepath, '/band_1/R_local');
+    R_local2 = h5read(granfilepath, '/band_2/R_local');
+    R_local3 = h5read(granfilepath, '/band_3/R_local');
 
     yl1 = pagemtimes(R1,p1) + pagemtimes(R_local1,p_local1);
     yl2 = pagemtimes(R2,p2) + pagemtimes(R_local2,p_local2);
@@ -61,41 +62,37 @@ function [head, hattr, prof, pattr] = read_iasi_pch(granfile, cfg)
     % Filename encodes start and stop times for granule
     % in fields 5 and 6, respectively.
     % IASI_PCH_1C_M03_20230331114153Z_20230331114456Z_N_O_20230331123048Z.h5
-    
+
+    [inpath, granfile, ext] = fileparts(granfilepath);
+    C = strsplit(granfile,'_');
+    platform = C{4};
+    tstart = C{5};
+    tend = C{6};
 
     
     % Build out rtp structs **************************
     nchan = size(prof.robs1,1);
-% $$$ chani = (1:nchan)'; % need to change to reflect proper sarta ichans
-% $$$                     % for chan 2378 and higher
-% following line loads array 'ichan' which gets swapped for chani below
-    load(fullfile(mp, '../static/sarta_chans_for_l1c.mat'));
-
-    %vchan = aux.nominal_freq(:);
-    vchan = freq;
+    % following line loads arrays 'v/ichan' 
+    load(fullfile(mp, '../static/iasi_freq'));
 
     % Header 
     head = struct;
     head.pfields = 4;  % robs1, no calcs in file
     head.ptype = 0;    % levels
     head.ngas = 0;
-    head.instid = 800; % AIRS 
-    head.pltfid = -9999;
-    head.nchan = length(ichan); % was chani
-    head.ichan = ichan;  % was chani
-    head.vchan = vchan; % was vchan(chani)
+    head.nchan = length(ichan); 
+    head.ichan = ichan; 
+    head.vchan = vchan; 
     head.vcmax = max(head.vchan);
     head.vcmin = min(head.vchan);
 
     % hattr
-    hattr={ {'header' 'pltfid' 'Aqua'}, ...
-            {'header' 'instid' 'AIRS'}
-            {'header' 'githash' trace.githash}, ...
-            {'header' 'rundate' trace.RunDate} };
+    hattr={ {'header' 'pltfid' platform}, ...
+            {'header' 'instid' 'IASI'}};
 
     % profile attribute changes for airicrad
     pattr = set_attr(pattr, 'robs1', inpath);
-    pattr = set_attr(pattr, 'rtime', 'TAI:1958');
+    pattr = set_attr(pattr, 'rtime', '*ESTIMATED* TAI:1958');
 
     %*************************************************
 

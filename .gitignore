@@ -14,6 +14,7 @@ emis/DanZ_data
 *.h5
 *.hdf
 *.mat
+!iasi_freq.mat
 !sarta_chans_for_l1c.mat
 !f_default_l1c.mat
 !CrIS_ancillary.mat
