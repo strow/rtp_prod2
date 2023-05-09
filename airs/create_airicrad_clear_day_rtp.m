@@ -170,6 +170,29 @@ for i=1:length(files)
             end
             clear nobs mobs
             head.pfields = 5;  % robs, model
+
+            if ~isempty(cfg.gasscale_opts)
+                %%*** add Chris' gas scaling code ***%%
+                % add CO2 from GML
+                %disp(‘adding GML CO2’)
+                if(cfg.gasscale_opts.scaleco2)
+                    [head,hattr,p] = fill_co2(head,hattr,p);
+                end
+                % add CH4 from GML
+                if(cfg.gasscale_opts.scalech4)
+                    [head,hattr,p] = fill_ch4(head,hattr,p);
+                end
+                % add N2O from GML
+                if(cfg.gasscale_opts.scalen2o)
+                    [head,hattr,p] = fill_n2o(head,hattr,p);
+                end
+                % add CO from MOPITT
+                % %if(ismember(5, opts2.glist))
+                % %  [head, hattr, prof] = fill_co(head,hattr,prof);
+                % %end
+                %%*** end Chris' gas scaling code ***%%
+            end
+            
             fprintf(1, 'Done\n');
             %*************************************************
 
@@ -215,9 +238,6 @@ for i=1:length(files)
                 dbtun_ag = dbtun_ag(iRand);
             end
 
-            % set co2ppm
-            p.co2ppm = cfg.co2ppm * ones(size(p.stemp));
-
             % write out first temp file for klayers input
             fn_rtp1 = fullfile(sTempPath, ['airs_' sID '_1.rtp']);
             rtpwrite(fn_rtp1,head,hattr,p,pattr)
@@ -234,6 +254,28 @@ for i=1:length(files)
             fprintf(1, 'Done\n');
             %*************************************************
 
+                    % scale gas concentrations, if requested in config
+            if ~isempty(cfg.gasscale_opts)
+                % read in klayers output
+                [hh,hha,pp,ppa] = rtpread(fn_rtp2);
+                delete(fn_rtp2)
+                if isfield(cfg.gasscale_opts, 'scaleco2')
+                    pp.gas_2 = pp.gas_2 * cfg.gasscale_opts.scaleco2;
+                    ppa{end+1} = {'profiles' 'scaleCO2' sprintf('%f', cfg.gasscale_opts.scaleco2)};
+                end
+                if isfield(cfg.gasscale_opts, 'scalech4')
+                    pp.gas_6 = pp.gas_6 * cfg.gasscale_opts.scalech4;
+                    ppa{end+1} = {'profiles' 'scaleCH4' sprintf('%f', cfg.gasscale_opts.scalech4)};        
+                end
+                %%*** Chris' fill_co is not ready so use basic scaling for now
+                if isfield(cfg.gasscale_opts,'scaleco') 
+                    pp.gas_5 * cfg.gasscale_opts.scaleco;
+                    ppa{end+1} = {'profiles' 'scaleCO' sprintf('%f', cfg.gasscale_opts.scaleco)};
+                end
+                %%*** 
+                rtpwrite(fn_rtp2,hh,hha,pp,ppa)
+            end
+
             %*************************************************
             % Run sarta **************************************
             fprintf(1, '>>> Running sarta... ');
@@ -246,9 +288,6 @@ for i=1:length(files)
 
             %*************************************************
             % Read in new rcalcs and insert into origin p field
-% $$$             stFileInfo = dir(fn_rtp3);
-% $$$             fprintf(1, ['*************\n>>> Reading fn_rtp3:\n\tName:\t%s\n\tSize ' ...
-% $$$                         '(GB):\t%f\n*************\n'], stFileInfo.name, stFileInfo.bytes/1.0e9);
             [~,~,p2,~] = rtpread(fn_rtp3);
             p.rclr = p2.rcalc;
             p.rcalc = p2.rcalc;
@@ -266,14 +305,11 @@ for i=1:length(files)
             % we have obs that passed uniformity and now have calcs
             % associated so we can do a clear test
             fprintf(1, '>>> running airs_find_clear')
-% $$$             fprintf(1, '>>> *** FIND_CLEAR DISABLED ***');
+
             nobs = length(p.rtime);
             [iflagsc, bto1232, btc1232] = airs_find_clear(head, p, 1:nobs);
             
             iclear_sea    = find(iflagsc == 0 & abs(dbtun_ag) < 0.4 & p.landfrac <= 0.01);
-% $$$             iclear_notsea = find(iflagsc == 0 & abs(dbtun_ag) < 1.0 & p.landfrac >  0.01);
-% $$$             iclear = union(iclear_sea, iclear_notsea);
-% $$$             iclear = find(p.landfrac > 0.95);
             iclear = iclear_sea;
             p.dbtun = dbtun_ag;
             nclear = length(iclear);

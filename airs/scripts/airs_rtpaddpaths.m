@@ -18,4 +18,7 @@ addpath(sprintf('%s/matlib/rtptools', REPOBASEPATH));   % for cat_rtp
 
 addpath /asl/matlib/aslutil
 addpath /asl/matlib/time
+
+% Chris' fill_?? routines                                                                        
+addpath /home/chepplew/gitLib/rtp_fill_gases/
 %*************************************************
