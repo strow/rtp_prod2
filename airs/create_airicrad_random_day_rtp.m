@@ -146,15 +146,15 @@ if ~isempty(cfg.gasscale_opts)
     % add CO2 from GML
     %disp(‘adding GML CO2’)
     if(cfg.gasscale_opts.scaleco2)
-        [h_gran,ha_gran,p_gran] = fill_co2(h_gran,ha_gran,p_gran);
+        [head, hattr, prof] = fill_co2(head, hattr, prof);
     end
     % add CH4 from GML
     if(cfg.gasscale_opts.scalech4)
-        [h_gran,ha_gran,p_gran] = fill_ch4(h_gran,ha_gran,p_gran);
+        [head, hattr, prof] = fill_ch4(head, hattr, prof);
     end
     % add N2O from GML
     if(cfg.gasscale_opts.scalen2o)
-        [h_gran,ha_gran,p_gran] = fill_n2o(h_gran,ha_gran,p_gran);
+        [head, hattr, prof] = fill_n2o(head, hattr, prof);
     end
     % add CO from MOPITT
     % %if(ismember(5, opts2.glist))
