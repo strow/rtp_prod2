@@ -32,7 +32,7 @@ sartacld_exec   = cfg.sartacld_exec;
 % Build traceability info ************************
 [status, ghash] = githash();
 RunDate = char(datetime('now','TimeZone','local','Format', ...
-                              'd-MMM-y HH:mm:ss Z'));
+                        'd-MMM-y HH:mm:ss Z'));
 fprintf(1, '>>> Run executed %s with git hash %s\n', ...
         RunDate, ghash);
 %*************************************************
@@ -78,7 +78,7 @@ for i=1:length(files)
                 {'header' 'sartacld_exec' sartacld_exec}, ...
                 {'header' 'source' inpath}, ...
                 {'header' 'rtime' 'TAI:1958'}};
-                
+        
         
         nchan = size(prof0.robs1,1);
         %vchan = aux.nominal_freq(:);
@@ -96,17 +96,17 @@ for i=1:length(files)
 
     end  % end if i == 1
 
-        p = equal_area_nadir_select(prof0,cfg);  % select for
-                                                 % random/nadir obs
-        fprintf(1, '>>>> SAVING %d random obs from granule\n', ...
-                length(p.rlat));
+    p = equal_area_nadir_select(prof0,cfg);  % select for
+                                             % random/nadir obs
+    fprintf(1, '>>>> SAVING %d random obs from granule\n', ...
+            length(p.rlat));
 
-        if i == 1
-            prof = p;
-        else
-            % concatenate new random rtp data into running random rtp structure
-            [head, prof] = cat_rtp(head, prof, head, p);
-        end
+    if i == 1
+        prof = p;
+    else
+        % concatenate new random rtp data into running random rtp structure
+        [head, prof] = cat_rtp(head, prof, head, p);
+    end
 end  % end for i=1:length(files)
 clear prof0 p;
 
@@ -141,6 +141,27 @@ if mobs ~= nobs
 end
 
 head.pfields = 5;
+if ~isempty(cfg.gasscale_opts)
+    %%*** add Chris' gas scaling code ***%%
+    % add CO2 from GML
+    %disp(‘adding GML CO2’)
+    if(cfg.gasscale_opts.scaleco2)
+        [h_gran,ha_gran,p_gran] = fill_co2(h_gran,ha_gran,p_gran);
+    end
+    % add CH4 from GML
+    if(cfg.gasscale_opts.scalech4)
+        [h_gran,ha_gran,p_gran] = fill_ch4(h_gran,ha_gran,p_gran);
+    end
+    % add N2O from GML
+    if(cfg.gasscale_opts.scalen2o)
+        [h_gran,ha_gran,p_gran] = fill_n2o(h_gran,ha_gran,p_gran);
+    end
+    % add CO from MOPITT
+    % %if(ismember(5, opts2.glist))
+    % %  [head, hattr, prof] = fill_co(head,hattr,prof);
+    % %end
+    %%*** end Chris' gas scaling code ***%%
+end
 fprintf(1, 'Done\n');
 %*************************************************
 
@@ -159,8 +180,6 @@ end
 fprintf(1, 'Done\n');
 %*************************************************
 
-% set co2 ppm value
-prof.co2ppm = cfg.co2ppm * ones(size(prof.stemp));
 
 %*************************************************
 % Save the rtp file ******************************
@@ -170,7 +189,41 @@ fn_rtp1 = fullfile(sTempPath, ['airs_random' sID '_1.rtp']);
 rtpwrite(fn_rtp1,head,hattr,prof,pattr)
 fprintf(1, 'Done\n');
 
-%*************************************************
+fprintf(1, '>>> Writing klayers input temp file %s ...', fn_rtp1);
+rtpwrite(fn_rtp1,head,hattr,prof,pattr)
+fprintf(1, 'Done\n')
+fn_rtp2 = fullfile(sTempPath, ['airs_random' sID '_2.rtp']);
+unix([cfg.klayers_exec ' fin=' fn_rtp1 ' fout=' fn_rtp2 ' > ' sTempPath ...
+      '/klayers_' sID '_stdout'])
+fprintf(1, 'Done\n');
+
+% scale gas concentrations, if requested in config
+if ~isempty(cfg.gasscale_opts)
+    fprintf(1, '>>> Post-klayers linear gas scaling...')
+    % read in klayers output
+    [hh,hha,pp,ppa] = rtpread(fn_rtp2);
+    delete(fn_rtp2)
+    if isfield(cfg.gasscale_opts, 'scaleco2')
+        fprintf(1, '\n\t\tCO2...')
+        pp.gas_2 = pp.gas_2 * cfg.gasscale_opts.scaleco2;
+        ppa{end+1} = {'profiles' 'scaleCO2' sprintf('%f', cfg.gasscale_opts.scaleco2)};
+    end
+    if isfield(cfg.gasscale_opts, 'scalech4')
+        fprintf(1, '\n\t\tCH4...')
+        pp.gas_6 = pp.gas_6 * cfg.gasscale_opts.scalech4;
+        ppa{end+1} = {'profiles' 'scaleCH4' sprintf('%f', cfg.gasscale_opts.scalech4)};        
+    end
+    %%*** Chris' fill_co is not ready so use basic scaling for now
+    if isfield(cfg.gasscale_opts,'scaleco')
+        fprintf(1, '\n\t\tCO...')
+        pp.gas_5 * cfg.gasscale_opts.scaleco;
+        ppa{end+1} = {'profiles' 'scaleCO' sprintf('%f', cfg.gasscale_opts.scaleco)};
+    end
+    %%***
+    rtpwrite(fn_rtp2,hh,hha,pp,ppa)
+    fprintf(1, 'Done\n')
+end
+
 % call klayers/sarta cloudy **********************
 fprintf(1, '>>> Running driver_sarta_cloud for both klayers and sarta\n');
 run_sarta.cloud=cfg.sarta_cld;
@@ -179,7 +232,6 @@ run_sarta.cumsum=cfg.sarta_cumsum;
 run_sarta.klayers_code=klayers_exec;
 run_sarta.sartaclear_code=sartaclr_exec;
 run_sarta.sartacloud_code=sartacld_exec;
-run_sarta.co2ppm = cfg.co2ppm;
 
 [prof0, oslabs] = driver_sarta_cloud_rtp(head,hattr,prof,pattr,run_sarta);
 
@@ -213,4 +265,4 @@ head.pfields = 7;  % robs, model, calcs
 
 fprintf(1, 'Done\n');
 
-            
+
