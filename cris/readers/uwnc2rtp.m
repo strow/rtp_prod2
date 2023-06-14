@@ -50,7 +50,7 @@ prof.rlon = single(reshape(s.lon, 1, nobs));
 % Obs times are TAI93 times (like AIRS) but need to be TAI58 for
 % consistency wth other downstream processing
 temp = reshape(airs2tai(s.obs_time_tai93), 1, nfors*nscans);
-prof.rtime = reshape(ones(9,1)*temp, 1, nobs);
+prof.rtime = reshape(ones(nfovs,1)*temp, 1, nobs);
 clear temp;
 
 % $$$ prof.satzen = reshape(s.sat_zen, 1, nobs);
@@ -63,6 +63,12 @@ temp = squeeze(s.sat_range(5,:,:));
 temp = (nanmean(temp(15,:),2) + nanmean(temp(16,:),2))/2;
 prof.zobs = ones(1,nobs)*temp;
 clear temp;
+
+% sat_sol_zen and subsat_lat
+%temp = reshape(s.sat_sol_zen, 1, nscans);
+prof.sat_sol_zen = reshape(ones(nfors*nfovs,1)*s.sat_sol_zen(:)', 1, nobs);
+%temp = reshape(s.subsat_lat, 1, nscans);
+prof.subsat_lat = reshape(ones(nfors*nfovs,1)*s.subsat_lat(:)', 1, nobs);
 
 iobs = 1:nobs;
 prof.atrack = int32( 1 + floor((iobs-1)/270) );
