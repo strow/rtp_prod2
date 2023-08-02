@@ -48,11 +48,16 @@ function [head, hattr, prof, pattr] = create_cris_hires_clear_rtp(inpath, cfg)
         files = dir(fullfile(inpath, '*.mat'));
       case 'nasa'
         files = dir(fullfile(inpath, '*.nc'));
-      case 'noaa'
+      case {'noaa','noaa4'}
         files = dir(fullfile(inpath, '*.h5'));
-      case 'noaa4'
-        files = dir(fullfile(inpath, '*.h5'));
-        stride = 15;
+        % reset files(i).folder to inpath to get around symlink diffs
+        % between sdr and geo file locations
+        s = cellstr(repmat(inpath,size(files)));
+        [files.folder] = s{:};
+        clear s;
+        if strcmp('noaa4',cfg.sourcedata)
+            stride = 15;
+        end
     end
 
     if isempty(files)
