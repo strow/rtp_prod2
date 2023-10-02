@@ -29,7 +29,7 @@ if (nargin == 4) & isfield(cfg, 'offset')
     offset = cfg.offset;  % offset time for CrIS2
                                 % cal testing (ECMWF lag)
 end
-mtime = tai2dnum(prof.rtime) - offset;  
+mtime = tai2dnum(prof.rtime - offset);  
                             
 
 nobs = length(mtime);  % for missing ecmwf file check
