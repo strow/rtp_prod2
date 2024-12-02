@@ -30,7 +30,7 @@ logfilepath = '/home/sbuczko1/LOGS/sbatch';
 if (length(mondate) ~= 7) fprintf(1,'Error in date format\n'); return; end;
 syr = mondate(1:4);      smo = mondate(6:7);
 nyr = str2num(syr);      nmo = str2num(smo);
-if( nyr < 2007 | nyr > 2023 ) fprintf(1,'Error: year out of range\n'); return; end;
+if( nyr < 2007 | nyr > 2024 ) fprintf(1,'Error: year out of range\n'); return; end;
 if( nmo < 1 | nmo > 12 ) fprintf(1,'Error: month out of range\n'); return; end;
 endday = eomday(nyr, nmo);   
 njobs = endday;

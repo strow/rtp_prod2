@@ -7,7 +7,7 @@
 # sbatch options
 #SBATCH --job-name=RUN_CREATE_CRIS_HR_RANDOM_RTP
 # partition = dev/batch
-#SBATCH --partition=batch
+#SBATCH --partition=high_mem
 # qos = short/normal/medium/long/long_contrib
 #SBATCH --qos=normal+
 #SBATCH --account=pi_strow
