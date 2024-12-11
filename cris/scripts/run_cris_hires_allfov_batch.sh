@@ -9,7 +9,7 @@
 # partition = dev/batch
 #SBATCH --partition=high_mem
 # qos = short/normal/medium/long/long_contrib
-#SBATCH --qos=bobsqos
+#SBATCH --qos=normal+
 #SBATCH --account=pi_strow
 #SBATCH -N1
 #SBATCH --mem-per-cpu=18000

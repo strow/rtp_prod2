@@ -185,25 +185,28 @@ function [head, hattr, prof, pattr] = create_cris_hires_allfov_rtp(infile, cfg)
     % pull calcs out of prof0 and stuff into pre-klayers prof
     [~,~,prof,~] = rtpread(fn_rtp1);
     prof.rclr = prof0.rclr;
-    prof.rcld = prof0.rcld;
 
-    % also capture cloud fields
-    prof.cfrac = prof0.cfrac;   
-    prof.cfrac12 = prof0.cfrac12; 
-    prof.cfrac2 = prof0.cfrac2;  
-    prof.cngwat = prof0.cngwat;  
-    prof.cngwat2 = prof0.cngwat2; 
-    prof.cprbot = prof0.cprbot;  
-    prof.cprbot2 = prof0.cprbot2; 
-    prof.cprtop = prof0.cprtop;  
-    prof.cprtop2 = prof0.cprtop2; 
-    prof.cpsize = prof0.cpsize;  
-    prof.cpsize2 = prof0.cpsize2; 
-    prof.ctype = prof0.ctype;   
-    prof.ctype2 = prof0.ctype2;  
-    prof.co2ppm = prof0.co2ppm;
+    if cfg.cloud
+      prof.rcld = prof0.rcld;
 
-    %*************************************************
+      % also capture cloud fields
+      prof.cfrac = prof0.cfrac;   
+      prof.cfrac12 = prof0.cfrac12; 
+      prof.cfrac2 = prof0.cfrac2;  
+      prof.cngwat = prof0.cngwat;  
+      prof.cngwat2 = prof0.cngwat2; 
+      prof.cprbot = prof0.cprbot;  
+      prof.cprbot2 = prof0.cprbot2; 
+      prof.cprtop = prof0.cprtop;  
+      prof.cprtop2 = prof0.cprtop2; 
+      prof.cpsize = prof0.cpsize;  
+      prof.cpsize2 = prof0.cpsize2; 
+      prof.ctype = prof0.ctype;   
+      prof.ctype2 = prof0.ctype2;  
+      prof.co2ppm = prof0.co2ppm;
+    end
+    
+%*************************************************
     % Make head reflect calcs
     head.pfields = 7;  % robs, model, calcs
 
