@@ -2,10 +2,6 @@
 *.old
 run/
 
-*/config
-#
-# ccast git ignore file
-#
 
 emis/Data
 emis/DanZ_data
