@@ -19,19 +19,22 @@ tphome = '/home/chepplew/data/matlab/figs/';
 
 % Load global average trend data (yyyy mm dd max min)
 %      date-range: 2013.01.01 to 2023.02.27
-co2.trend_fn = '/home/chepplew/data/GML_CO2/trends/co2_trend_gl.txt';
-D = importdata(co2.trend_fn,' ',41);
+% %co2.trend_fn = '/home/chepplew/data/GML_CO2/trends/co2_trend_gl.txt';
+co2.trend_fn = '/home/chepplew/data/GML_CO2/trends/co2_daily_mlo.txt';
+D = importdata(co2.trend_fn,' ',50);      % 41 for gl.txt
 co2.trdnum = datenum([D.data(:,1) D.data(:,2) D.data(:,3)]);
-co2.trppmv = D.data(:,4);
+% %co2.trppmv = D.data(:,4);
+co2.trppmv = D.data(:,5);
 clear D;
 
 % ============================================
-% CO2 NOAA GML data (glb3x2 CT2019B to 2019 then NRT from 2019 to 2021)
+% CO2 NOAA GML data (glb3x2 CT2019B to 2019 then 
+%     NRT from 2019 to 2023/02
 % ============================================
 d(1).home = '/home/chepplew/data/GML_CO2/global/monthly/gml.noaa.gov/';
 d(2).home = '/home/chepplew/data/GML_CO2/global/nrt/';
 d(1).list = dir([d(1).home 'CT2019B*.nc']);
-d(2).list = dir([d(2).home 'CT-NRT*.nc']);
+d(2).list = dir([d(2).home 'CT-NRT*01.nc']);    % get first day of month
 
 % Extract datestring from the files
 clear ddnum
@@ -71,7 +74,7 @@ udy = unique(str2num(dstr));
 
 % Load gridded GML data  
 % 1 from 2000.01 to 2019.03  co2 [ 120x90x25 ]
-% 2 from 2019.04.01 to 2021.02.01 [12x90x35x8]
+% 2 from 2019.04.01 to 2023.02.01 [12x90x35x8]
 if(mean(rmtime) < datenum('2019/03/01','yyyy/mm/dd'))
   % use d(1) monthly data
   junk = datenum([num2str(uyr(1)) '-' num2str(umn(1))],'yyyy-mm');
@@ -79,13 +82,13 @@ if(mean(rmtime) < datenum('2019/03/01','yyyy/mm/dd'))
   [sd att] = read_netcdf([d(1).list(1).folder '/' d(1).list(iiddn).name]);
 
 elseif(mean(rmtime) >= datenum('2019/03/01','yyyy/mm/dd') & ...
-       mean(rmtime) <= datenum('2021/02/01','yyyy/mm/dd'))
+       mean(rmtime) <= datenum('2023/02/01','yyyy/mm/dd'))
   % use d(2) first day of the month data
   junk = datenum([num2str(uyr(1)) '-' num2str(umn(1))],'yyyy-mm');
   iiddn = find(ddnum == junk);  
   [sd att] = read_netcdf([d(2).list(1).folder '/' d(2).list(iiddn-231+3).name]);
 
-elseif(mean(rmtime) > datenum('2021/02/01','yyyy/mm/dd'))
+elseif(mean(rmtime) > datenum('2023/02/01','yyyy/mm/dd'))
   [sd att] = read_netcdf([d(2).list(end).folder '/' d(2).list(end).name]);
 
 end
@@ -176,12 +179,13 @@ opt2.month    = umn(1);
 atm = load_standard_atmos(opt2);
 
 % ======================================================
-% Account for CH4 change since reference atmosphere data
+% Account for CO2 change since reference atmosphere data
 % ======================================================
 % Extrapolate/interpolate from trend data to current time:
-xvals = co2.trdnum - co2.trdnum(1);
-xq    = datenum([uyr(1) umn(1) 1]) - co2.trdnum(1);
-co2.upd = interp1(xvals, co2.trppmv, xq,'linear','extrap');
+xvals = co2.trdnum;  % % - co2.trdnum(1);
+yvals = co2.trppmv;  % % - co2.trppmv(1);
+xq    = datenum([uyr(1) umn(1) 1]);  % %  - co2.trdnum(1);
+co2.upd = interp1(xvals, yvals, xq,'linear','extrap');
 
 % Scale the AFGL std.ATM & co2.intrp profiles with updated surface value
 co2.intxmr     = co2.upd/mean(co2.intrp(1,:),2);

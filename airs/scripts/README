@@ -1,0 +1,67 @@
+* running airs clear for more than one day at a time (slurm batch)
+
+  - batch runs key off two files: a configuration file and a drive
+    file with paths to days to process
+
+    - create list of days to process (does not have to be consecutive
+      days or ordered in any particular way)
+
+      e.g. days 2024/048-050 
+      /asl/airs/l1c_v675/2024/: 
+      ls -d1 /asl/airs/l1c_v675/2024/{048,049,050} >> ../config/airs_days_to_process
+
+      The path to this driver file needs to be noted in the
+      configuration file you will be using as the value for the "file_list" key
+
+      airs_days_to_process, then, contains lines like:
+         /asl/airs/l1c_v675/2024/048
+         /asl/airs/l1c_v675/2024/049
+         /asl/airs/l1c_v675/2024/050
+
+      Note the number of lines in the driver file i.e.
+         wc -l ../config/airs_days_to_process
+
+      this will be needed in the sbatch call array parameters
+
+    - make sure your config file file_list key points to your file list...
+
+    - run sbatch
+      sbatch --array=0-N run_airicrad_clear_day_batch.sh <path to config file> 
+
+      where N is the number of lines in the driver file - 1
+      <path to config file> is the path to your config file
+
+** how it all comes together
+assuming the above for creation of a driver file and assuming the
+configuration file is ../config/airicrad_ecmwf_clear.ini, this comes together as:
+
+sbatch --array=0-2 run_airicrad_clear_day_batch.sh ../config/airicrad_ecmwf_clear.ini
+
+This will try to get three nodes on the cluster each running a day from the driver file.
+
+The default sbatch options in run_airicrad_clear_day_batch.sh are to
+run in the medium+ QOS for 3hrs 59min. Under normal use, I find this
+to be almost twice what I actually need.
+
+** Running large numbers of days
+I find it very beneficial to do a couple things when running large
+numbers of days (let's say a year)
+
+   - throttle back the sbatch array request (i.e. --array=0-364%20) I
+     find it best to run 20-40 days at a time. above that, there tends
+     to be some resource contention and things slow down. You can let
+     sbatch just run and figure everything out on its own but will
+     likely run long and quite likely overrun the 3:59:00 time
+     request. Which brings me to:
+
+   - do a test run first, say, 5 days to see how the cluster is
+     running. If they run slow, it might be advisable to adjust the
+     time request
+
+     sbatch --array=0-5 run_airicrad_clear_day_batch.sh ../config/airicrad_ecmwf_clear.ini
+   
+     - if this runs slow, adjust time for rest;
+       sbatch --array=6-364%20 --time=05:00:00 run_airicrad_clear_day_batch.sh ../config/airicrad_ecmwf_clear.ini
+
+     - if it seems to be running fine
+       sbatch --array=6-364%20 run_airicrad_clear_day_batch.sh ../config/airicrad_ecmwf_clear.ini       

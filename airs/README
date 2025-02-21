@@ -1,0 +1,19 @@
+* AIRS airicrad clear subset rtp production by day
+create_airicrad_clear_day_rtp.m 
+
+function [head, hattr, prof, pattr] = create_airicrad_clear_day_rtp(inpath, cfg)
+
+where inpath is the path to the DAY of airs you wish to turn into a
+clear subset rtp. e.g. /asl/airs/l1c_v675/2025/008. cfg is a config
+structure produced by a call to ini2struct and a configuration file
+like that in ./config/airicrad_ecmwf_clear.ini
+
+** single day by hand in matlab:
+>> airs_rtpaddpaths
+>> inpath='/asl/airs/l1c_v675/2025/008'
+>> cfg = ini2struct('./config/airicrad_ecmwf_clear.ini')
+>> [h,ha,p,pa] = create_airicrad_clear_day_rtp(inpath,cfg);
+
+The sample ini file ./config/airicrad_ecmwf_clear.ini should suffice
+for most clear subset work, especially is running single days by hand.
+

@@ -15,6 +15,7 @@ disp('fill_ch4.m: adding CH4')
 % =============================================
 % Load Reference CH4 distribution at 2010.12.31
 % =============================================
+ch4 = struct;
 ch4.ref_fn = '/home/chepplew/data/GML_CH4/ch4_molefractions/20101231.nc';
 
 [sac aac] = read_netcdf(ch4.ref_fn);
@@ -132,7 +133,7 @@ plot(squeeze(ch4.tot_tmn(4,27,:)),squeeze(sac.pressure(4,27,:,4)),'.-')
 opt2 = struct;
 opt2.latitude = nanmean(prof.rlat);
 opt2.year     = uyr;
-opt2.month    = umn;
+opt2.month    = umn(1);
 
 atm = load_standard_atmos(opt2);
 

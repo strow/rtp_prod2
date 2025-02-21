@@ -14,9 +14,7 @@
 #SBATCH -N1
 #SBATCH --mem-per-cpu=20000
 #SBATCH --cpus-per-task 1
-##SBATCH --array=0-179
 #SBATCH --time=03:59:00
-##SBATCH --exclude=cnode[101-134]
 
 #SBATCH -o /home/sbuczko1/LOGS/sbatch/run_create_airs_clear_day-%A_%a.out
 #SBATCH -e /home/sbuczko1/LOGS/sbatch/run_create_airs_clear_day-%A_%a.err
@@ -25,7 +23,7 @@
 MATLAB=matlab
 MATOPT=' -nojvm -nodisplay -nosplash'
 
-echo "Executing srun of run_cris_batch"
+echo "Executing srun of run_airs_batch"
 $MATLAB $MATOPT -r "disp('>>Starting script');\
                     airs_rtpaddpaths;\
                     cfg=ini2struct('$1');\

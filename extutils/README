@@ -1,0 +1,10 @@
+This directory is a snapshot of CHepplewhite's fill gas development
+(snapshot updated 2/20/2025). This is not where rtp_prod2 pulls these
+routines from, rtp_prod2 currently pulls directly from Chris' repo
+(/home/chepplew/gitLib/rtp_fill_gases/). However, Chris' repo, while
+initialized, has never had any development checked in. As such, while
+it represents the most current version of his untracked development
+(and thus an unknown changing target inside rtp_prod production), it
+can not be trusted as a stable resource for these files. Should the
+base repo disappear, this snapshot is available for use and further
+development.
